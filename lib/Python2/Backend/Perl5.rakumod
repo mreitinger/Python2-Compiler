@@ -23,6 +23,10 @@ class Python2::Backend::Perl5 {
         return "'" ~ $node.value ~ "'";
     }
 
+    multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
+        return $node.value;
+    }
+
     # Fallback
     multi method e($node) {
         die("Perl 5 backed for node not implemented: " ~ Dump($node));

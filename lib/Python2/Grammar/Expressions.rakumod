@@ -4,8 +4,10 @@ grammar Python2::Grammar::Expressions {
     }
 
     rule literal {
-        "'" <string> "'"
+        | "'" <string> "'"
+        | <integer>
     }
 
-    token string { \w }
+    token string    { \w }
+    token integer   { \d }
 }

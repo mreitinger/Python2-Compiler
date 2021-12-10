@@ -12,6 +12,12 @@ class Python2::Actions::Expressions {
         ))
     }
 
+    multi method literal ($/ where $/<integer>) {
+        $/.make(Python2::AST::Node::Expression::Literal::Integer.new(
+            value => $/<integer>.Int,
+        ))
+    }
+
     multi method expression ($/) {
         die("Action for expression not implemented: " ~ $/)
     }

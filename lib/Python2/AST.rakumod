@@ -10,6 +10,10 @@ class Python2::AST {
         has Str $.value;
     }
 
+    class Node::Expression::Literal::Integer is Node {
+        has Int $.value;
+    }
+
     # Statements
     class Node::Statement::Print is Node {
         has $.expression;
