@@ -4,6 +4,7 @@ grammar Python2::Grammar::Expressions {
         | <literal>
         | <variable-access>
         | <list-definition>
+        | <dictionary-definition>
     }
 
 
@@ -42,9 +43,24 @@ grammar Python2::Grammar::Expressions {
     }
 
 
+    # dictionary handling
+    rule dictionary-definition {
+        '{'  <dictionary-entry-list> '}'
+    }
+
+    rule dictionary-entry-list {
+        <dictionary-entry>* %% ','
+    }
+
+    rule dictionary-entry {
+        <dictionary-key> ':' <expression>
+    }
+
+
     # basic, reused, tokens
     # TODO migrate to dedicated module
-    token string        { \w }
-    token integer       { \d }
-    token variable-name { <lower>+ }
+    token string            { \w }
+    token integer           { \d }
+    token variable-name     { <lower>+ }
+    token dictionary-key    { <integer>+ }
 }

@@ -23,6 +23,17 @@ sub py2print {
     if (ref($var) eq 'ARRAY') {
         say '[' . join(', ', map { $_ =~ m/^\d+$/ ? $_ : "'$_'" } @$var) . ']';
     }
+    elsif (ref($var) eq 'HASH') {
+        my $output = '';
+
+        say "{" .
+            join (', ',
+                map {
+                    "$_: " . ($var->{$_} =~ m/^\d+$/ ? $var->{$_} : "'$var->{$_}'")
+                } keys %$var
+            ) .
+        "}";
+    }
     elsif (ref($var) eq '') {
         say $var;
     }

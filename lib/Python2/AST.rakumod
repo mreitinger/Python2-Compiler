@@ -26,6 +26,9 @@ class Python2::AST {
         has Node @.expressions;
     }
 
+    class Node::Expression::DictionaryDefinition is Node {
+        has Node %.entries;
+    }
 
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {

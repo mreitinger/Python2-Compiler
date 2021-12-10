@@ -63,6 +63,21 @@ class Python2::Backend::Perl5 {
     }
 
 
+    # dictionary handling
+    multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {
+        my $p5 = '{';
+
+        for $node.entries.kv -> $dictionary-key, $expression {
+            $p5 ~= $dictionary-key ~ ' => ' ~ $.e($expression); #TODO needs quoting etc for key
+            $p5 ~= ','; # TODO trailing slash
+        }
+
+        $p5 ~= '}';
+
+        return $p5;
+    }
+
+
     # Fallback
     multi method e($node) {
         die("Perl 5 backed for node not implemented: " ~ Dump($node));

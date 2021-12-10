@@ -18,6 +18,10 @@ class Python2::Actions::Expressions {
         $/.make($/<list-definition>.made);
     }
 
+    multi method expression ($/ where $/<dictionary-definition>) {
+        $/.make($/<dictionary-definition>.made);
+    }
+
     # literals
     multi method literal ($/ where $/<string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
@@ -65,6 +69,27 @@ class Python2::Actions::Expressions {
         }
 
         $/.make($expression-list);
+    }
+
+
+    # dictionary handling
+    multi method dictionary-definition($/) {
+        use Data::Dump;
+
+        # get every dictionary entry in the list. we just bypass the intermediate
+        # dictionary-entry-list that we just use for the grammar so far.
+        my %dictionary-entries;
+
+        for $/<dictionary-entry-list><dictionary-entry> -> $entry {
+            my $key = $entry<dictionary-key>.Str;
+            my $expression = $entry<expression>.made;
+
+            %dictionary-entries{$key} = $expression;
+        }
+
+        $/.make(Python2::AST::Node::Expression::DictionaryDefinition.new(
+            entries => %dictionary-entries,
+        ));
     }
 
 
