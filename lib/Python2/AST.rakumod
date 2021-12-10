@@ -14,6 +14,14 @@ class Python2::AST {
         has Int $.value;
     }
 
+
+    # Arithmetic
+    class Node::Expression::ArithmeticOperation is Node {
+        has Int $.left;
+        has Int $.right;
+        has Str $.operator; # TODO validationf
+    }
+
     # Statements
     class Node::Statement::Print is Node {
         has $.expression;

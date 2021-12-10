@@ -18,7 +18,13 @@ class Python2::Backend::Perl5 {
         return 'say ' ~ $.e($node.expression) ~ ";";
     }
 
+
     # Expressions
+    # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
+    multi method e(Python2::AST::Node::Expression::ArithmeticOperation $node) {
+        return $node.left ~ $node.operator ~ $node.right;
+    }
+
     multi method e(Python2::AST::Node::Expression::Literal::String $node) {
         return "'" ~ $node.value ~ "'";
     }

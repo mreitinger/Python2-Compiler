@@ -6,6 +6,12 @@ class Python2::Actions::Expressions {
         $/.make($/<literal>.made);
     }
 
+    multi method expression ($/ where $/<arithmetic-operation>) {
+        $/.make($/<arithmetic-operation>.made);
+    }
+
+
+    # literals
     multi method literal ($/ where $/<string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             value => $/<string>.Str,
@@ -18,6 +24,17 @@ class Python2::Actions::Expressions {
         ))
     }
 
+
+    # arithmetic operations
+    multi method arithmetic-operation ($/) {
+        $/.make(Python2::AST::Node::Expression::ArithmeticOperation.new(
+            left        => $/<integer>[0].Int,
+            right       => $/<integer>[1].Int,
+            operator    => $/<arithmetic-operator>.Str,
+        ))
+    }
+
+    # fallback
     multi method expression ($/) {
         die("Action for expression not implemented: " ~ $/)
     }
