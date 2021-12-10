@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  runtests:
+    runs-on: ubuntu-latest
+
+    env:
+      RAKUDO_VERSION: rakudo-moar-2021.10-01-linux-x86_64-gcc.tar.gz
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: cache rakudo installation
+        uses: actions/cache@v2 
+        env:
+          cache-name: cache-rakudo-deployment
+        with:
+          path: |
+            ~/rakudo
+            ~/.rakudo
+          key: ${{ env.RAKUDO_VERSION }}
+
+      - name: setup rakudo environment
+        run: |
+          set -x
+          set -e
+          # skip deployment if found
+          if [[ -e ~/rakudo ]]; then exit 0; fi;
+          wget --quiet -O ~/raku.tar.gz https://rakudo.org/dl/rakudo/${{ env.RAKUDO_VERSION }}
+          mkdir ~/rakudo
+          tar -xf ~/raku.tar.gz -C ~/rakudo --strip-components=1
+          export PATH=~/rakudo/bin:$PATH
+          ~/rakudo/share/perl6/site/bin/zef install Data::Dump
+
+      - name: Run tests
+        run: |
+          export PATH=~/rakudo/bin:$PATH
+          make -k test
+
