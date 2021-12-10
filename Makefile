@@ -1,2 +1,4 @@
+python_testcases := $(wildcard t/*.py)
+
 test:
-	@bash ./runtests.sh
+	@echo $(python_testcases) | xargs -P 8 -n 1 bash ./runtest.sh
