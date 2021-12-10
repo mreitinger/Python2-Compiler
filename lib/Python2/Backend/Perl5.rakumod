@@ -21,7 +21,7 @@ class Python2::Backend::Perl5 {
 
     # Statements
     multi method e(Python2::AST::Node::Statement::Print $node) {
-        return 'py2print(' ~ $.e($node.expression) ~ ");\n";
+        return 'Python2::py2print(' ~ $.e($node.expression) ~ ");\n";
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
