@@ -30,7 +30,7 @@ sub py2print {
             join (', ',
                 map {
                     "$_: " . ($var->{$_} =~ m/^\d+$/ ? $var->{$_} : "'$var->{$_}'")
-                } keys %$var
+                } sort keys %$var
             ) .
         "}";
     }
