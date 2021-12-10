@@ -3,13 +3,12 @@ use Data::Dump;
 
 class Python2::Backend::Perl5 {
     has Str $!o =
-        # TODO migrate boilerplate to dedicated Perl 5 module and load it at runtime
         "use v5.26.0;\n" ~
-        "use strict;\n\n" ~
-        'my $stack = {};' ~ "\n" ~
-        'sub setvar { my ($stack, $name, $value) = @_; $stack->{$name} = $value; }' ~ "\n" ~
-        'sub getvar { my ($stack, $name) = @_; return $stack->{$name}; }' ~ "\n\n"
-    ; # Generated Perl 5 code
+        "use strict;\n" ~
+        "use lib qw( p5lib );\n" ~
+        "use Python2;\n\n" ~
+        'my $stack = {};' ~ "\n\n";
+    ;
 
     # root node: iteral over all statements and create perl code for them
     multi method e(Python2::AST::Node::Root $node) {
@@ -26,7 +25,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
-        return 'setvar($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.expression) ~ ");";
+        return 'Python2::setvar($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.expression) ~ ");";
     }
 
 
@@ -45,7 +44,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::VariableAccess $node) {
-        return 'getvar($stack, \'' ~ $node.variable-name ~ "');";
+        return 'Python2::getvar($stack, \'' ~ $node.variable-name ~ "');";
     }
 
     # Fallback
