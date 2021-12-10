@@ -2,7 +2,14 @@ use Python2::AST;
 use Data::Dump;
 
 class Python2::Backend::Perl5 {
-    has Str $!o = "use v5.26.0; use strict;\n\n"; # Generated Perl 5 code
+    has Str $!o =
+        # TODO migrate boilerplate to dedicated Perl 5 module and load it at runtime
+        "use v5.26.0;\n" ~
+        "use strict;\n\n" ~
+        'my $stack = {};' ~ "\n" ~
+        'sub setvar { my ($stack, $name, $value) = @_; $stack->{$name} = $value; }' ~ "\n" ~
+        'sub getvar { my ($stack, $name) = @_; return $stack->{$name}; }' ~ "\n\n"
+    ; # Generated Perl 5 code
 
     # root node: iteral over all statements and create perl code for them
     multi method e(Python2::AST::Node::Root $node) {
@@ -18,6 +25,10 @@ class Python2::Backend::Perl5 {
         return 'say ' ~ $.e($node.expression) ~ ";";
     }
 
+    multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
+        return 'setvar($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.expression) ~ ");";
+    }
+
 
     # Expressions
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
@@ -31,6 +42,10 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
         return $node.value;
+    }
+
+    multi method e(Python2::AST::Node::Expression::VariableAccess $node) {
+        return 'getvar($stack, \'' ~ $node.variable-name ~ "');";
     }
 
     # Fallback

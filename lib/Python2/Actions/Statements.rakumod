@@ -10,9 +10,20 @@ class Python2::Actions::Statements {
         $/.make($<statement-print>.made);
     }
 
+    multi method statement($/ where $<variable-assignment>) {
+        $/.make($<variable-assignment>.made);
+    }
+
     multi method statement-print($/) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             expression => $/<expression>.made
+        ));
+    }
+
+    multi method variable-assignment($/) {
+        $/.make(Python2::AST::Node::Statement::VariableAssignment.new(
+            variable-name   => $/<variable-name>.Str,
+            expression      => $/<expression>.made
         ));
     }
 

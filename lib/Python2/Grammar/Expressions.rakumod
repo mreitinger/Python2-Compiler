@@ -2,6 +2,7 @@ grammar Python2::Grammar::Expressions {
     rule expression {
         | <arithmetic-operation>
         | <literal>
+        | <variable-access>
     }
 
 
@@ -24,7 +25,15 @@ grammar Python2::Grammar::Expressions {
     token arithmetic-operator:sym</> { <sym> }
 
 
+    # access to a single variable
+    rule variable-access {
+        <variable-name>
+    }
+
+
     # basic, reused, tokens
-    token string    { \w }
-    token integer   { \d }
+    # TODO migrate to dedicated module
+    token string        { \w }
+    token integer       { \d }
+    token variable-name { <lower>+ }
 }

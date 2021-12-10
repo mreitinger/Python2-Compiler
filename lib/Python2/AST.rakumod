@@ -14,6 +14,10 @@ class Python2::AST {
         has Int $.value;
     }
 
+    class Node::Expression::VariableAccess is Node {
+        has Str     $.variable-name;
+    }
+
 
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {
@@ -25,5 +29,10 @@ class Python2::AST {
     # Statements
     class Node::Statement::Print is Node {
         has $.expression;
+    }
+
+    class Node::Statement::VariableAssignment is Node {
+        has Str     $.variable-name;
+        has Node    $.expression;
     }
 }

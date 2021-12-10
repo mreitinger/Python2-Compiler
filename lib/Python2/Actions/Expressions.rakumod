@@ -10,6 +10,9 @@ class Python2::Actions::Expressions {
         $/.make($/<arithmetic-operation>.made);
     }
 
+    multi method expression ($/ where $/<variable-access>) {
+        $/.make($/<variable-access>.made);
+    }
 
     # literals
     multi method literal ($/ where $/<string>) {
@@ -31,6 +34,14 @@ class Python2::Actions::Expressions {
             left        => $/<integer>[0].Int,
             right       => $/<integer>[1].Int,
             operator    => $/<arithmetic-operator>.Str,
+        ))
+    }
+
+
+    # variable access
+    multi method variable-access ($/) {
+        $/.make(Python2::AST::Node::Expression::VariableAccess.new(
+            variable-name => $/<variable-name>.Str,
         ))
     }
 
