@@ -14,6 +14,10 @@ class Python2::Actions::Expressions {
         $/.make($/<variable-access>.made);
     }
 
+    multi method expression ($/ where $/<list-definition>) {
+        $/.make($/<list-definition>.made);
+    }
+
     # literals
     multi method literal ($/ where $/<string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
@@ -44,6 +48,25 @@ class Python2::Actions::Expressions {
             variable-name => $/<variable-name>.Str,
         ))
     }
+
+
+    # list handling
+    multi method list-definition($/) {
+        $/.make(Python2::AST::Node::Expression::ListDefinition.new(
+            expressions => $/<expression-list>.made.expressions
+        ));
+    }
+
+    multi method expression-list($/) {
+        my $expression-list = Python2::AST::Node::Expression::ExpressionList.new();
+
+        for $/<expression> -> $expression {
+            $expression-list.expressions.push($expression.made);
+        }
+
+        $/.make($expression-list);
+    }
+
 
     # fallback
     multi method expression ($/) {

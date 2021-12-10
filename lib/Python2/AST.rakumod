@@ -18,6 +18,14 @@ class Python2::AST {
         has Str     $.variable-name;
     }
 
+    class Node::Expression::ListDefinition is Node {
+        has Node @.expressions;
+    }
+
+    class Node::Expression::ExpressionList is Node {
+        has Node @.expressions;
+    }
+
 
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {

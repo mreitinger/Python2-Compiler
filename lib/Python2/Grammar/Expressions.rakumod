@@ -3,6 +3,7 @@ grammar Python2::Grammar::Expressions {
         | <arithmetic-operation>
         | <literal>
         | <variable-access>
+        | <list-definition>
     }
 
 
@@ -28,6 +29,16 @@ grammar Python2::Grammar::Expressions {
     # access to a single variable
     rule variable-access {
         <variable-name>
+    }
+
+
+    # list handling
+    rule list-definition {
+        '['  <expression-list> ']'
+    }
+
+    rule expression-list {
+        <expression>* %% ','
     }
 
 
