@@ -62,5 +62,8 @@ grammar Python2::Grammar::Expressions {
     token string            { \w }
     token integer           { \d }
     token variable-name     { <lower>+ }
-    token dictionary-key    { <integer>+ }
+    token dictionary-key    {
+        | <integer>+
+        | "'" <string> "'"
+    }
 }

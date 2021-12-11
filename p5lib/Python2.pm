@@ -29,7 +29,9 @@ sub py2print {
         say "{" .
             join (', ',
                 map {
-                    "$_: " . ($var->{$_} =~ m/^\d+$/ ? $var->{$_} : "'$var->{$_}'")
+                    ($_ =~ m/^\d+$/ ? $_ : "'$_'") .  # TODO add a quote-like-python function
+                    ': ' .
+                    ($var->{$_} =~ m/^\d+$/ ? $var->{$_} : "'$var->{$_}'")
                 } sort keys %$var
             ) .
         "}";
