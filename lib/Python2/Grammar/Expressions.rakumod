@@ -60,7 +60,7 @@ grammar Python2::Grammar::Expressions {
 
     # basic, reused, tokens
     # TODO migrate to dedicated module
-    token string            { \w }
+    token string            { [\w|\s]+ }
     token integer           { \d }
     token variable-name     { <lower>+ }
     token dictionary-key    {
