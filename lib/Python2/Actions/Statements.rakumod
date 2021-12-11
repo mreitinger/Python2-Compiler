@@ -34,7 +34,7 @@ class Python2::Actions::Statements {
     multi method statement-loop-for($/) {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             variable-name   => $/<variable-name>.Str,
-            list-definition => $/<list-definition>.made,
+            iterable        => $/<iterable>.made,
             suite           => $/<suite>.made,
         ));
     }

@@ -44,7 +44,7 @@ class Python2::Backend::Perl5 {
     # loops
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
         # TODO should we prefix variable names with something to prevent clashes?
-        my $p5 = 'foreach my $var (@{ ' ~ $.e($node.list-definition) ~ '}) {' ~ "\n";
+        my $p5 = 'foreach my $var (@{ ' ~ $.e($node.iterable) ~ '}) {' ~ "\n";
         $p5 ~=   '    my $stack = {};' ~ "\n"; # TODO handle stack traversal
         $p5 ~=   '    Python2::setvar($stack, \''~ $node.variable-name ~ '\', $var);' ~ "\n";
         $p5 ~=   $.e($node.suite);

@@ -11,7 +11,12 @@ grammar Python2::Grammar::Statements {
     }
 
     rule statement-loop-for {
-        'for' <variable-name> 'in' <list-definition> ':' <suite>
+        'for' <variable-name> 'in' <iterable> ':' <suite>
+    }
+
+    token iterable {
+        | <list-definition>
+        | <variable-access>
     }
 
     rule variable-assignment {

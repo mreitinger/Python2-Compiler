@@ -1,4 +1,5 @@
 use Python2::AST;
+use Data::Dump;
 
 class Python2::Actions::Expressions {
     # top level 'expression'
@@ -33,6 +34,18 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::Integer.new(
             value => $/<integer>.Int,
         ))
+    }
+
+    multi method iterable ($/ where $/<list-definition>) {
+        $/.make($/<list-definition>.made);
+    }
+
+    multi method iterable ($/ where $/<variable-access>) {
+        $/.make($/<variable-access>.made);
+    }
+
+    multi method iterable ($/) {
+        die("iterable not implemented for " ~ Dump($/))
     }
 
 

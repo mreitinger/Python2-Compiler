@@ -49,7 +49,7 @@ class Python2::AST {
 
     class Node::Statement::LoopFor is Node {
         has Str     $.variable-name;
-        has Node    $.list-definition;
+        has Node    $.iterable;
         has Node    $.suite;
     }
 
