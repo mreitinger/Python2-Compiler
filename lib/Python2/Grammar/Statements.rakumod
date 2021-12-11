@@ -13,20 +13,12 @@ grammar Python2::Grammar::Statements {
     }
 
     rule statement-loop-for {
-        'for' <variable-name> 'in' <iterable> ':' <suite>
-    }
-
-    token iterable {
-        | <list-definition>
-        | <variable-access>
+        'for' <variable-name> 'in' <expression> ':' <suite>
     }
 
     rule variable-assignment {
         <variable-name> '=' <expression>
     }
-
-
-
 
     # TODO migrate to a dedicated Grammer::X module with other 'groupings'
     # TODO why does python call this a 'suite'?
