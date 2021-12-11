@@ -3,13 +3,28 @@ grammar Python2::Grammar::Statements {
         | <variable-assignment>
         | <statement-print>
         | <expression>
+        | <statement-loop-for>
     }
 
     rule statement-print {
         'print' <expression>
     }
 
+    rule statement-loop-for {
+        'for' <variable-name> 'in' <list-definition> ':' <suite>
+    }
+
     rule variable-assignment {
         <variable-name> '=' <expression>
     }
+
+    # TODO migrate to a dedicated Grammer::X module with other 'groupings'
+    # TODO why does python call this a 'suite'?
+    # TODO this only handles blocks not a single statement like 'for x in y: statement'
+    rule suite {
+        '{'
+            <statement>* %% ';'
+        '}'
+    }
+
 }

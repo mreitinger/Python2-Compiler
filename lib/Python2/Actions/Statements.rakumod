@@ -14,6 +14,10 @@ class Python2::Actions::Statements {
         $/.make($<variable-assignment>.made);
     }
 
+    multi method statement($/ where $<statement-loop-for>) {
+        $/.make($<statement-loop-for>.made);
+    }
+
     multi method statement-print($/) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             expression => $/<expression>.made
@@ -26,6 +30,25 @@ class Python2::Actions::Statements {
             expression      => $/<expression>.made
         ));
     }
+
+    multi method statement-loop-for($/) {
+        $/.make(Python2::AST::Node::Statement::LoopFor.new(
+            variable-name   => $/<variable-name>.Str,
+            list-definition => $/<list-definition>.made,
+            suite           => $/<suite>.made,
+        ));
+    }
+
+    multi method suite($/ where $<statement>) {
+        my $suite = Python2::AST::Node::Suite.new();
+
+        for $/<statement> -> $statement {
+            $suite.statements.push($statement.made);
+        }
+
+        $/.make($suite);
+    }
+
 
     multi method statement ($/) {
         die("Action for statement not implemented: " ~ $/)

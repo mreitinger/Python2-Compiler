@@ -19,6 +19,18 @@ class Python2::Backend::Perl5 {
         return $!o;
     }
 
+    multi method e(Python2::AST::Node::Suite $node) {
+        my $p5 = '{';
+
+        for $node.statements -> $statement {
+            $p5 ~= $.e($statement);
+        }
+
+        $p5 ~= '}' ~ "\n";
+
+        return $p5;
+    }
+
     # Statements
     multi method e(Python2::AST::Node::Statement::Print $node) {
         return 'Python2::py2print(' ~ $.e($node.expression) ~ ");\n";
@@ -26,6 +38,25 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
         return 'Python2::setvar($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.expression) ~ ");";
+    }
+
+
+    # loops
+    multi method e(Python2::AST::Node::Statement::LoopFor $node) {
+        # TODO should we prefix variable names with something to prevent clashes?
+        my $p5 = 'foreach my $var (@{ ' ~ $.e($node.list-definition) ~ '}) {' ~ "\n";
+        $p5 ~=   '    my $stack = {};' ~ "\n"; # TODO handle stack traversal
+        $p5 ~=   '    Python2::setvar($stack, \''~ $node.variable-name ~ '\', $var);' ~ "\n";
+        $p5 ~=   $.e($node.suite);
+
+        #for $node.expressions -> $expression {
+        #    $p5 ~= $.e($expression);
+        #    $p5 ~= ','; # TODO trailing slash
+        #}
+
+        $p5 ~= "}\n";
+
+        return $p5;
     }
 
 

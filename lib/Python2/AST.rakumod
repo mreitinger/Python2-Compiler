@@ -46,4 +46,15 @@ class Python2::AST {
         has Str     $.variable-name;
         has Node    $.expression;
     }
+
+    class Node::Statement::LoopFor is Node {
+        has Str     $.variable-name;
+        has Node    $.list-definition;
+        has Node    $.suite;
+    }
+
+    class Node::Suite is Node {
+        has Node @.statements;
+    }
+
 }
