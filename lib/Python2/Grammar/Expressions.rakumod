@@ -11,6 +11,7 @@ grammar Python2::Grammar::Expressions {
     # literals
     rule literal {
         | "'" <string> "'"
+        | '"' <string> '"'
         | <integer>
     }
 
@@ -65,5 +66,6 @@ grammar Python2::Grammar::Expressions {
     token dictionary-key    {
         | <integer>+
         | "'" <string> "'"
+        | '"' <string> '"'
     }
 }
