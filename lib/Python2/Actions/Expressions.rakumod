@@ -23,6 +23,10 @@ class Python2::Actions::Expressions {
         $/.make($/<dictionary-definition>.made);
     }
 
+    multi method expression($/ where $<function-call>) {
+        $/.make($<function-call>.made);
+    }
+
     # literals
     multi method literal ($/ where $/<string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
@@ -102,6 +106,18 @@ class Python2::Actions::Expressions {
 
         $/.make(Python2::AST::Node::Expression::DictionaryDefinition.new(
             entries => %dictionary-entries,
+        ));
+    }
+
+    multi method function-call($/) {
+        my @arguments;
+        for $/<expression> -> $argument {
+            @arguments.push($argument.made);
+        }
+
+        $/.make(Python2::AST::Node::Expression::FunctionCall.new(
+            function-name => $/<function-name>.Str,
+            arguments     => @arguments,
         ));
     }
 

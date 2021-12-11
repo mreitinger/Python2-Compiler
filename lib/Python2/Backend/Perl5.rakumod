@@ -33,7 +33,7 @@ class Python2::Backend::Perl5 {
 
     # Statements
     multi method e(Python2::AST::Node::Statement::Print $node) {
-        return 'Python2::py2print(' ~ $.e($node.expression) ~ ");\n";
+        return 'Python2::py2print(' ~ $.e($node.value) ~ ");\n";
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
@@ -76,6 +76,20 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Expression::VariableAccess $node) {
         return 'Python2::getvar($stack, \'' ~ $node.variable-name ~ "')";
+    }
+
+    # function calls
+    multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
+        my $p5 = 'Python2::call(\'' ~ $node.function-name ~ '\', [';
+
+        for $node.arguments -> $argument {
+            $p5 ~= $.e($argument);
+            $p5 ~= ','; # TODO trailing slash
+        }
+
+        $p5 ~=   '])' ~ "\n";
+
+        return $p5;
     }
 
 

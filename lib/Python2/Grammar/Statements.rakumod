@@ -6,8 +6,10 @@ grammar Python2::Grammar::Statements {
         | <statement-loop-for>
     }
 
+    # TODO: we need a intermediate step here like python's test/testlist
     rule statement-print {
-        'print' <expression>
+        | 'print' <function-call>
+        | 'print' <expression>
     }
 
     rule statement-loop-for {
@@ -23,6 +25,9 @@ grammar Python2::Grammar::Statements {
         <variable-name> '=' <expression>
     }
 
+
+
+
     # TODO migrate to a dedicated Grammer::X module with other 'groupings'
     # TODO why does python call this a 'suite'?
     # TODO this only handles blocks not a single statement like 'for x in y: statement'
@@ -31,5 +36,4 @@ grammar Python2::Grammar::Statements {
             <statement>* %% ';'
         '}'
     }
-
 }

@@ -1,5 +1,6 @@
 grammar Python2::Grammar::Expressions {
     rule expression {
+        | <function-call>
         | <arithmetic-operation>
         | <literal>
         | <variable-access>
@@ -56,6 +57,13 @@ grammar Python2::Grammar::Expressions {
     rule dictionary-entry {
         <dictionary-key> ':' <expression>
     }
+
+    # function call
+    rule function-call {
+        <function-name> '(' <expression>* ')'
+    }
+
+    token function-name     { <lower>+ }
 
 
     # basic, reused, tokens

@@ -42,7 +42,25 @@ sub py2print {
     else {
         die("not implemented for " . ref($var));
     }
+}
 
+my $builtins = {
+    'sorted' => sub {
+        my ($arguments) = @_;
+
+        die ("NYI: sorted called with multiple arguments") if (scalar(@$arguments) > 1);
+
+        return [ sort(@{ $arguments->[0] }) ];
+    }
+};
+
+sub call {
+    my ($function_name, $arguments) = @_;
+
+    die("Unknown function: $function_name")
+        unless defined $builtins->{$function_name};
+
+    return $builtins->{$function_name}->($arguments);
 }
 
 

@@ -18,9 +18,15 @@ class Python2::Actions::Statements {
         $/.make($<statement-loop-for>.made);
     }
 
-    multi method statement-print($/) {
+    multi method statement-print($/ where $/<expression>) {
         $/.make(Python2::AST::Node::Statement::Print.new(
-            expression => $/<expression>.made
+            value => $/<expression>.made
+        ));
+    }
+
+    multi method statement-print($/ where $/<function-call>) {
+        $/.make(Python2::AST::Node::Statement::Print.new(
+            value => $/<function-call>.made
         ));
     }
 
@@ -48,7 +54,6 @@ class Python2::Actions::Statements {
 
         $/.make($suite);
     }
-
 
     multi method statement ($/) {
         die("Action for statement not implemented: " ~ $/)

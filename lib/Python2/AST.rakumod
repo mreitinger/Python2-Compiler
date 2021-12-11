@@ -30,6 +30,11 @@ class Python2::AST {
         has Node %.entries is required;
     }
 
+    class Node::Expression::FunctionCall is Node {
+        has Str     $.function-name is required;
+        has Node    @.arguments;
+    }
+
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {
         has Int $.left      is required;
@@ -39,7 +44,7 @@ class Python2::AST {
 
     # Statements
     class Node::Statement::Print is Node {
-        has $.expression is required;
+        has $.value is required;
     }
 
     class Node::Statement::VariableAssignment is Node {
