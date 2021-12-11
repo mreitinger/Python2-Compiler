@@ -7,15 +7,15 @@ class Python2::AST {
 
     # Expressions
     class Node::Expression::Literal::String is Node {
-        has Str $.value;
+        has Str $.value is required;
     }
 
     class Node::Expression::Literal::Integer is Node {
-        has Int $.value;
+        has Int $.value is required;
     }
 
     class Node::Expression::VariableAccess is Node {
-        has Str     $.variable-name;
+        has Str $.variable-name is required;
     }
 
     class Node::Expression::ListDefinition is Node {
@@ -27,30 +27,30 @@ class Python2::AST {
     }
 
     class Node::Expression::DictionaryDefinition is Node {
-        has Node %.entries;
+        has Node %.entries is required;
     }
 
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {
-        has Int $.left;
-        has Int $.right;
-        has Str $.operator; # TODO validationf
+        has Int $.left      is required;
+        has Int $.right     is required;
+        has Str $.operator  is required; # TODO validation
     }
 
     # Statements
     class Node::Statement::Print is Node {
-        has $.expression;
+        has $.expression is required;
     }
 
     class Node::Statement::VariableAssignment is Node {
-        has Str     $.variable-name;
-        has Node    $.expression;
+        has Str     $.variable-name is required;
+        has Node    $.expression    is required;
     }
 
     class Node::Statement::LoopFor is Node {
-        has Str     $.variable-name;
-        has Node    $.iterable;
-        has Node    $.suite;
+        has Str     $.variable-name is required;
+        has Node    $.iterable      is required;
+        has Node    $.suite         is required;
     }
 
     class Node::Suite is Node {
