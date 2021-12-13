@@ -74,6 +74,10 @@ class Python2::Backend::Perl5 {
         return $node.value;
     }
 
+    multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
+        return $node.value;
+    }
+
     multi method e(Python2::AST::Node::Expression::VariableAccess $node) {
         return 'Python2::getvar($stack, \'' ~ $node.variable-name ~ "')";
     }

@@ -14,6 +14,10 @@ class Python2::AST {
         has Int $.value is required;
     }
 
+    class Node::Expression::Literal::Float is Node {
+        has Num $.value is required;
+    }
+
     class Node::Expression::VariableAccess is Node {
         has Str $.variable-name is required;
     }
@@ -37,8 +41,8 @@ class Python2::AST {
 
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {
-        has Int $.left      is required;
-        has Int $.right     is required;
+        has $.left          is required;
+        has $.right         is required;
         has Str $.operator  is required; # TODO validation
     }
 

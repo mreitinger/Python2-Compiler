@@ -13,13 +13,13 @@ grammar Python2::Grammar::Expressions {
     rule literal {
         | "'" <string> "'"
         | '"' <string> '"'
-        | <integer>
+        | <number>
     }
 
 
     # arithmetic
     rule arithmetic-operation {
-        <integer> <arithmetic-operator> <integer>
+        <number> <arithmetic-operator> <number>
     }
 
     proto token arithmetic-operator {*}
@@ -69,6 +69,11 @@ grammar Python2::Grammar::Expressions {
     # basic, reused, tokens
     # TODO migrate to dedicated module
     token string            { [\w|\s]+ }
+    token number            {
+        | <float>
+        | <integer>
+    }
+    token float             { \d+\.\d+ }
     token integer           { \d }
     token variable-name     { <lower>+ }
     token dictionary-key    {

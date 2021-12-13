@@ -34,9 +34,19 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    multi method literal ($/ where $/<integer>) {
+    multi method literal ($/ where $/<number>) {
+        $/.make($/<number>.made)
+    }
+
+    multi method number ($/ where $/<integer>) {
         $/.make(Python2::AST::Node::Expression::Literal::Integer.new(
             value => $/<integer>.Int,
+        ))
+    }
+
+    multi method number ($/ where $/<float>) {
+        $/.make(Python2::AST::Node::Expression::Literal::Float.new(
+            value => $/<float>.Num,
         ))
     }
 
@@ -56,8 +66,8 @@ class Python2::Actions::Expressions {
     # arithmetic operations
     multi method arithmetic-operation ($/) {
         $/.make(Python2::AST::Node::Expression::ArithmeticOperation.new(
-            left        => $/<integer>[0].Int,
-            right       => $/<integer>[1].Int,
+            left        => $/<number>[0],
+            right       => $/<number>[1],
             operator    => $/<arithmetic-operator>.Str,
         ))
     }
