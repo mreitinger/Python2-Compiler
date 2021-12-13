@@ -66,6 +66,11 @@ class Python2::AST {
         has Node    $.suite         is required;
     }
 
+    class Node::Statement::If is Node {
+        has Node    $.test  is required;
+        has Node    $.suite is required;
+    }
+
     class Node::Suite is Node {
         has Node @.statements;
     }

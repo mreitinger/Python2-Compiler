@@ -18,6 +18,10 @@ class Python2::Actions::Statements {
         $/.make($<statement-loop-for>.made);
     }
 
+    multi method statement($/ where $<statement-if>) {
+        $/.make($<statement-if>.made);
+    }
+
     multi method statement-print($/ where $/<expression>) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             value => $/<expression>.made
@@ -41,6 +45,13 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             variable-name   => $/<variable-name>.Str,
             iterable        => $/<expression>.made,
+            suite           => $/<suite>.made,
+        ));
+    }
+
+    multi method statement-if($/) {
+        $/.make(Python2::AST::Node::Statement::If.new(
+            test            => $/<expression>.made,
             suite           => $/<suite>.made,
         ));
     }

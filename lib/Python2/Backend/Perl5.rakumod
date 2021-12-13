@@ -63,6 +63,10 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
+    multi method e(Python2::AST::Node::Statement::If $node) {
+        return 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.suite) ~ "}";
+    }
+
 
     # Expressions
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer

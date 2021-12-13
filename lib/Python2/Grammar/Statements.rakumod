@@ -4,6 +4,7 @@ grammar Python2::Grammar::Statements {
         | <statement-print>
         | <expression>
         | <statement-loop-for>
+        | <statement-if>
     }
 
     # TODO: we need a intermediate step here like python's test/testlist
@@ -14,6 +15,10 @@ grammar Python2::Grammar::Statements {
 
     rule statement-loop-for {
         'for' <variable-name> 'in' <expression> ':' <suite>
+    }
+
+    rule statement-if {
+        'if' <expression> ':' <suite>
     }
 
     rule variable-assignment {
