@@ -53,6 +53,14 @@ my $builtins = {
         return [ sort(@{ $arguments->[0] }) ];
     },
 
+    'int' => sub {
+        my ($arguments) = @_;
+
+        die ("NYI: int called with multiple arguments") if (scalar(@$arguments) > 1);
+
+        return int($arguments->[0]);
+    },
+
     'print' => sub {
         my ($arguments) = @_;
 
