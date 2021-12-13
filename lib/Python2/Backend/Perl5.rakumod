@@ -32,6 +32,11 @@ class Python2::Backend::Perl5 {
     }
 
     # Statements
+    # statement 'container': if it's a statement append ; to make the perl parser happy
+    multi method e(Python2::AST::Node::Statement $node) {
+        return $.e($node.statement) ~ ";\n";
+    }
+
     multi method e(Python2::AST::Node::Statement::Print $node) {
         return 'Python2::py2print(' ~ $.e($node.value) ~ ");\n";
     }

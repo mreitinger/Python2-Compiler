@@ -47,6 +47,10 @@ class Python2::AST {
     }
 
     # Statements
+    class Node::Statement is Node {
+        has Node $.statement is required;
+    }
+
     class Node::Statement::Print is Node {
         has $.value is required;
     }
