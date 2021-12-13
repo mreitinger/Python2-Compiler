@@ -51,6 +51,14 @@ my $builtins = {
         die ("NYI: sorted called with multiple arguments") if (scalar(@$arguments) > 1);
 
         return [ sort(@{ $arguments->[0] }) ];
+    },
+
+    'print' => sub {
+        my ($arguments) = @_;
+
+        die ("NYI: print called with multiple arguments") if (scalar(@$arguments) > 1);
+
+        Python2::py2print($arguments->[0]);
     }
 };
 
