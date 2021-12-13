@@ -12,10 +12,15 @@ grammar Python2::Grammar
         [
             | <empty-line> ';'
             | <statement> ';'
+            | <comment>
         ]+
     }
 
     token empty-line {
         \s*
+    }
+
+    token comment {
+        '#' \N+
     }
 }
