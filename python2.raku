@@ -45,6 +45,8 @@ for $input.split("\n") -> $line is copy {
     # indentation level decreasted, close the block
     if ($current_indentation_level < $previous_indentation_level) {
         $line ~~ s/^/\}\n/;
+
+        $previous_indentation_level = $current_indentation_level;
     }
 
     $preprocessed ~= "$line\n";
