@@ -71,6 +71,16 @@ class Python2::AST {
         has Node    $.suite is required;
     }
 
+    class Node::Statement::Test::Expression is Node {
+        has Node $.expression  is required;
+    }
+
+    class Node::Statement::Test::Comparison is Node {
+        has Node $.left is required;
+        has Str $.comparison-operator is required;
+        has Node $.right is required;
+    }
+
     class Node::Statement::FunctionDefinition is Node {
         has Str     $.function-name is required;
         has Str     @.argument-list is required;

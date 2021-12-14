@@ -67,6 +67,17 @@ class Python2::Backend::Perl5 {
         return 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.suite) ~ "}";
     }
 
+    multi method e(Python2::AST::Node::Statement::Test::Expression $node) {
+        return $.e($node.expression);
+    }
+
+    multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
+        return  'Python2::compare(' ~
+                $.e($node.left) ~ ', ' ~
+                $.e($node.right) ~ ', \'' ~
+                $node.comparison-operator ~ '\')';
+    }
+
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
         my $p5 = 'Python2::register_function($stack, \'' ~ $node.function-name ~ '\', sub {' ~ "\n";
 

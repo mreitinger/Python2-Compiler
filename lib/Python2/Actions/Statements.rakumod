@@ -55,11 +55,32 @@ class Python2::Actions::Statements {
 
     multi method statement-if($/) {
         $/.make(Python2::AST::Node::Statement::If.new(
-            test            => $/<expression>.made,
+            test            => $/<test>.made,
             suite           => $/<suite>.made,
         ));
     }
 
+    multi method test($/ where $/<comparison-operator>) {
+        $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
+            left                => $/<expression>[0].made,
+            comparison-operator => $/<comparison-operator>.Str,
+            right               => $/<expression>[1].made,
+        ));
+    }
+
+    multi method test($/) {
+        $/.make(Python2::AST::Node::Statement::Test::Expression.new(
+            expression => $/<expression>[0].made, # the 'test' rule has alternatives with >1 expression
+                                                  # so we seem to get an array all the time
+        ));
+    }
+
+    multi method comparison-operator($/) {
+        $/.make(Python2::AST::Node::Statement::Test::ComparisonOperator.new(
+            comparison-operator => $/<comparison-operator>.Str
+        ));
+
+    }
     multi method function-definition($/) {
         $/.make(Python2::AST::Node::Statement::FunctionDefinition.new(
             function-name   => $/<function-name>.Str,

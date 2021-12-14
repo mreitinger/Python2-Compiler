@@ -39,8 +39,15 @@ jobs:
           export PATH=~/rakudo/bin:$PATH
           ~/rakudo/share/perl6/site/bin/zef install Data::Dump
 
+      - name: setup perl environment
+        run: |
+          mkdir -p ~/perl5lib
+          curl -L https://cpanmin.us | perl - -l ~/perl5lib -n Scalar::Util
+ 
+
       - name: Run tests
         run: |
           export PATH=~/rakudo/bin:$PATH
+          export PERL5LIB=~/perl5lib/lib/perl5
           make -k test
 

@@ -19,8 +19,22 @@ grammar Python2::Grammar::Statements {
     }
 
     rule statement-if {
-        'if' <expression> ':' <suite>
+        'if' <test> ':' <suite>
     }
+
+    rule test {
+        | <expression> <comparison-operator> <expression>
+        | <expression>
+    }
+
+    proto token comparison-operator {*}
+    token comparison-operator:sym<==>   { <sym> }
+    token comparison-operator:sym<!=>   { <sym> }
+    # token comparison-operator:sym<\<\>> { <sym> } #NYI
+    token comparison-operator:sym<\>>   { <sym> }
+    token comparison-operator:sym<\<>   { <sym> }
+    token comparison-operator:sym<\>=>  { <sym> }
+    token comparison-operator:sym<\<=>  { <sym> }
 
     rule variable-assignment {
         <variable-name> '=' <expression>

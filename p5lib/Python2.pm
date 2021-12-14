@@ -2,6 +2,7 @@ package Python2;
 use v5.26.0;
 use warnings;
 use strict;
+use Scalar::Util qw/ looks_like_number /;
 
 # set a variable on our stack
 sub setvar {
@@ -42,6 +43,77 @@ sub py2print {
     else {
         die("not implemented for " . ref($var));
     }
+}
+
+my $comparisons = {
+    '==' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return ($left == $right);
+        } else {
+            die("comparison net yet implemented");
+        }
+    },
+
+    '!=' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return ($left != $right);
+        } else {
+            die("comparison net yet implemented");
+        }
+    },
+
+    '>' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return ($left > $right);
+        } else {
+            die("comparison net yet implemented");
+        }
+    },
+
+    '<' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return ($left < $right);
+        } else {
+            die("comparison net yet implemented");
+        }
+    },
+
+    '>=' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return ($left >= $right);
+        } else {
+            die("comparison net yet implemented");
+        }
+    },
+
+    '<=' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return ($left <= $right);
+        } else {
+            die("comparison net yet implemented");
+        }
+    }
+};
+
+sub compare {
+    my ($left, $right, $operator) = @_;
+
+    return $comparisons->{$operator}->($left, $right)
+        if defined $comparisons->{$operator};
+
+    die("comparison for $operator not yet implemented");
 }
 
 # register a function definition on the stack
