@@ -71,6 +71,11 @@ class Python2::AST {
         has Node    $.suite is required;
     }
 
+    class Node::Statement::FunctionDefinition is Node {
+        has Str     $.function-name is required;
+        has Node    $.suite is required;
+    }
+
     class Node::Suite is Node {
         has Node @.statements;
     }

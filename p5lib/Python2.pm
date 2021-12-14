@@ -44,6 +44,19 @@ sub py2print {
     }
 }
 
+# register a function definition on the stack
+sub register_function {
+    my ($stack, $name, $coderef) = @_;
+
+    die("register_function called without a valid name")
+        unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
+
+    die("register_function expects a coderef")
+        unless ref($coderef) eq 'CODE';
+
+    $stack->{funcs}->{$name} = $coderef;
+}
+
 my $builtins = {
     'sorted' => sub {
         my ($arguments) = @_;
@@ -71,12 +84,15 @@ my $builtins = {
 };
 
 sub call {
-    my ($function_name, $arguments) = @_;
+    my ($stack, $function_name, $arguments) = @_;
 
-    die("Unknown function: $function_name")
-        unless defined $builtins->{$function_name};
+    return $builtins->{$function_name}->($arguments)
+        if defined $builtins->{$function_name};
 
-    return $builtins->{$function_name}->($arguments);
+    return $stack->{funcs}->{$function_name}->($arguments)
+        if defined $stack->{funcs}->{$function_name};
+
+    die("unknown function: $function_name");
 }
 
 

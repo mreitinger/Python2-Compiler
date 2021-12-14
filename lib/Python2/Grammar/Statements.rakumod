@@ -5,6 +5,7 @@ grammar Python2::Grammar::Statements {
         | <expression>
         | <statement-loop-for>
         | <statement-if>
+        | <function-definition>
     }
 
     # TODO: we need a intermediate step here like python's test/testlist
@@ -23,6 +24,10 @@ grammar Python2::Grammar::Statements {
 
     rule variable-assignment {
         <variable-name> '=' <expression>
+    }
+
+    rule function-definition {
+        'def' <function-name> '(' ')' ':' <suite>
     }
 
     # TODO migrate to a dedicated Grammer::X module with other 'groupings'

@@ -67,6 +67,12 @@ class Python2::Backend::Perl5 {
         return 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.suite) ~ "}";
     }
 
+    multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
+        my $p5 = 'Python2::register_function($stack, \'' ~ $node.function-name ~ '\', sub {' ~ "\n";
+        $p5   ~= $.e($node.suite);
+        $p5   ~= "});"
+    }
+
 
     # Expressions
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
@@ -92,7 +98,7 @@ class Python2::Backend::Perl5 {
 
     # function calls
     multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
-        my $p5 = 'Python2::call(\'' ~ $node.function-name ~ '\', [';
+        my $p5 = 'Python2::call($stack, \'' ~ $node.function-name ~ '\', [';
 
         for $node.arguments -> $argument {
             $p5 ~= $.e($argument);

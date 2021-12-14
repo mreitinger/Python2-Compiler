@@ -22,6 +22,10 @@ class Python2::Actions::Statements {
         $/.make($<statement-if>.made);
     }
 
+    multi method statement($/ where $<function-definition>) {
+        $/.make($<function-definition>.made);
+    }
+
     multi method statement-print($/ where $/<expression>) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             value => $/<expression>.made
@@ -52,6 +56,13 @@ class Python2::Actions::Statements {
     multi method statement-if($/) {
         $/.make(Python2::AST::Node::Statement::If.new(
             test            => $/<expression>.made,
+            suite           => $/<suite>.made,
+        ));
+    }
+
+    multi method function-definition($/) {
+        $/.make(Python2::AST::Node::Statement::FunctionDefinition.new(
+            function-name   => $/<function-name>.Str,
             suite           => $/<suite>.made,
         ));
     }
