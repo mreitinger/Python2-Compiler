@@ -63,8 +63,20 @@ class Python2::Actions::Statements {
     multi method function-definition($/) {
         $/.make(Python2::AST::Node::Statement::FunctionDefinition.new(
             function-name   => $/<function-name>.Str,
+            argument-list   => $/<function-definition-argument-list>.made,
             suite           => $/<suite>.made,
         ));
+    }
+
+    # TODO we should do a a AST intermediate here to provide more data for further optimization
+    method function-definition-argument-list($/) {
+        my Str @argument-list;
+
+        for $/<variable-name> -> $argument {
+            @argument-list.push($argument.Str);
+        }
+
+        $/.make(@argument-list);
     }
 
     multi method suite($/ where $<statement>) {

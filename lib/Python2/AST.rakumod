@@ -73,6 +73,7 @@ class Python2::AST {
 
     class Node::Statement::FunctionDefinition is Node {
         has Str     $.function-name is required;
+        has Str     @.argument-list is required;
         has Node    $.suite is required;
     }
 

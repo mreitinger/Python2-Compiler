@@ -69,6 +69,13 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
         my $p5 = 'Python2::register_function($stack, \'' ~ $node.function-name ~ '\', sub {' ~ "\n";
+
+        $p5 ~= 'my $arguments = shift;' ~ "\n";
+
+        for $node.argument-list -> $argument {
+            $p5 ~= 'Python2::setvar($stack, \'' ~ $argument ~ '\', shift @$arguments);' ~ "\n";
+        }
+
         $p5   ~= $.e($node.suite);
         $p5   ~= "});"
     }

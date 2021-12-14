@@ -27,7 +27,12 @@ grammar Python2::Grammar::Statements {
     }
 
     rule function-definition {
-        'def' <function-name> '(' ')' ':' <suite>
+        'def' <function-name> '(' <function-definition-argument-list> ')' ':'
+        <suite>
+    }
+
+    rule function-definition-argument-list {
+        <variable-name>* %% ','
     }
 
     # TODO migrate to a dedicated Grammer::X module with other 'groupings'

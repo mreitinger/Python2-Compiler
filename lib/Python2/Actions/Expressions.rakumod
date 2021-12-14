@@ -121,14 +121,26 @@ class Python2::Actions::Expressions {
 
     multi method function-call($/) {
         my @arguments;
-        for $/<expression> -> $argument {
-            @arguments.push($argument.made);
+
+        for $/<function-call-argument-list>.made -> $argument {
+            @arguments.push($argument);
         }
 
         $/.make(Python2::AST::Node::Expression::FunctionCall.new(
             function-name => $/<function-name>.Str,
             arguments     => @arguments,
         ));
+    }
+
+    # TODO we should do a a AST intermediate here to provide more data for further optimization
+    method function-call-argument-list($/) {
+        my Python2::AST::Node @argument-list;
+
+        for $/<expression> -> $argument {
+            @argument-list.push($argument.made);
+        }
+
+        $/.make(@argument-list);
     }
 
 

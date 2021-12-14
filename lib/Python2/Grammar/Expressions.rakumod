@@ -60,7 +60,11 @@ grammar Python2::Grammar::Expressions {
 
     # function call
     rule function-call {
-        <function-name> '(' <expression>* ')'
+        <function-name> '(' <function-call-argument-list> ')'
+    }
+
+    rule function-call-argument-list {
+        <expression>* %% ','
     }
 
     token function-name     { <lower>+ }
