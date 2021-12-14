@@ -6,13 +6,13 @@ use strict;
 # set a variable on our stack
 sub setvar {
     my ($stack, $name, $value) = @_;
-    $stack->{$name} = $value;
+    $stack->{vars}->{$name} = $value;
 }
 
 # receive a variable from our stack
 sub getvar {
     my ($stack, $name) = @_;
-    return $stack->{$name};
+    return $stack->{vars}->{$name};
 }
 
 # print like python does: attempt to produce output perfectly matching Python's
