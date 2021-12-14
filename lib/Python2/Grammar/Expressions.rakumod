@@ -78,7 +78,7 @@ grammar Python2::Grammar::Expressions {
         | <integer>
     }
     token float             { \d+\.\d+ }
-    token integer           { \d }
+    token integer           { \d+ }
     token variable-name     { <lower>+ }
     token dictionary-key    {
         | <integer>+
