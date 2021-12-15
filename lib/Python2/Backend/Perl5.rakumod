@@ -23,7 +23,7 @@ class Python2::Backend::Perl5 {
         my $p5 = '{';
 
         for $node.statements -> $statement {
-            $p5 ~= $.e($statement);
+            $p5 ~= $.e($statement) ~ ';';
         }
 
         $p5 ~= '}' ~ "\n";
