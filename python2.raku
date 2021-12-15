@@ -22,6 +22,11 @@ my Str $preprocessed;
 # of the line. previous as in 'indentation level on the previous line'.
 my $previous_indentation_level = 0;
 
+# the size of the previous indentation ("number of spaces between the previous block and this one")
+# if nested blocks get 'closed' in the same line this is used to place the correct amount of closing
+# brackets.
+my $previous_indentation_size = 0;
+
 for $input.split("\n") -> $line is copy {
     $line.chomp;
 
@@ -39,12 +44,17 @@ for $input.split("\n") -> $line is copy {
     if ($current_indentation_level > $previous_indentation_level) {
         $line ~~ s/^/\{\n/;
 
+        $previous_indentation_size = ($current_indentation_level - $previous_indentation_level);
+
         $previous_indentation_level = $current_indentation_level;
     }
 
     # indentation level decreasted, close the block
     if ($current_indentation_level < $previous_indentation_level) {
-        $line ~~ s/^/\}\n/;
+        my $closed_block_count =
+            ($previous_indentation_level - $current_indentation_level) / $previous_indentation_size;
+
+        $line ~~ s/^/\};\n/ for 1 .. $closed_block_count;
 
         $previous_indentation_level = $current_indentation_level;
     }
