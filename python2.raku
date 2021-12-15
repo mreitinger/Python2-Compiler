@@ -30,6 +30,9 @@ my $previous_indentation_size = 0;
 for $input.split("\n") -> $line is copy {
     $line.chomp;
 
+    # skip empty lines: they stay at the same scope/indentation level as the line before
+    next if ($line ~~ m/^^$$/);
+
     # place a ; at the end of every line unless it is a compound ('multiline') statement like
     # for loops, if statements etc
     $line ~= ';' unless $line ~~ m/\:$$/;
