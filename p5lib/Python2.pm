@@ -13,6 +13,11 @@ sub setvar {
 # receive a variable from our stack
 sub getvar {
     my ($stack, $name) = @_;
+
+    until (exists $stack->{vars}->{$name} or not defined $stack->{parent}) {
+        $stack = $stack->{parent};
+    }
+
     return $stack->{vars}->{$name};
 }
 

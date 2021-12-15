@@ -82,6 +82,7 @@ class Python2::Backend::Perl5 {
         my $p5 = 'Python2::register_function($stack, \'' ~ $node.function-name ~ '\', sub {' ~ "\n";
 
         $p5 ~= 'my $arguments = shift;' ~ "\n";
+        $p5 ~= 'my $stack = { parent => $stack };' ~ "\n";
 
         for $node.argument-list -> $argument {
             $p5 ~= 'Python2::setvar($stack, \'' ~ $argument ~ '\', shift @$arguments);' ~ "\n";
