@@ -7,6 +7,11 @@ use Python2::Backend::Perl5;
 my Str $input = slurp();
 my Str $preprocessed;
 
+# empty imput, just shortcut the whole thing.
+if ($input ~~ /^\s*$/) {
+    exit;
+}
+
 # preprocess input:
 # - add a ';' to the end of every statement so the Grammar has something easier to work with
 # - add '{' and '}' around every indentation level so the Grammar can parse scope levels
@@ -31,11 +36,13 @@ for $input.split("\n") -> $line is copy {
     $line.chomp;
 
     # skip empty lines: they stay at the same scope/indentation level as the line before
-    next if ($line ~~ m/^^$$/);
-
-    # place a ; at the end of every line unless it is a compound ('multiline') statement like
-    # for loops, if statements etc
-    $line ~= ';' unless $line ~~ m/\:$$/;
+    if ($line ~~ m/^^$$/) {
+        $line = ' ' x $previous_indentation_level;
+    } else {
+        # place a ; at the end of every line unless it is a compound ('multiline') statement like
+        # for loops, if statements etc
+        $line ~= ';' unless $line ~~ m/\:$$/;
+    }
 
     # find the indentation level for this line. assume '0' if there is no whitespace to be found.
     # current as in 'indentation level on the current line'
@@ -63,6 +70,14 @@ for $input.split("\n") -> $line is copy {
     }
 
     $preprocessed ~= "$line\n";
+}
+
+# close any remaining open scope levels
+my $open_block_count =
+    ($previous_indentation_level - 0) / $previous_indentation_size;
+
+if ($open_block_count) {
+    $preprocessed ~= "};\n" for 1 .. $open_block_count;
 }
 
 my $ast     = Python2::Grammar.parse($preprocessed, actions => Python2::Actions);
