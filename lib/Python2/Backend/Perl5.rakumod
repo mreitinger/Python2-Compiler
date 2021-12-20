@@ -121,6 +121,13 @@ class Python2::Backend::Perl5 {
         return 'Python2::getvar($stack, \'' ~ $node.variable-name ~ "')";
     }
 
+    multi method e(Python2::AST::Node::Expression::InstanceVariableAccess $node) {
+        my $p5 = 'Python2::getvar(';    # get variable from a $stack
+        $p5 ~=   'Python2::getvar($stack, \'' ~ $node.object-name ~ '\')->{stack}, ';
+        $p5 ~=   '\'' ~ $node.variable-name ~ "')";
+        return $p5;
+    }
+
     # function calls
     multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
         my $p5 = 'Python2::call($stack, \'' ~ $node.function-name ~ '\', [';

@@ -22,6 +22,11 @@ class Python2::AST {
         has Str $.variable-name is required;
     }
 
+    class Node::Expression::InstanceVariableAccess is Node {
+        has Str $.object-name is required;
+        has Str $.variable-name is required;
+    }
+
     class Node::Expression::ListDefinition is Node {
         has Node @.expressions;
     }
