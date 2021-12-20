@@ -6,6 +6,7 @@ grammar Python2::Grammar::Statements {
         | <statement-loop-for>
         | <statement-if>
         | <function-definition>
+        | <class-definition>
     }
 
     # TODO: we need a intermediate step here like python's test/testlist
@@ -44,6 +45,12 @@ grammar Python2::Grammar::Statements {
         'def' <function-name> '(' <function-definition-argument-list> ')' ':'
         <suite>
     }
+
+    rule class-definition {
+        'class' <class-name> ':' <suite>
+    }
+
+    token class-name     { <lower>+ }
 
     rule function-definition-argument-list {
         <variable-name>* %% ','

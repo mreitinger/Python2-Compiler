@@ -26,6 +26,10 @@ class Python2::Actions::Statements {
         $/.make($<function-definition>.made);
     }
 
+    multi method statement($/ where $<class-definition>) {
+        $/.make($<class-definition>.made);
+    }
+
     multi method statement-print($/ where $/<expression>) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             value => $/<expression>.made
@@ -86,6 +90,13 @@ class Python2::Actions::Statements {
             function-name   => $/<function-name>.Str,
             argument-list   => $/<function-definition-argument-list>.made,
             suite           => $/<suite>.made,
+        ));
+    }
+
+    multi method class-definition($/) {
+        $/.make(Python2::AST::Node::Statement::ClassDefinition.new(
+            class-name  => $/<class-name>.Str,
+            suite       => $/<suite>.made,
         ));
     }
 

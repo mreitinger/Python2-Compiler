@@ -3,6 +3,7 @@ use v5.26.0;
 use warnings;
 use strict;
 use Scalar::Util qw/ looks_like_number /;
+use Clone qw/ clone /;
 
 # set a variable on our stack
 sub setvar {
@@ -134,6 +135,19 @@ sub register_function {
     $stack->{funcs}->{$name} = $coderef;
 }
 
+# register a class definition on the stack
+sub register_class {
+    my ($stack, $name, $definition) = @_;
+
+    die("register_class called without a valid name")
+        unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
+
+    die("register_class expects a definition hash")
+        unless ref($definition) eq 'HASH';
+
+    $stack->{classes}->{$name} = $definition;
+}
+
 my $builtins = {
     'sorted' => sub {
         my ($arguments) = @_;
@@ -169,8 +183,25 @@ sub call {
     return $stack->{funcs}->{$function_name}->($arguments)
         if defined $stack->{funcs}->{$function_name};
 
+    return Python2::create_object($stack, $function_name)
+        if defined $stack->{classes}->{$function_name};
+
     die("unknown function: $function_name");
 }
+
+
+sub create_object {
+    my ($stack, $class_name) = @_;
+
+    die("no class for $class_name") unless defined $stack->{classes}->{$class_name};
+
+    my $object = bless($stack->{classes}->{$class_name}, "PY2::$class_name");
+    $object->{init}->($object);
+
+    return $object;
+}
+
+
 
 
 1;

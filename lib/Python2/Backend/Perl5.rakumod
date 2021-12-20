@@ -92,6 +92,12 @@ class Python2::Backend::Perl5 {
         $p5   ~= "});"
     }
 
+    multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
+        my $p5 = 'Python2::register_class($stack, \'' ~ $node.class-name ~ '\', { ';
+        $p5 ~=   'init => sub { my $self = shift; my $stack = $self->{stack}; ' ~ $.e($node.suite) ~ ' },';
+        $p5 ~=   'stack => {}';
+        $p5   ~= "});"
+    }
 
     # Expressions
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
