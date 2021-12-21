@@ -101,7 +101,7 @@ grammar Python2::Grammar::Expressions {
     }
     token float             { \d+\.\d+ }
     token integer           { \d+ }
-    token variable-name     { <lower>+ }
+    token variable-name     { [<lower>|<upper>|_][<lower>|<upper>|<digit>|_]* }
     token dictionary-key    {
         | <integer>+
         | "'" <string> "'"
