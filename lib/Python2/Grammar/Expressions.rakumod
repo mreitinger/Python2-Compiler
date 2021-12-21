@@ -1,8 +1,10 @@
 grammar Python2::Grammar::Expressions {
     rule expression {
         | <function-call>
+
         | <arithmetic-operation>
-        | <literal>
+        || <literal>
+
         | <instance-variable-access>
         | <variable-access>
         | <list-definition>
@@ -20,7 +22,12 @@ grammar Python2::Grammar::Expressions {
 
     # arithmetic
     rule arithmetic-operation {
-        <number> [<arithmetic-operator> <number>]+
+        <operand> [<arithmetic-operator> <operand>]+
+    }
+
+    rule operand {
+        | <number>
+        | <variable-access>
     }
 
     rule arithmetic-operator {

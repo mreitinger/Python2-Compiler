@@ -72,6 +72,14 @@ class Python2::Actions::Expressions {
         ))
     }
 
+    multi method operand ($/ where $/<number>) {
+        $/.make($/<number>.made);
+    }
+
+    multi method operand ($/ where $/<variable-access>) {
+        $/.make($/<variable-access>.made);
+    }
+
     # arithmetic operations
     multi method arithmetic-operation ($/) {
         # a list of 'operations' to be performed in order from 'left' to 'right'
@@ -79,15 +87,15 @@ class Python2::Actions::Expressions {
         my @operations;
 
         # the the first (left-most) number
-        @operations.push($/<number>.shift.made);
+        @operations.push($/<operand>.shift.made);
 
         # for every remaining number
-        while ($/<number>.elems) {
+        while ($/<operand>.elems) {
             # get the next operator in line
             push(@operations, $/<arithmetic-operator>.shift.made);
 
             # and the next number
-            push(@operations, $/<number>.shift.made);
+            push(@operations, $/<operand>.shift.made);
         }
 
         $/.make(Python2::AST::Node::Expression::ArithmeticOperation.new(
