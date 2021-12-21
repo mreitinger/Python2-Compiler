@@ -5,7 +5,6 @@ grammar Python2::Grammar::Expressions {
         | <arithmetic-operation>
         || <literal>
 
-        | <instance-variable-access>
         | <variable-access>
         | <list-definition>
         | <dictionary-definition>
@@ -41,7 +40,8 @@ grammar Python2::Grammar::Expressions {
 
     # access to a single variable
     rule variable-access {
-        <variable-name>
+        | <instance-variable-access>
+        | <variable-name>
     }
 
     # access to a instance variable

@@ -15,10 +15,6 @@ class Python2::Actions::Expressions {
         $/.make($/<variable-access>.made);
     }
 
-    multi method expression ($/ where $/<instance-variable-access>) {
-        $/.make($/<instance-variable-access>.made);
-    }
-
     multi method expression ($/ where $/<list-definition>) {
         $/.make($/<list-definition>.made);
     }
@@ -104,10 +100,14 @@ class Python2::Actions::Expressions {
     }
 
     # variable access
-    multi method variable-access ($/) {
+    multi method variable-access ($/ where $/<variable-name>) {
         $/.make(Python2::AST::Node::Expression::VariableAccess.new(
             variable-name => $/<variable-name>.Str,
         ))
+    }
+
+    multi method variable-access ($/ where $/<instance-variable-access>) {
+        $/.make($/<instance-variable-access>.made);
     }
 
     # instance variable access
