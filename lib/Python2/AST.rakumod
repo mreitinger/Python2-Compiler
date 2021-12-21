@@ -22,6 +22,10 @@ class Python2::AST {
         has Str $.variable-name is required;
     }
 
+    class Node::Expression::ArithmeticOperator is Node {
+        has Str $.arithmetic-operator is required;
+    }
+
     class Node::Expression::InstanceVariableAccess is Node {
         has Str $.object-name is required;
         has Str $.variable-name is required;
@@ -46,9 +50,7 @@ class Python2::AST {
 
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {
-        has $.left          is required;
-        has $.right         is required;
-        has Str $.operator  is required; # TODO validation
+        has Node @.operations is required;
     }
 
     # Statements

@@ -20,15 +20,17 @@ grammar Python2::Grammar::Expressions {
 
     # arithmetic
     rule arithmetic-operation {
-        <number> <arithmetic-operator> <number>
+        <number> [<arithmetic-operator> <number>]+
     }
 
-    proto token arithmetic-operator {*}
-    token arithmetic-operator:sym<+> { <sym> }
-    token arithmetic-operator:sym<-> { <sym> }
-    token arithmetic-operator:sym<*> { <sym> }
-    token arithmetic-operator:sym</> { <sym> }
-
+    rule arithmetic-operator {
+        [
+            | '+'
+            | '-'
+            | '*'
+            | '/'
+        ]
+    }
 
     # access to a single variable
     rule variable-access {

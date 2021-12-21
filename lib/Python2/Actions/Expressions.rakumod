@@ -66,16 +66,34 @@ class Python2::Actions::Expressions {
         die("iterable not implemented for " ~ Dump($/))
     }
 
-
-    # arithmetic operations
-    multi method arithmetic-operation ($/) {
-        $/.make(Python2::AST::Node::Expression::ArithmeticOperation.new(
-            left        => $/<number>[0],
-            right       => $/<number>[1],
-            operator    => $/<arithmetic-operator>.Str,
+    method arithmetic-operator ($/) {
+        $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
+            arithmetic-operator => $/.Str,
         ))
     }
 
+    # arithmetic operations
+    multi method arithmetic-operation ($/) {
+        # a list of 'operations' to be performed in order from 'left' to 'right'
+        # format: number, operator, number, operator, number, operator, number, ...
+        my @operations;
+
+        # the the first (left-most) number
+        @operations.push($/<number>.shift.made);
+
+        # for every remaining number
+        while ($/<number>.elems) {
+            # get the next operator in line
+            push(@operations, $/<arithmetic-operator>.shift.made);
+
+            # and the next number
+            push(@operations, $/<number>.shift.made);
+        }
+
+        $/.make(Python2::AST::Node::Expression::ArithmeticOperation.new(
+            operations => @operations,
+        ))
+    }
 
     # variable access
     multi method variable-access ($/) {
