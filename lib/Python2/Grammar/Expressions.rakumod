@@ -1,5 +1,6 @@
 grammar Python2::Grammar::Expressions {
     rule expression {
+        | <method-call>
         | <function-call>
 
         | <arithmetic-operation>
@@ -83,6 +84,12 @@ grammar Python2::Grammar::Expressions {
     }
 
     token function-name     { <lower>+ }
+
+
+    # method call
+    rule method-call {
+        <variable-name> '.' <function-name> '(' ')'
+    }
 
 
     # basic, reused, tokens

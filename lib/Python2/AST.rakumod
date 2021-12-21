@@ -48,6 +48,12 @@ class Python2::AST {
         has Node    @.arguments;
     }
 
+    class Node::Expression::MethodCall is Node {
+        has Node    $.object is required;
+        has Str     $.method-name is required;
+        has Node    @.arguments;
+    }
+
     # Arithmetic
     class Node::Expression::ArithmeticOperation is Node {
         has Node @.operations is required;

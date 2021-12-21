@@ -27,6 +27,10 @@ class Python2::Actions::Expressions {
         $/.make($<function-call>.made);
     }
 
+    multi method expression($/ where $<method-call>) {
+        $/.make($<method-call>.made);
+    }
+
     # literals
     multi method literal ($/ where $/<string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
@@ -167,6 +171,15 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::FunctionCall.new(
             function-name => $/<function-name>.Str,
             arguments     => @arguments,
+        ));
+    }
+
+    multi method method-call($/) {
+        $/.make(Python2::AST::Node::Expression::MethodCall.new(
+            method-name     => $/<function-name>.Str,
+            object          => Python2::AST::Node::Expression::VariableAccess.new(
+                variable-name => $/<variable-name>.Str,
+            ),
         ));
     }
 
