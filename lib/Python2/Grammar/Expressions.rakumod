@@ -83,7 +83,7 @@ grammar Python2::Grammar::Expressions {
         <expression>* %% ','
     }
 
-    token function-name     { <lower>+ }
+    token function-name     { [<lower>|<upper>|<digit>|_]+ }
 
 
     # method call

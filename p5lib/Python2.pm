@@ -130,7 +130,7 @@ sub register_function {
     my ($stack, $name, $coderef) = @_;
 
     die("register_function called without a valid name")
-        unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
+        unless $name =~ m/^[a-z\d_]+$/i; # TODO python accepts a lot more here
 
     die("register_function expects a coderef")
         unless ref($coderef) eq 'CODE';
