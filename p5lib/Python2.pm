@@ -5,9 +5,12 @@ use strict;
 use Scalar::Util qw/ looks_like_number /;
 use Clone qw/ clone /;
 
+use Python2::Type::List;
+
 # set a variable on our stack
 sub setvar {
     my ($stack, $name, $value) = @_;
+
     $stack->{vars}->{$name} = $value;
 }
 
@@ -27,8 +30,8 @@ sub getvar {
 sub py2print {
     my $var = shift;
 
-    if (ref($var) eq 'ARRAY') {
-        say '[' . join(', ', map { $_ =~ m/^\d+$/ ? $_ : "'$_'" } @$var) . ']';
+    if (ref($var) =~ m/^Python2::Type::/) {
+        $var->print;
     }
     elsif (ref($var) eq 'HASH') {
         my $output = '';
@@ -152,9 +155,10 @@ my $builtins = {
     'sorted' => sub {
         my ($arguments) = @_;
 
-        die ("NYI: sorted called with multiple arguments") if (scalar(@$arguments) > 1);
+        die("sorted() expects a list as parameter")
+            unless ref($arguments->[0]) eq 'Python2::Type::List';
 
-        return [ sort(@{ $arguments->[0] }) ];
+        return Python2::Type::List->new( sort(@{ $arguments->[0]->elements }) );
     },
 
     'int' => sub {

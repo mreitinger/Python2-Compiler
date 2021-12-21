@@ -49,7 +49,7 @@ class Python2::Backend::Perl5 {
     # loops
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
         # TODO should we prefix variable names with something to prevent clashes?
-        my $p5 = 'foreach my $var (@{ ' ~ $.e($node.iterable) ~ '}) {' ~ "\n";
+        my $p5 = 'foreach my $var (@{ ' ~ $.e($node.iterable) ~ '->elements }) {' ~ "\n";
         $p5 ~=   '    Python2::setvar($stack, \''~ $node.variable-name ~ '\', $var);' ~ "\n";
         $p5 ~=   $.e($node.suite);
 
@@ -155,14 +155,14 @@ class Python2::Backend::Perl5 {
 
     # list handling
     multi method e(Python2::AST::Node::Expression::ListDefinition $node) {
-        my $p5 = '[';
+        my $p5 = 'Python2::Type::List->new(';
 
         for $node.expressions -> $expression {
             $p5 ~= $.e($expression);
             $p5 ~= ','; # TODO trailing slash
         }
 
-        $p5 ~= ']';
+        $p5 ~= ')';
 
         return $p5;
     }
