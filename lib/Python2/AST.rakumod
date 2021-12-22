@@ -84,6 +84,12 @@ class Python2::AST {
         has Node    $.suite is required;
     }
 
+    class Node::Statement::TryExcept is Node {
+        has Node    $.try-suite  is required;
+        has Node    $.except-suite is required;
+    }
+
+
     class Node::Statement::Test::Expression is Node {
         has Node $.expression  is required;
     }

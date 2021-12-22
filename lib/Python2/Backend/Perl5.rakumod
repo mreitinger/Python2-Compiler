@@ -63,6 +63,12 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
+    multi method e(Python2::AST::Node::Statement::TryExcept $node) {
+        my $p5 = 'eval { ' ~ $.e($node.try-suite) ~ ' } or do { ' ~ $.e($node.except-suite) ~ ' } ';
+
+        return $p5;
+    }
+
     multi method e(Python2::AST::Node::Statement::If $node) {
         return 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.suite) ~ "}";
     }

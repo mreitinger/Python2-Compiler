@@ -22,6 +22,10 @@ sub getvar {
         $stack = $stack->{parent};
     }
 
+    # TODO we are going to need a decent exception object here
+    die("NameError: name '$name' is not defined")
+        unless exists $stack->{vars}->{$name};
+
     return $stack->{vars}->{$name};
 }
 

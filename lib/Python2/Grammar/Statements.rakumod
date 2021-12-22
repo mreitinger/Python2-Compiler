@@ -1,5 +1,6 @@
 grammar Python2::Grammar::Statements {
     rule statement {
+        | <statement-try-except>
         | <variable-assignment>
         | <statement-print>
         | <expression>
@@ -21,6 +22,12 @@ grammar Python2::Grammar::Statements {
 
     rule statement-if {
         'if' <test> ':' <suite>
+    }
+
+    rule statement-try-except {
+        # a suite gets terminated with a trailing semicolon. capture it here to prevent
+        # our grammer from starting a new statement.
+        'try' ':' <suite> ';' 'except' ':' <suite>
     }
 
     rule test {

@@ -30,6 +30,10 @@ class Python2::Actions::Statements {
         $/.make($<class-definition>.made);
     }
 
+    multi method statement($/ where $<statement-try-except>) {
+        $/.make($<statement-try-except>.made);
+    }
+
     multi method statement-print($/ where $/<expression>) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             value => $/<expression>.made
@@ -61,6 +65,13 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::If.new(
             test            => $/<test>.made,
             suite           => $/<suite>.made,
+        ));
+    }
+
+    multi method statement-try-except($/) {
+        $/.make(Python2::AST::Node::Statement::TryExcept.new(
+            try-suite       => $/<suite>[0].made,
+            except-suite    => $/<suite>[1].made,
         ));
     }
 
