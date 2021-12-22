@@ -94,7 +94,7 @@ grammar Python2::Grammar::Expressions {
 
     # basic, reused, tokens
     # TODO migrate to dedicated module
-    token string            { [\w|\s]+ }
+    token string            { [\w|\s]* }
     token number            {
         | <float>
         | <integer>
