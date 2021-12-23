@@ -1,3 +1,5 @@
+#!/bin/env raku
+
 use lib './lib';
 
 use Python2::Grammar;
