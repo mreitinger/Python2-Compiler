@@ -161,6 +161,10 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Expression::MethodCall $node) {
         my $p5 = 'Python2::call(' ~ $.e($node.object) ~ '->{stack}, \'' ~ $node.method-name ~ '\', [';
 
+        # push the object to the front of the argument list. ends up in self or whatever you
+        # like to call it
+        $p5 ~= $.e($node.object) ~ ', ';
+
         for $node.arguments -> $argument {
             $p5 ~= $.e($argument);
             $p5 ~= ','; # TODO trailing slash

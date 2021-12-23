@@ -88,7 +88,7 @@ grammar Python2::Grammar::Expressions {
 
     # method call
     rule method-call {
-        <variable-name> '.' <function-name> '(' ')'
+        <variable-name> '.' <function-name> '(' <function-call-argument-list> ')'
     }
 
 

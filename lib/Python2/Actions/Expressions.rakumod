@@ -175,11 +175,18 @@ class Python2::Actions::Expressions {
     }
 
     multi method method-call($/) {
+        my @arguments;
+
+        for $/<function-call-argument-list>.made -> $argument {
+            @arguments.push($argument);
+        }
+
         $/.make(Python2::AST::Node::Expression::MethodCall.new(
             method-name     => $/<function-name>.Str,
             object          => Python2::AST::Node::Expression::VariableAccess.new(
                 variable-name => $/<variable-name>.Str,
             ),
+            arguments       => @arguments,
         ));
     }
 

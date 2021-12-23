@@ -51,7 +51,7 @@ class Python2::AST {
     class Node::Expression::MethodCall is Node {
         has Node    $.object is required;
         has Str     $.method-name is required;
-        has Node    @.arguments;
+        has Node    @.arguments is required;
     }
 
     # Arithmetic
