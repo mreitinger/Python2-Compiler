@@ -13,8 +13,8 @@ if x:
     print x
 
 if x:
-   x = 0
+    x = 0
 
 if x:
-   print x
+    print x
 

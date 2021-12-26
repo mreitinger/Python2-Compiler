@@ -18,8 +18,19 @@ class Python2::Actions
         $/.make($root);
     }
 
-    method empty-line ($/) {
+    method empty-line-at-same-scope ($/) {
         # dummy
     }
 
+    method empty-line-scope-change ($/) {
+        # dummy
+    }
+
+    method scope-decrease ($/) {
+        # dummy
+    }
+
+    method empty-line ($/) {
+        # dummy
+    }
 }

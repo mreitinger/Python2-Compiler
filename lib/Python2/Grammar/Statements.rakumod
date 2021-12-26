@@ -1,37 +1,47 @@
 grammar Python2::Grammar::Statements {
-    rule statement {
-        | <statement-try-except>
-        | <variable-assignment>
-        | <statement-print>
-        | <expression>
-        | <statement-loop-for>
-        | <statement-if>
-        | <function-definition>
-        | <class-definition>
+    token statement {
+        <level> # statements must begin with the current level of indentation
+                # otherwise the parser would accept statements with lower level of
+                # indentation as if they where at the same level.
+        [
+            | <function-definition>
+            | <statement-try-except>
+            | <variable-assignment>
+            | <statement-print>
+            | <expression>
+            | <statement-loop-for>
+            | <statement-if>
+            | <class-definition>
+        ]
+
+        # ? to match EOF
+        "\n"?
     }
 
     # TODO: we need a intermediate step here like python's test/testlist
-    rule statement-print {
-        | 'print' <function-call>
-        | 'print' <expression>
+    token statement-print {
+        | 'print' <.ws> <function-call>
+        | 'print' <.ws> <expression>
     }
 
-    rule statement-loop-for {
-        'for' <variable-name> 'in' <expression> ':' <suite>
+    token statement-loop-for {
+        'for' <.ws> <variable-name> <.ws> 'in' <.ws> <expression> ':' <block>
     }
 
-    rule statement-if {
-        'if' <test> ':' <suite>
+    token statement-if {
+        'if' <.ws> <test> ':' <block>
     }
 
-    rule statement-try-except {
-        # a suite gets terminated with a trailing semicolon. capture it here to prevent
+    token statement-try-except {
+        # a block gets terminated with a trailing semicolon. capture it here to prevent
         # our grammer from starting a new statement.
-        'try' ':' <suite> ';' 'except' ':' <suite>
+        'try' ':' <block>
+        [ <scope-decrease-one-level> || die("must decrease one level") ]
+        'except' ':' <block>
     }
 
-    rule test {
-        | <expression> <comparison-operator> <expression>
+    token test {
+        | <expression> <.ws> <comparison-operator> <.ws> <expression>
         | <expression>
     }
 
@@ -44,31 +54,25 @@ grammar Python2::Grammar::Statements {
     token comparison-operator:sym<\>=>  { <sym> }
     token comparison-operator:sym<\<=>  { <sym> }
 
-    rule variable-assignment {
-        <variable-name> '=' <expression>
+    token variable-assignment {
+        <variable-name> <.ws> '=' <.ws> <expression>
     }
 
-    rule function-definition {
-        'def' <function-name> '(' <function-definition-argument-list> ')' ':'
-        <suite>
+    token function-definition {
+        'def' <.ws> <function-name> '(' <function-definition-argument-list> ')' ':' <block>
     }
 
-    rule class-definition {
-        'class' <class-name> ':' <suite>
+    token class-definition {
+        'class' <.ws> <class-name> ':' <block>
     }
 
     token class-name     { <lower>+ }
 
-    rule function-definition-argument-list {
-        <variable-name>* %% ','
+    token function-definition-argument-list {
+        <variable-name>* %% <list-delimiter>
     }
 
-    # TODO migrate to a dedicated Grammer::X module with other 'groupings'
-    # TODO why does python call this a 'suite'?
-    # TODO this only handles blocks not a single statement like 'for x in y: statement'
-    rule suite {
-        '{'
-            <statement>* %% ';'
-        '}'
+    token list-delimiter {
+        <.ws> ',' <.ws>
     }
 }

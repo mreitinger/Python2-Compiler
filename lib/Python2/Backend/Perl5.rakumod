@@ -19,18 +19,6 @@ class Python2::Backend::Perl5 {
         return $!o;
     }
 
-    multi method e(Python2::AST::Node::Suite $node) {
-        my $p5 = '{';
-
-        for $node.statements -> $statement {
-            $p5 ~= $.e($statement) ~ ';';
-        }
-
-        $p5 ~= '}' ~ "\n";
-
-        return $p5;
-    }
-
     # Statements
     # statement 'container': if it's a statement append ; to make the perl parser happy
     multi method e(Python2::AST::Node::Statement $node) {
@@ -51,7 +39,7 @@ class Python2::Backend::Perl5 {
         # TODO should we prefix variable names with something to prevent clashes?
         my $p5 = 'foreach my $var (@{ ' ~ $.e($node.iterable) ~ '->elements }) {' ~ "\n";
         $p5 ~=   '    Python2::setvar($stack, \''~ $node.variable-name ~ '\', $var);' ~ "\n";
-        $p5 ~=   $.e($node.suite);
+        $p5 ~=   $.e($node.block);
 
         #for $node.expressions -> $expression {
         #    $p5 ~= $.e($expression);
@@ -64,13 +52,13 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {
-        my $p5 = 'eval { ' ~ $.e($node.try-suite) ~ ' } or do { ' ~ $.e($node.except-suite) ~ ' } ';
+        my $p5 = 'eval { ' ~ $.e($node.try-block) ~ ' } or do { ' ~ $.e($node.except-block) ~ ' } ';
 
         return $p5;
     }
 
     multi method e(Python2::AST::Node::Statement::If $node) {
-        return 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.suite) ~ "}";
+        return 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.block) ~ "}";
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Expression $node) {
@@ -94,13 +82,13 @@ class Python2::Backend::Perl5 {
             $p5 ~= 'Python2::setvar($stack, \'' ~ $argument ~ '\', shift @$arguments);' ~ "\n";
         }
 
-        $p5   ~= $.e($node.suite);
+        $p5   ~= $.e($node.block);
         $p5   ~= "});"
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
         my $p5 = 'Python2::register_class($stack, \'' ~ $node.class-name ~ '\', { ';
-        $p5 ~=   'init => sub { my $self = shift; my $stack = $self->{stack}; ' ~ $.e($node.suite) ~ ' },';
+        $p5 ~=   'init => sub { my $self = shift; my $stack = $self->{stack}; ' ~ $.e($node.block) ~ ' },';
         $p5 ~=   'stack => {}';
         $p5   ~= "});"
     }
@@ -203,6 +191,16 @@ class Python2::Backend::Perl5 {
         $p5 ~= '}';
 
         return $p5;
+    }
+
+    multi method e(Python2::AST::Node::Block $node) {
+        my $p5;
+
+        for $node.statements -> $statement {
+            $p5 ~= $.e($statement);
+        }
+
+        return '{' ~ $p5 ~ '}';
     }
 
 

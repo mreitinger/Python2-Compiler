@@ -76,17 +76,17 @@ class Python2::AST {
     class Node::Statement::LoopFor is Node {
         has Str     $.variable-name is required;
         has Node    $.iterable      is required;
-        has Node    $.suite         is required;
+        has Node    $.block         is required;
     }
 
     class Node::Statement::If is Node {
         has Node    $.test  is required;
-        has Node    $.suite is required;
+        has Node    $.block is required;
     }
 
     class Node::Statement::TryExcept is Node {
-        has Node    $.try-suite  is required;
-        has Node    $.except-suite is required;
+        has Node    $.try-block  is required;
+        has Node    $.except-block is required;
     }
 
 
@@ -103,16 +103,19 @@ class Python2::AST {
     class Node::Statement::FunctionDefinition is Node {
         has Str     $.function-name is required;
         has Str     @.argument-list is required;
-        has Node    $.suite is required;
+        has Node    $.block is required;
     }
 
     class Node::Statement::ClassDefinition is Node {
         has Str     $.class-name is required;
-        has Node    $.suite is required;
+        has Node    $.block is required;
     }
 
-    class Node::Suite is Node {
+    class Node::block is Node {
         has Node @.statements;
     }
 
+    class Node::Block is Node {
+        has Node @.statements;
+    }
 }

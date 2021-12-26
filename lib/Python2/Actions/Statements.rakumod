@@ -3,35 +3,51 @@ use Data::Dump;
 
 class Python2::Actions::Statements {
     multi method statement($/ where $<expression>) {
-        $/.make($<expression>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<expression>.made
+        ));
     }
 
     multi method statement($/ where $<statement-print>) {
-        $/.make($<statement-print>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<statement-print>.made
+        ));
     }
 
     multi method statement($/ where $<variable-assignment>) {
-        $/.make($<variable-assignment>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<variable-assignment>.made
+        ));
     }
 
     multi method statement($/ where $<statement-loop-for>) {
-        $/.make($<statement-loop-for>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<statement-loop-for>.made
+        ));
     }
 
     multi method statement($/ where $<statement-if>) {
-        $/.make($<statement-if>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<statement-if>.made
+        ));
     }
 
     multi method statement($/ where $<function-definition>) {
-        $/.make($<function-definition>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<function-definition>.made
+        ));
     }
 
     multi method statement($/ where $<class-definition>) {
-        $/.make($<class-definition>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<class-definition>.made
+        ));
     }
 
     multi method statement($/ where $<statement-try-except>) {
-        $/.make($<statement-try-except>.made);
+        $/.make(Python2::AST::Node::Statement.new(
+            statement => $/<statement-try-except>.made
+        ));
     }
 
     multi method statement-print($/ where $/<expression>) {
@@ -57,21 +73,21 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             variable-name   => $/<variable-name>.Str,
             iterable        => $/<expression>.made,
-            suite           => $/<suite>.made,
+            block           => $/<block>.made,
         ));
     }
 
     multi method statement-if($/) {
         $/.make(Python2::AST::Node::Statement::If.new(
             test            => $/<test>.made,
-            suite           => $/<suite>.made,
+            block           => $/<block>.made,
         ));
     }
 
     multi method statement-try-except($/) {
         $/.make(Python2::AST::Node::Statement::TryExcept.new(
-            try-suite       => $/<suite>[0].made,
-            except-suite    => $/<suite>[1].made,
+            try-block       => $/<block>[0].made,
+            except-block    => $/<block>[1].made,
         ));
     }
 
@@ -100,14 +116,14 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::FunctionDefinition.new(
             function-name   => $/<function-name>.Str,
             argument-list   => $/<function-definition-argument-list>.made,
-            suite           => $/<suite>.made,
+            block           => $/<block>.made,
         ));
     }
 
     multi method class-definition($/) {
         $/.make(Python2::AST::Node::Statement::ClassDefinition.new(
             class-name  => $/<class-name>.Str,
-            suite       => $/<suite>.made,
+            block       => $/<block>.made,
         ));
     }
 
@@ -122,17 +138,17 @@ class Python2::Actions::Statements {
         $/.make(@argument-list);
     }
 
-    multi method suite($/ where $<statement>) {
-        my $suite = Python2::AST::Node::Suite.new();
+    multi method block($/ where $<statement>) {
+        my $block = Python2::AST::Node::Block.new();
 
         for $/<statement> -> $statement {
-            $suite.statements.push($statement.made);
+            $block.statements.push($statement.made);
         }
 
-        $/.make($suite);
+        $/.make($block);
     }
 
     multi method statement ($/) {
-        die("Action for statement not implemented: " ~ $/)
+        die("Action for statement not implemented: " ~ dd($/))
     }
 }

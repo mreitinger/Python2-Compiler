@@ -1,5 +1,5 @@
 grammar Python2::Grammar::Expressions {
-    rule expression {
+    token expression {
         | <method-call>
         | <function-call>
 
@@ -13,7 +13,7 @@ grammar Python2::Grammar::Expressions {
 
 
     # literals
-    rule literal {
+    token literal {
         | "'" <string> "'"
         | '"' <string> '"'
         | <number>
@@ -25,12 +25,12 @@ grammar Python2::Grammar::Expressions {
         <operand> [<arithmetic-operator> <operand>]+
     }
 
-    rule operand {
+    token operand {
         | <number>
         | <variable-access>
     }
 
-    rule arithmetic-operator {
+    token arithmetic-operator {
         [
             | '+'
             | '-'
@@ -40,54 +40,54 @@ grammar Python2::Grammar::Expressions {
     }
 
     # access to a single variable
-    rule variable-access {
+    token variable-access {
         | <instance-variable-access>
         | <variable-name>
     }
 
     # access to a instance variable
-    rule instance-variable-access {
+    token instance-variable-access {
         <variable-name> '.' <variable-name>
     }
 
 
     # list handling
-    rule list-definition {
-        '['  <expression-list> ']'
+    token list-definition {
+        '[' <.ws> <expression-list> <.ws> ']'
     }
 
-    rule expression-list {
-        <expression>* %% ','
+    token expression-list {
+        <expression>* %% <list-delimiter>
     }
 
 
     # dictionary handling
-    rule dictionary-definition {
-        '{'  <dictionary-entry-list> '}'
+    token dictionary-definition {
+        '{' <.ws> <dictionary-entry-list> <.ws> '}'
     }
 
-    rule dictionary-entry-list {
-        <dictionary-entry>* %% ','
+    token dictionary-entry-list {
+        <dictionary-entry>* %% <list-delimiter>
     }
 
-    rule dictionary-entry {
-        <dictionary-key> ':' <expression>
+    token dictionary-entry {
+        <.ws> <dictionary-key> <.ws> ':' <.ws> <expression> <.ws>
     }
 
     # function call
-    rule function-call {
+    token function-call {
         <function-name> '(' <function-call-argument-list> ')'
     }
 
-    rule function-call-argument-list {
-        <expression>* %% ','
+    token function-call-argument-list {
+        <expression>* %% <list-delimiter>
     }
 
     token function-name     { [<lower>|<upper>|<digit>|_]+ }
 
 
     # method call
-    rule method-call {
+    token method-call {
         <variable-name> '.' <function-name> '(' <function-call-argument-list> ')'
     }
 
