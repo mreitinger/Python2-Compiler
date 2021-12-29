@@ -59,7 +59,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::If $node) {
-        return 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.block) ~ "}";
+        my $p5 = 'if (' ~ $.e($node.test) ~ ') {' ~ "\n" ~ $.e($node.block) ~ "}";
+        $p5 ~= ' else {' ~ $.e($node.else) ~ '}' if $node.else;
+        $p5
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Expression $node) {

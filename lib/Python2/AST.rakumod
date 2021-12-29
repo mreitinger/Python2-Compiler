@@ -87,6 +87,7 @@ class Python2::AST {
     class Node::Statement::If is Node {
         has Node    $.test  is required;
         has Node    $.block is required;
+        has Node    $.else;
     }
 
     class Node::Statement::TryExcept is Node {

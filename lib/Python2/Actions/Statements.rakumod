@@ -80,7 +80,8 @@ class Python2::Actions::Statements {
     multi method statement-if($/) {
         $/.make(Python2::AST::Node::Statement::If.new(
             test            => $/<test>.made,
-            block           => $/<block>.made,
+            block           => $/<block>[0].made,
+            else            => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
         ));
     }
 

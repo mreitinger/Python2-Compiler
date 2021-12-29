@@ -18,3 +18,7 @@ if x:
 if x:
     print x
 
+if 0:
+    print '0'
+else:
+    print 'else'

@@ -27,6 +27,7 @@ grammar Python2::Grammar::Statements {
 
     token statement-if {
         'if' <.ws> <test> ':' <block>
+        [<level> 'else' ':' <block>]?
     }
 
     token statement-try-except {
