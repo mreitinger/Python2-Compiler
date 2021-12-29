@@ -14,8 +14,7 @@ grammar Python2::Grammar
         :my @*levels = (0);
 
         [
-            || <comment>
-            || <empty-line-at-same-scope>
+            || <non-code>
             || <level><statement>
         ]*
 
@@ -25,18 +24,19 @@ grammar Python2::Grammar
     # a list of statements at the next indentation level
     token block {
         <scope-increase>
-        [
-            ||<comment>
-            || <empty-line-at-same-scope>
-        ]*
+        <non-code>*
         <level><statement>
         [
-            || <comment>
-            || <empty-line-at-same-scope>
+            || <non-code>
             || <level><statement>
         ]*
 
         <scope-decrease>
+    }
+
+    token non-code {
+        ||<comment>
+        || <.empty-lines>
     }
 
     token level { ' ' ** {@*levels[*-1]} }
@@ -49,10 +49,9 @@ grammar Python2::Grammar
     }
 
     # an empty line where the next statement is at the same scope
-    token empty-line-at-same-scope {
+    token empty-lines {
         # we start checking at the beginning of the might-be-empty line
         [\h*\n]+             # we expect nothing except whitespace and newlines
-        <?before ' ' ** {@*levels[*-1]} \N>  # followed by something at the current indentation level
     }
 
     token scope-decrease {
@@ -63,6 +62,6 @@ grammar Python2::Grammar
     }
 
     token comment {
-        \h* '#' \N+ "\n"?
+        \h* '#' (\N+) "\n"?
     }
 }

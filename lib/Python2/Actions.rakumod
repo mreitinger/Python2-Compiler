@@ -18,19 +18,17 @@ class Python2::Actions
         $/.make($root);
     }
 
-    method empty-line-at-same-scope ($/) {
-        # dummy
-    }
-
-    method empty-line-scope-change ($/) {
-        # dummy
-    }
-
     method scope-decrease ($/) {
         # dummy
     }
 
-    method empty-line ($/) {
-        # dummy
+    method non-code($/) {
+        make $<comment>.made if $<comment>;
+    }
+
+    method comment($/) {
+        make Python2::AST::Node::Comment.new(
+            comment => $0.Str
+        );
     }
 }

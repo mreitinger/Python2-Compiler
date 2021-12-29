@@ -118,11 +118,11 @@ class Python2::AST {
         has Node    $.block is required;
     }
 
-    class Node::block is Node {
+    class Node::Block is Node {
         has Node @.statements;
     }
 
-    class Node::Block is Node {
-        has Node @.statements;
+    class Node::Comment is Node {
+        has Str $.comment is required;
     }
 }
