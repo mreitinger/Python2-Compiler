@@ -31,6 +31,7 @@ grammar Python2::Grammar
         ]*
         <level><statement>
         [
+            || <comment>
             || <empty-line-at-same-scope>
             || <level><statement>
         ]*
