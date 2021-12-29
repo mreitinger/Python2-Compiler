@@ -34,6 +34,7 @@ grammar Python2::Grammar::Statements {
         # our grammer from starting a new statement.
         'try' ':' <block>
         <level> 'except' ':' <block>
+        [<level> 'finally' ':' <block>]?
     }
 
     token test {

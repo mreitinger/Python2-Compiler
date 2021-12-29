@@ -53,6 +53,7 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {
         my $p5 = 'eval { ' ~ $.e($node.try-block) ~ ' } or do { ' ~ $.e($node.except-block) ~ ' } ';
+        $p5 ~= '; {' ~ $.e($node.finally-block) ~ '}' if $node.finally-block;
 
         return $p5;
     }

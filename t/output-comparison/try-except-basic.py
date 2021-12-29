@@ -8,3 +8,10 @@ if 1:
         print x
     except:
         print 'error'
+
+try:
+    print x
+except:
+    print 'error'
+finally:
+    print 'done'

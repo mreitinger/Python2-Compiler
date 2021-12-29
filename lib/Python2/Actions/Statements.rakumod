@@ -88,6 +88,7 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::TryExcept.new(
             try-block       => $/<block>[0].made,
             except-block    => $/<block>[1].made,
+            finally-block   => $/<block>[2] ?? $/<block>[2].made !! Python2::AST::Node,
         ));
     }
 

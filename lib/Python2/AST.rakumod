@@ -92,6 +92,7 @@ class Python2::AST {
     class Node::Statement::TryExcept is Node {
         has Node    $.try-block  is required;
         has Node    $.except-block is required;
+        has Node    $.finally-block;
     }
 
 
