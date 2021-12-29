@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      RAKUDO_VERSION: rakudo-moar-2021.10-01-linux-x86_64-gcc.tar.gz
+      RAKUDO_VERSION: rakudo-moar-2021.12-01-linux-x86_64-gcc.tar.gz
 
     steps:
       - uses: actions/checkout@v2
