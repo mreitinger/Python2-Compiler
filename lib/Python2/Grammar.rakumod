@@ -9,9 +9,8 @@ grammar Python2::Grammar
     is Python2::Grammar::Statements
     is Python2::Grammar::Expressions
 {
-    my $level = 0;
+    my @levels = 0;
     my $end_of_last_statement = 0;
-    my $indent_size = 4; # hack: python supports variable indent size
 
     token TOP {
         [
@@ -38,20 +37,20 @@ grammar Python2::Grammar
         <empty-line-scope-change>?
     }
 
-    token level { ' ' ** {$level} }
+    token level { ' ' ** {@levels[*-1]} }
 
     token scope-increase {
         :my $pos;
         \n <?before <level> \h+ {$pos = $/.pos;}>
         {#`(need this empty code block to reset position)}
-        { $level = $pos - $/.pos; }
+        { @levels.push: $pos - $/.pos; }
     }
 
     # an empty line where the next statement is at the same scope
     token empty-line-at-same-scope {
         # we start checking at the beginning of the might-be-empty line
         [\h*\n]+             # we expect nothing except whitespace and newlines
-        <?before ' ' ** {$level} \N>  # followed by something at the current indentation level
+        <?before ' ' ** {@levels[*-1]} \N>  # followed by something at the current indentation level
     }
 
 
@@ -62,20 +61,14 @@ grammar Python2::Grammar
     method scope-decrease-one-level {
         self.debug('checking for scope-decrease-one-level');
 
-        # current position of the parser
-        my $pos = self.pos;
-
-        # the complete input
-        my $string = self.orig;
-
-        my $expected_next_level = ($level - $indent_size) > 0 ?? ($level - $indent_size) !! 0;
+        my $expected_next_level = 2 <= @levels ?? @levels[*-2] !! 0;
 
         if (self.postmatch ~~ /
             ^
             \h ** {$expected_next_level}
             \H
         /) {
-            $level = $expected_next_level;
+            @levels.pop;
             Match.new(:orig("scope-decrease-one-level"), :from(self.pos), :pos(self.pos));
         } else {
             self.FAILGOAL("");
@@ -101,14 +94,11 @@ grammar Python2::Grammar
                 (\n)
             /
         ) {
-            my $remaining = $level - $indent_size;
-
-            if ($remaining > 0) {
-                $level = $remaining;
+            if (@levels >= 2) {
+                @levels.pop;
 
                 Match.new(:orig("scope-decrease"), :from($1.from-2), :pos($1.pos-2));
-            } elsif ($remaining == 0) {
-                $level = $remaining;
+            } elsif (@levels == 1) {
                 return $1;
             } else {
                 self.FAILGOAL("");
