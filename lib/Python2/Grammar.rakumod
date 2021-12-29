@@ -25,7 +25,10 @@ grammar Python2::Grammar
     # a list of statements at the next indentation level
     token block {
         <scope-increase>
-        <empty-line-at-same-scope>*
+        [
+            ||<comment>
+            || <empty-line-at-same-scope>
+        ]*
         <level><statement>
         [
             || <empty-line-at-same-scope>
@@ -59,6 +62,6 @@ grammar Python2::Grammar
     }
 
     token comment {
-        '#' \N+ "\n"?
+        \h* '#' \N+ "\n"?
     }
 }
