@@ -7,7 +7,18 @@ sub new {
     my ($self, @initial_elements) = @_;
 
     return bless({
-        elements => { @initial_elements },
+        elements    => { @initial_elements },
+        stack       => { # make it look like a normal object. it'll inhert from a base class soon
+                         # enough.
+            funcs => {
+                keys => sub {
+                    return Python2::Type::List->new(keys %{ shift->[0]->{elements} })
+                },
+                values => sub {
+                    return Python2::Type::List->new(values %{ shift->[0]->{elements} })
+                },
+            },
+        },
     }, $self);
 }
 
@@ -27,6 +38,10 @@ sub print {
     "}";
 }
 
-sub elements { ... }
+sub element {
+    my ($self, $key) = @_;
+
+    return $self->{elements}->{$key};
+}
 
 1;

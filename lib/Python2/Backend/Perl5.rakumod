@@ -132,6 +132,14 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
+    multi method e(Python2::AST::Node::Expression::DictionaryAccess $node) {
+        #get the dictionary object
+
+        my $p5 ~= 'Python2::getvar($stack, \'' ~ $node.dictionary-name ~ '\')';
+           $p5 ~= "->element({ $node.key })";
+        return $p5;
+    }
+
     # function calls
     multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
         my $p5 = 'Python2::call($stack, \'' ~ $node.function-name ~ '\', [';

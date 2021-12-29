@@ -42,12 +42,17 @@ grammar Python2::Grammar::Expressions {
     # access to a single variable
     token variable-access {
         | <instance-variable-access>
+        | <dictionary-access>
         | <variable-name>
     }
 
     # access to a instance variable
     token instance-variable-access {
         <variable-name> '.' <variable-name>
+    }
+
+    token dictionary-access {
+        <variable-name> '[' <literal> ']'
     }
 
 

@@ -31,6 +31,11 @@ class Python2::AST {
         has Str $.variable-name is required;
     }
 
+    class Node::Expression::DictionaryAccess is Node {
+        has Str $.dictionary-name is required;
+        has Str $.key is required;
+    }
+
     class Node::Expression::ListDefinition is Node {
         has Node @.expressions;
     }

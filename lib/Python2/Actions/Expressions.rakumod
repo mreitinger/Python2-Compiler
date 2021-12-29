@@ -114,11 +114,23 @@ class Python2::Actions::Expressions {
         $/.make($/<instance-variable-access>.made);
     }
 
+    multi method variable-access ($/ where $/<dictionary-access>) {
+        $/.make($/<dictionary-access>.made);
+    }
+
     # instance variable access
     multi method instance-variable-access ($/) {
         $/.make(Python2::AST::Node::Expression::InstanceVariableAccess.new(
             object-name   => $/<variable-name>[0].Str,
             variable-name => $/<variable-name>[1].Str,
+        ))
+    }
+
+    # dictionary access
+    multi method dictionary-access ($/) {
+        $/.make(Python2::AST::Node::Expression::DictionaryAccess.new(
+            dictionary-name => $/<variable-name>.Str,
+            key             => $/<literal>.Str,
         ))
     }
 
