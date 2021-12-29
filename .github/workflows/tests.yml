@@ -11,6 +11,7 @@ jobs:
 
     env:
       RAKUDO_VERSION: rakudo-moar-2021.12-01-linux-x86_64-gcc.tar.gz
+      RAKUDO_MODULES: Data::Dump App::Prove6
 
     steps:
       - uses: actions/checkout@v2
@@ -23,7 +24,7 @@ jobs:
           path: |
             ~/rakudo
             ~/.rakudo
-          key: ${{ env.RAKUDO_VERSION }}
+          key: ${{ env.RAKUDO_VERSION }} ${{ env.RAKUDO_MODULES }}
 
       - name: setup rakudo environment
         run: |
@@ -35,7 +36,7 @@ jobs:
           mkdir ~/rakudo
           tar -xf ~/raku.tar.gz -C ~/rakudo --strip-components=1
           export PATH=~/rakudo/bin:$PATH
-          ~/rakudo/share/perl6/site/bin/zef install Data::Dump
+          ~/rakudo/share/perl6/site/bin/zef install ${{ env.RAKUDO_MODULES }}
 
       - name: setup perl environment
         run: |
@@ -47,5 +48,5 @@ jobs:
         run: |
           export PATH=~/rakudo/bin:$PATH
           export PERL5LIB=~/perl5lib/lib/perl5
-          make -k test
+          ~/rakudo/share/perl6/site/bin/prove6 -v
 
