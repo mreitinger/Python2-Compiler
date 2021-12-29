@@ -23,8 +23,6 @@ grammar Python2::Grammar
     }
 
     # a list of statements at the next indentation level
-    # TODO scope-increase should be handled like decrease: the previous match should
-    # TODO know that it needs a scope increase and fail otherweise
     token block {
         <scope-increase>
         <empty-line-at-same-scope>*
