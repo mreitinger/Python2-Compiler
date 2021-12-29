@@ -1,8 +1,5 @@
 grammar Python2::Grammar::Statements {
     token statement {
-        <level> # statements must begin with the current level of indentation
-                # otherwise the parser would accept statements with lower level of
-                # indentation as if they where at the same level.
         [
             | <function-definition>
             | <statement-try-except>
@@ -35,8 +32,8 @@ grammar Python2::Grammar::Statements {
     token statement-try-except {
         # a block gets terminated with a trailing semicolon. capture it here to prevent
         # our grammer from starting a new statement.
-        'try' ':' <block>
-        [ <scope-decrease-one-level> || die("must decrease one level") ]
+        'try' ':' <block(:only-one-level)>
+        #[ <scope-decrease-one-level> || die("must decrease one level") ]
         'except' ':' <block>
     }
 

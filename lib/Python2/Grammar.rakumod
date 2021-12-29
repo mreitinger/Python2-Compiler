@@ -9,7 +9,6 @@ grammar Python2::Grammar
     is Python2::Grammar::Statements
     is Python2::Grammar::Expressions
 {
-    my $end_of_last_statement = 0;
 
     token TOP {
         :my @*levels = (0);
@@ -17,8 +16,7 @@ grammar Python2::Grammar
         [
             || <comment>
             || <empty-line-at-same-scope>
-            || <empty-line-scope-change>
-            || <statement>
+            || <level><statement>
         ]*
 
         \n* #match empty lines at the end
@@ -27,15 +25,16 @@ grammar Python2::Grammar
     # a list of statements at the next indentation level
     # TODO scope-increase should be handled like decrease: the previous match should
     # TODO know that it needs a scope increase and fail otherweise
-    token block {
+    token block(:$only-one-level = False) {
         <scope-increase>
+        <empty-line-at-same-scope>*
+        <level><statement>
         [
             || <empty-line-at-same-scope>
-            || <statement>
-        ]+
+            || <level><statement>
+        ]*
 
-        # scope might decrease after the block is complete
-        <empty-line-scope-change>?
+        <scope-decrease(:$only-one-level)>
     }
 
     token level { ' ' ** {@*levels[*-1]} }
@@ -54,70 +53,14 @@ grammar Python2::Grammar
         <?before ' ' ** {@*levels[*-1]} \N>  # followed by something at the current indentation level
     }
 
-
-    token empty-line-scope-change {
-        <scope-decrease>+
-    }
-
-    token scope-decrease-one-level {
-        :my $expected_next_level = 2 <= @*levels ?? @*levels[*-2] !! 0;
-        ^^
-        \h ** {$expected_next_level}
-        <?before \H>
-        {
-            @*levels.pop;
-        }
-    }
-
-    # an empty line where the next statement is at a lower scope/indentation level.
-    # TODO handles only one line for now
-    method scope-decrease {
-        # current position of the parser
-        my $pos = self.pos;
-
-        # the complete input
-        my $string = self.orig;
-
-        self.debug('checking for empty line with scope change start');
-
-        if (
-            $string ~~ /
-                ^
-                . ** {$pos-1}
-                (\n)
-                (\n)
-            /
-        ) {
-            if (@*levels >= 2) {
-                @*levels.pop;
-
-                Match.new(:orig("scope-decrease"), :from($1.from-2), :pos($1.pos-2));
-            } elsif (@*levels == 1) {
-                return $1;
-            } else {
-                self.FAILGOAL("");
-            }
-        }
-        else {
-            self.FAILGOAL("");
-        }
+    token scope-decrease(:$only-one-level) {
+        [\h*\n]* # may have some "empty" lines
+        :my @indentations = $only-one-level ?? ' ' x @*levels[*-2] !! @*levels.map:{' ' x $_};
+        [$ || <?before @indentations\N>]
+        { @*levels.pop }
     }
 
     token comment {
         '#' \N+ "\n"?
-    }
-
-    # TODO use command line parameter
-    method debug ($caller) {
-        return;
-        my $string = self.orig;
-        my $pos = self.pos;
-        use Data::Dump;
-        note "\n----------\n" ~ "$caller at $pos\n"
-            ~ $string.substr(0, $pos)
-            ~ "!!"
-            ~ $string.substr($pos)
-            #~ Dump(self) ~
-            ~ "\n----------\n";
     }
 }
