@@ -32,8 +32,7 @@ grammar Python2::Grammar::Statements {
     token statement-try-except {
         # a block gets terminated with a trailing semicolon. capture it here to prevent
         # our grammer from starting a new statement.
-        'try' ':' <block(:only-one-level)>
-        #[ <scope-decrease-one-level> || die("must decrease one level") ]
+        'try' ':' <block>
         'except' ':' <block>
     }
 

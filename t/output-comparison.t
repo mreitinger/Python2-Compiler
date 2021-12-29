@@ -50,12 +50,12 @@ for $testcase_directory.dir -> $testcase {
             my $perl5 = run('perl', :in, :out, :err);
             $perl5.in.say($generated_perl5_code);
             $perl5.in.close;
-            ok($perl5.exitcode == 0, 'python2 exit code');
+            ok($perl5.exitcode == 0, 'perl exit code');
             $perl5_output = $perl5.out.slurp;
         }};
 
         subtest 'Output comparison' => sub {
-            ok($perl5_output eq $python2_output, 'output matches');
+            is $perl5_output, $python2_output, 'output matches';
         };
     };
 }

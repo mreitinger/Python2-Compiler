@@ -25,7 +25,7 @@ grammar Python2::Grammar
     # a list of statements at the next indentation level
     # TODO scope-increase should be handled like decrease: the previous match should
     # TODO know that it needs a scope increase and fail otherweise
-    token block(:$only-one-level = False) {
+    token block {
         <scope-increase>
         <empty-line-at-same-scope>*
         <level><statement>
@@ -34,7 +34,7 @@ grammar Python2::Grammar
             || <level><statement>
         ]*
 
-        <scope-decrease(:$only-one-level)>
+        <scope-decrease>
     }
 
     token level { ' ' ** {@*levels[*-1]} }
@@ -53,9 +53,9 @@ grammar Python2::Grammar
         <?before ' ' ** {@*levels[*-1]} \N>  # followed by something at the current indentation level
     }
 
-    token scope-decrease(:$only-one-level) {
+    token scope-decrease {
         [\h*\n]* # may have some "empty" lines
-        :my @indentations = $only-one-level ?? ' ' x @*levels[*-2] !! @*levels.map:{' ' x $_};
+        :my @indentations = @*levels.map:{' ' x $_};
         [$ || <?before @indentations\N>]
         { @*levels.pop }
     }
