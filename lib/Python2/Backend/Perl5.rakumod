@@ -181,14 +181,14 @@ class Python2::Backend::Perl5 {
 
     # dictionary handling
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {
-        my $p5 = '{';
+        my $p5 = 'Python2::Type::Dict->new(';
 
         for $node.entries.kv -> $dictionary-key, $expression {
             $p5 ~= $dictionary-key ~ ' => ' ~ $.e($expression); #TODO needs quoting etc for key
             $p5 ~= ','; # TODO trailing slash
         }
 
-        $p5 ~= '}';
+        $p5 ~= ')';
 
         return $p5;
     }

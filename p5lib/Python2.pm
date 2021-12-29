@@ -6,6 +6,7 @@ use Scalar::Util qw/ looks_like_number /;
 use Clone qw/ clone /;
 
 use Python2::Type::List;
+use Python2::Type::Dict;
 
 # set a variable on our stack
 sub setvar {
@@ -36,19 +37,6 @@ sub py2print {
 
     if (ref($var) =~ m/^Python2::Type::/) {
         $var->print;
-    }
-    elsif (ref($var) eq 'HASH') {
-        my $output = '';
-
-        say "{" .
-            join (', ',
-                map {
-                    ($_ =~ m/^\d+$/ ? $_ : "'$_'") .  # TODO add a quote-like-python function
-                    ': ' .
-                    ($var->{$_} =~ m/^\d+$/ ? $var->{$_} : "'$var->{$_}'")
-                } sort keys %$var
-            ) .
-        "}";
     }
     elsif (ref($var) eq '') {
         say $var;
