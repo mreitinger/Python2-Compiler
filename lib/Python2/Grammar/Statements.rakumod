@@ -33,7 +33,7 @@ grammar Python2::Grammar::Statements {
         # a block gets terminated with a trailing semicolon. capture it here to prevent
         # our grammer from starting a new statement.
         'try' ':' <block>
-        'except' ':' <block>
+        <level> 'except' ':' <block>
     }
 
     token test {
