@@ -48,5 +48,5 @@ jobs:
         run: |
           export PATH=~/rakudo/bin:$PATH
           export PERL5LIB=~/perl5lib/lib/perl5
-          ~/rakudo/share/perl6/site/bin/prove6 -v
+          ~/rakudo/share/perl6/site/bin/prove6
 
