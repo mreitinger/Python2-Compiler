@@ -49,23 +49,10 @@ grammar Python2::Grammar
 
     # an empty line where the next statement is at the same scope
     # TODO handles only one line for now
-    method empty-line-at-same-scope {
-        my $position    = self.pos;
-        my $input       = self.orig;
-
+    token empty-line-at-same-scope {
         # we start checking at the beginning of the might-be-empty line
-        if ($input ~~ /
-            ^. ** {$position}        # skip to the remainder of the input string
-            (\h*\n)             # we expect nothing except whitespace and newlines
-            ' ' ** {$level} \N  # followed by something at the current indentation level
-        /) {
-            # we match the complete empty line including newline at the end
-            # it doesn't change the scope so nothing else cares about it and the
-            # next statement check expects to start with <level>
-            return $0;
-        } else {
-            self.FAILGOAL(""); # tell the parser we didn't fine an empty line
-        }
+        \h*\n             # we expect nothing except whitespace and newlines
+        <?before ' ' ** {$level} \N>  # followed by something at the current indentation level
     }
 
 
