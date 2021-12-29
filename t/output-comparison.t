@@ -53,6 +53,10 @@ for $testcase_directory.dir -> $testcase {
             ok($perl5.exitcode == 0, 'python2 exit code');
             $perl5_output = $perl5.out.slurp;
         }};
+
+        subtest 'Output comparison' => sub {
+            ok($perl5_output eq $python2_output, 'output matches');
+        };
     };
 }
 
