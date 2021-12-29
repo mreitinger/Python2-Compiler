@@ -59,20 +59,13 @@ grammar Python2::Grammar
         <scope-decrease>+
     }
 
-    method scope-decrease-one-level {
-        self.debug('checking for scope-decrease-one-level');
-
-        my $expected_next_level = 2 <= @*levels ?? @*levels[*-2] !! 0;
-
-        if (self.postmatch ~~ /
-            ^
-            \h ** {$expected_next_level}
-            \H
-        /) {
+    token scope-decrease-one-level {
+        :my $expected_next_level = 2 <= @*levels ?? @*levels[*-2] !! 0;
+        ^^
+        \h ** {$expected_next_level}
+        <?before \H>
+        {
             @*levels.pop;
-            Match.new(:orig("scope-decrease-one-level"), :from(self.pos), :pos(self.pos));
-        } else {
-            self.FAILGOAL("");
         }
     }
 
