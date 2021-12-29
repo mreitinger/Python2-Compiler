@@ -19,7 +19,7 @@ grammar Python2::Grammar
             || <empty-line-at-same-scope>
             || <empty-line-scope-change>
             || <statement>
-        ]+
+        ]*
 
         \n* #match empty lines at the end
     }

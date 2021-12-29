@@ -8,12 +8,8 @@ use Python2::Backend::Perl5;
 
 sub MAIN (Str $script) {
     my Str $input = slurp( $script );
-    my Str $preprocessed;
 
-    # empty imput, just shortcut the whole thing.
-    if ($input ~~ /^\s*$/) {
-        exit;
-    }
+    my Str $preprocessed;
 
     my $ast     = Python2::Grammar.parse($input, actions => Python2::Actions);
     my $backend = Python2::Backend::Perl5.new();
