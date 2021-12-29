@@ -40,23 +40,11 @@ grammar Python2::Grammar
 
     token level { ' ' ** {$level} }
 
-    method scope-increase {
-        my $position    = self.pos;
-        my $input       = self.orig;
-
-        # check if the next line has an indentation increase
-        if ($input ~~ /^. ** {$position}(\n)(\h ** {$level}\h+)/) {
-            my $current_level = ($1 ?? $1.chars !! 0);
-
-            if ($current_level > $level) {
-                $level = $current_level;
-                return $0; # we only capture the newline: following statements need the
-                           # spaces at the beginning to match (see Grammar::Statements)
-            }
-        }
-        else {
-            self.FAILGOAL(""); # tell the parser we didn't fine a scope increase
-        }
+    token scope-increase {
+        :my $pos;
+        \n <?before <level> \h+ {$pos = $/.pos;}>
+        {#`(need this empty code block to reset position)}
+        { $level = $pos - $/.pos; }
     }
 
     # an empty line where the next statement is at the same scope
