@@ -48,10 +48,9 @@ grammar Python2::Grammar
     }
 
     # an empty line where the next statement is at the same scope
-    # TODO handles only one line for now
     token empty-line-at-same-scope {
         # we start checking at the beginning of the might-be-empty line
-        \h*\n             # we expect nothing except whitespace and newlines
+        [\h*\n]+             # we expect nothing except whitespace and newlines
         <?before ' ' ** {$level} \N>  # followed by something at the current indentation level
     }
 

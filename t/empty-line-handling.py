@@ -11,6 +11,15 @@ if 2:
     
     print 6
 
+# multiple "empty" lines (except for arbitrary white space)
+if 3:
+    print 1
+    print 2
+
+  
+
+    print 3
+
 # check to see if we loose scope (the 9 should never print since it belongs to the if block)
 if 0:
     print 7
