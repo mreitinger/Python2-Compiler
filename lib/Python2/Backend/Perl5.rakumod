@@ -97,6 +97,10 @@ class Python2::Backend::Perl5 {
     }
 
     # Expressions
+    multi method e(Python2::AST::Node::Expression::Container $node) {
+        return $.e($node.expression);
+    }
+
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
     multi method e(Python2::AST::Node::Expression::ArithmeticOperation $node) {
         my $p5;

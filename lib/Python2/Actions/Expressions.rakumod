@@ -7,7 +7,9 @@ class Python2::Actions::Expressions {
         die("Expression Action expects exactly one child but we got { $/.values.elems }")
             unless $/.values.elems == 1;
 
-        $/.make($/.values[0].made);
+        $/.make(Python2::AST::Node::Expression::Container.new(
+            expression => $/.values[0].made
+        ));
     }
 
     # literals
