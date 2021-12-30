@@ -91,6 +91,12 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-return ($/) {
+        $/.make(Python2::AST::Node::Statement::Return.new(
+            value => $/.values[0].made,
+        ))
+    }
+
     # TODO we should do a a AST intermediate here to provide more data for further optimization
     method function-definition-argument-list($/) {
         my Str @argument-list;

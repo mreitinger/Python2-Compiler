@@ -9,6 +9,7 @@ grammar Python2::Grammar::Statements {
             | <statement-loop-for>
             | <statement-if>
             | <class-definition>
+            | <statement-return>
         ]
 
         # ? to match EOF
@@ -19,6 +20,10 @@ grammar Python2::Grammar::Statements {
     token statement-print {
         | 'print' <.ws> <function-call>
         | 'print' <.ws> <expression>
+    }
+
+    token statement-return {
+        | 'return' <.ws> <expression>
     }
 
     token statement-loop-for {

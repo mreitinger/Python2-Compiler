@@ -107,6 +107,10 @@ class Python2::AST {
         has Node $.expression  is required;
     }
 
+    class Node::Statement::Return is Node {
+        has Node $.value  is required;
+    }
+
     class Node::Statement::Test::Comparison is Node::Expression {
         has Node $.left is required;
         has Str $.comparison-operator is required;

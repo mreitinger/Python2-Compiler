@@ -33,6 +33,11 @@ class Python2::Backend::Perl5 {
         return 'Python2::setvar($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.expression) ~ ");";
     }
 
+    multi method e(Python2::AST::Node::Statement::Return $node) {
+        return "return { $.e($node.value) }"
+    }
+
+
 
     # loops
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
