@@ -15,7 +15,7 @@ class Python2::Actions::Expressions {
     # literals
     multi method literal ($/ where $/<string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
-            value => $/<string>.Str,
+            value => $/<string>[0].Str,
         ))
     }
 

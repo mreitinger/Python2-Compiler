@@ -14,8 +14,7 @@ grammar Python2::Grammar::Expressions {
 
     # literals
     token literal {
-        | "'" <string> "'"
-        | '"' <string> '"'
+        | <string>
         | <number>
     }
 
@@ -99,7 +98,10 @@ grammar Python2::Grammar::Expressions {
 
     # basic, reused, tokens
     # TODO migrate to dedicated module
-    token string            { [\w|\s]* }
+    token string            {
+        | "'" (<-[']>*) "'"
+        | '"' (<-["]>*) '"'
+    }
     token number            {
         | <float>
         | <integer>
@@ -109,7 +111,6 @@ grammar Python2::Grammar::Expressions {
     token variable-name     { [<lower>|<upper>|_][<lower>|<upper>|<digit>|_]* }
     token dictionary-key    {
         | <integer>+
-        | "'" <string> "'"
-        | '"' <string> '"'
+        | <string>
     }
 }
