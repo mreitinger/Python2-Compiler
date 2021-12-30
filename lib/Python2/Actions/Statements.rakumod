@@ -30,6 +30,14 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method instance-variable-assignment($/) {
+        $/.make(Python2::AST::Node::Statement::InstanceVariableAssignment.new(
+            object-name     => $/<variable-name>[0].Str,
+            variable-name   => $/<variable-name>[1].Str,
+            expression      => $/<expression>.made
+        ));
+    }
+
     method statement-loop-for($/) {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             variable-name   => $/<variable-name>.Str,

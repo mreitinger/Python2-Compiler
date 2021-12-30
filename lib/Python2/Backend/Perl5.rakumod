@@ -144,6 +144,15 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
+    multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
+        my $p5 = 'Python2::setvar(';
+        $p5 ~=   'Python2::getvar($stack, \'' ~ $node.object-name ~ '\')->{stack}, ';
+        $p5 ~=   '\'' ~ $node.variable-name ~ "',";
+        $p5 ~=   $.e($node.expression);
+        $p5 ~=   ")";
+        return $p5;
+    }
+
     multi method e(Python2::AST::Node::Expression::DictionaryAccess $node) {
         #get the dictionary object
 

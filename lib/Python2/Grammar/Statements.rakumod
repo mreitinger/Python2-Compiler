@@ -4,6 +4,7 @@ grammar Python2::Grammar::Statements {
             | <function-definition>
             | <statement-try-except>
             | <variable-assignment>
+            | <instance-variable-assignment>
             | <statement-print>
             | <expression>
             | <statement-loop-for>
@@ -59,6 +60,10 @@ grammar Python2::Grammar::Statements {
 
     token variable-assignment {
         <variable-name> <.ws> '=' <.ws> <expression>
+    }
+
+    token instance-variable-assignment {
+       <variable-name> '.' <variable-name> <.ws> '=' <.ws> <expression>
     }
 
     token function-definition {
