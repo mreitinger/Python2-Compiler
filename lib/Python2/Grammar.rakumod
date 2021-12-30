@@ -21,6 +21,8 @@ grammar Python2::Grammar
         \n* #match empty lines at the end
     }
 
+    regex ws { <!ww> \s* "\\\n"? \s* }
+
     # a list of statements at the next indentation level
     token block {
         <scope-increase>
