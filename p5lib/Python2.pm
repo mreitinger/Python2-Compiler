@@ -194,6 +194,9 @@ sub create_object {
     my $object = bless($stack->{classes}->{$class_name}, "PY2::$class_name");
     $object->{init}->($object);
 
+    Python2::call($object->{stack}, '__init__', [ $object ])
+        if exists $object->{stack}->{funcs}->{__init__};
+
     return $object;
 }
 
