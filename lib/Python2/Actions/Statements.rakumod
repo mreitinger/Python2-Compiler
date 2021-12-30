@@ -23,14 +23,14 @@ class Python2::Actions::Statements {
         ));
     }
 
-    multi method variable-assignment($/) {
+    method variable-assignment($/) {
         $/.make(Python2::AST::Node::Statement::VariableAssignment.new(
             variable-name   => $/<variable-name>.Str,
             expression      => $/<expression>.made
         ));
     }
 
-    multi method statement-loop-for($/) {
+    method statement-loop-for($/) {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             variable-name   => $/<variable-name>.Str,
             iterable        => $/<expression>.made,
@@ -38,7 +38,7 @@ class Python2::Actions::Statements {
         ));
     }
 
-    multi method statement-if($/) {
+    method statement-if($/) {
         $/.make(Python2::AST::Node::Statement::If.new(
             test            => $/<test>.made,
             block           => $/<block>[0].made,
@@ -46,7 +46,7 @@ class Python2::Actions::Statements {
         ));
     }
 
-    multi method statement-try-except($/) {
+    method statement-try-except($/) {
         $/.make(Python2::AST::Node::Statement::TryExcept.new(
             try-block       => $/<block>[0].made,
             except-block    => $/<block>[1].made,
@@ -69,13 +69,14 @@ class Python2::Actions::Statements {
         ));
     }
 
-    multi method comparison-operator($/) {
+    method comparison-operator($/) {
         $/.make(Python2::AST::Node::Statement::Test::ComparisonOperator.new(
             comparison-operator => $/<comparison-operator>.Str
         ));
 
     }
-    multi method function-definition($/) {
+
+    method function-definition($/) {
         $/.make(Python2::AST::Node::Statement::FunctionDefinition.new(
             function-name   => $/<function-name>.Str,
             argument-list   => $/<function-definition-argument-list>.made,
@@ -83,7 +84,7 @@ class Python2::Actions::Statements {
         ));
     }
 
-    multi method class-definition($/) {
+    method class-definition($/) {
         $/.make(Python2::AST::Node::Statement::ClassDefinition.new(
             class-name  => $/<class-name>.Str,
             block       => $/<block>.made,

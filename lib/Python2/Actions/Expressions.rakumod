@@ -62,7 +62,7 @@ class Python2::Actions::Expressions {
     }
 
     # arithmetic operations
-    multi method arithmetic-operation ($/) {
+    method arithmetic-operation ($/) {
         # a list of 'operations' to be performed in order from 'left' to 'right'
         # format: number, operator, number, operator, number, operator, number, ...
         my @operations;
@@ -100,7 +100,7 @@ class Python2::Actions::Expressions {
     }
 
     # instance variable access
-    multi method instance-variable-access ($/) {
+    method instance-variable-access ($/) {
         $/.make(Python2::AST::Node::Expression::InstanceVariableAccess.new(
             object-name   => $/<variable-name>[0].Str,
             variable-name => $/<variable-name>[1].Str,
@@ -108,7 +108,7 @@ class Python2::Actions::Expressions {
     }
 
     # dictionary access
-    multi method dictionary-access ($/) {
+    method dictionary-access ($/) {
         $/.make(Python2::AST::Node::Expression::DictionaryAccess.new(
             dictionary-name => $/<variable-name>.Str,
             key             => $/<literal>.Str,
@@ -117,13 +117,13 @@ class Python2::Actions::Expressions {
 
 
     # list handling
-    multi method list-definition($/) {
+    method list-definition($/) {
         $/.make(Python2::AST::Node::Expression::ListDefinition.new(
             expressions => $/<expression-list>.made.expressions
         ));
     }
 
-    multi method expression-list($/) {
+    method expression-list($/) {
         my $expression-list = Python2::AST::Node::Expression::ExpressionList.new();
 
         for $/<expression> -> $expression {
@@ -135,7 +135,7 @@ class Python2::Actions::Expressions {
 
 
     # dictionary handling
-    multi method dictionary-definition($/) {
+    method dictionary-definition($/) {
         use Data::Dump;
 
         # get every dictionary entry in the list. we just bypass the intermediate
