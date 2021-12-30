@@ -117,7 +117,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::String $node) {
-        return "'" ~ $node.value ~ "'";
+        return "'" ~ $node.value.subst("'", "\\'", :g) ~ "'";
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {

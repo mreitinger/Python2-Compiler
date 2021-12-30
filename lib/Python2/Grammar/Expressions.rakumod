@@ -98,10 +98,22 @@ grammar Python2::Grammar::Expressions {
 
     # basic, reused, tokens
     # TODO migrate to dedicated module
+
+    # string machting including escaped quotes
+    # currently we don't allow any other escape sequences
     token string            {
-        | "'" (<-['\v]>*) "'"
-        | '"' (<-["\v]>*) '"'
+        <['"]>     # starting quote
+        (
+            [
+                | "\\'"        # escaped quote character
+                | '\\"'        # escaped quote character
+                | '\\'         # escaped literal backslash
+                | <-['"\\\v]>+   # everything except vertical whitespace, backslash and quote
+            ]*
+        )
+        <['"]>     # closing quote
     }
+
     token number            {
         | <float>
         | <integer>
