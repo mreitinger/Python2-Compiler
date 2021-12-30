@@ -101,8 +101,12 @@ grammar Python2::Grammar::Expressions {
 
     # string machting including escaped quotes
     # currently we don't allow any other escape sequences
-    token string            {
-        <['"]>     # starting quote
+    token string {
+        | "'" (<string-literal>) "'"
+        | '"' (<string-literal>) '"'
+    }
+
+    token string-literal {
         (
             [
                 | "\\'"        # escaped quote character
@@ -111,7 +115,6 @@ grammar Python2::Grammar::Expressions {
                 | <-['"\\\v]>+   # everything except vertical whitespace, backslash and quote
             ]*
         )
-        <['"]>     # closing quote
     }
 
     token number            {
