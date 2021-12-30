@@ -7,6 +7,7 @@ use Clone qw/ clone /;
 
 use Python2::Type::List;
 use Python2::Type::Dict;
+use Python2::Type::Object;
 
 # set a variable on our stack
 sub setvar {
@@ -132,15 +133,22 @@ sub register_function {
 
 # register a class definition on the stack
 sub register_class {
-    my ($stack, $name, $definition) = @_;
+    my ($stack, $name, $prototype, $build) = @_;
 
     die("register_class called without a valid name")
         unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
 
-    die("register_class expects a definition hash")
-        unless ref($definition) eq 'HASH';
+    die("register_class expects a prototype")
+        unless ref($prototype) eq 'Python2::Type::Object';
 
-    $stack->{classes}->{$name} = $definition;
+    die("register_class expects a build coderef")
+        unless ref($build) eq 'CODE';
+
+    # python runs the class code block on class creation time and __init__ on object creation
+    $build->($prototype->stack);
+
+
+    $stack->{classes}->{$name} = $prototype;
 }
 
 my $builtins = {
@@ -191,11 +199,9 @@ sub create_object {
 
     die("no class for $class_name") unless defined $stack->{classes}->{$class_name};
 
-    my $object = bless($stack->{classes}->{$class_name}, "PY2::$class_name");
-    $object->{init}->($object);
+    my $object = clone($stack->{classes}->{$class_name});
 
-    Python2::call($object->{stack}, '__init__', [ $object ])
-        if exists $object->{stack}->{funcs}->{__init__};
+    $object->method_call('__init__', []) if $object->has_method('__init__');
 
     return $object;
 }

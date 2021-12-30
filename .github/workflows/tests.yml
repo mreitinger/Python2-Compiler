@@ -41,7 +41,7 @@ jobs:
       - name: setup perl environment
         run: |
           mkdir -p ~/perl5lib
-          curl -L https://cpanmin.us | perl - -l ~/perl5lib -n Scalar::Util Clone
+          curl -L https://cpanmin.us | perl - -l ~/perl5lib -n Scalar::Util Clone Ref::Util
 
 
       - name: Run tests
