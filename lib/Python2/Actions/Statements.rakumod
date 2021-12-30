@@ -2,51 +2,12 @@ use Python2::AST;
 use Data::Dump;
 
 class Python2::Actions::Statements {
-    multi method statement($/ where $<expression>) {
-        $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<expression>.made
-        ));
-    }
+    method statement ($/) {
+        die("Statement Action expects exactly one child but we got { $/.values.elems }")
+            unless $/.values.elems == 1;
 
-    multi method statement($/ where $<statement-print>) {
         $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<statement-print>.made
-        ));
-    }
-
-    multi method statement($/ where $<variable-assignment>) {
-        $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<variable-assignment>.made
-        ));
-    }
-
-    multi method statement($/ where $<statement-loop-for>) {
-        $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<statement-loop-for>.made
-        ));
-    }
-
-    multi method statement($/ where $<statement-if>) {
-        $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<statement-if>.made
-        ));
-    }
-
-    multi method statement($/ where $<function-definition>) {
-        $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<function-definition>.made
-        ));
-    }
-
-    multi method statement($/ where $<class-definition>) {
-        $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<class-definition>.made
-        ));
-    }
-
-    multi method statement($/ where $<statement-try-except>) {
-        $/.make(Python2::AST::Node::Statement.new(
-            statement => $/<statement-try-except>.made
+                statement => $/.values[0].made
         ));
     }
 
@@ -148,9 +109,5 @@ class Python2::Actions::Statements {
         }
 
         $/.make($block);
-    }
-
-    multi method statement ($/) {
-        die("Action for statement not implemented: " ~ dd($/))
     }
 }
