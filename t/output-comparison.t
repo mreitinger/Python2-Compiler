@@ -33,11 +33,17 @@ for $testcase_directory.dir -> $testcase {
         $ast or bail-out("parser failed");
 
 
-        subtest 'Python 2 execution' => sub { lives-ok {
-            my $python2 = run('python2.7', $testcase, :out, :err);
-            ok($python2.exitcode == 0, 'python2 exit code');
-            $python2_output = $python2.out.slurp;
-        }};
+        subtest 'Python 2 execution' => sub {
+            my $python2;
+            lives-ok {
+                $python2 = run('python2.7', $testcase, :out, :err);
+                ok($python2.exitcode == 0, 'python2 exit code');
+                $python2_output = $python2.out.slurp;
+            }
+
+            diag("python STDERR: { $python2.err.slurp }")
+                unless $python2.exitcode == 0;
+        };
 
 
         subtest 'Perl 5 code generation' => sub { lives-ok {
@@ -46,13 +52,19 @@ for $testcase_directory.dir -> $testcase {
         }};
         $generated_perl5_code or bail-out("failed to generate Perl 5 code");
 
-        subtest 'Perl 5 execution' => sub { lives-ok {
-            my $perl5 = run('perl', :in, :out, :err);
-            $perl5.in.say($generated_perl5_code);
-            $perl5.in.close;
-            ok($perl5.exitcode == 0, 'perl exit code');
-            $perl5_output = $perl5.out.slurp;
-        }};
+        subtest 'Perl 5 execution' => sub { 
+            my $perl5;
+            lives-ok {
+                $perl5 = run('perl', :in, :out, :err);
+                $perl5.in.say($generated_perl5_code);
+                $perl5.in.close;
+                ok($perl5.exitcode == 0, 'perl exit code');
+                $perl5_output = $perl5.out.slurp;
+            }
+
+            diag("perl 5 STDERR: { $perl5.err.slurp }")
+                unless $perl5.exitcode == 0;
+        };
 
         subtest 'Output comparison' => sub {
             is $perl5_output, $python2_output, 'output matches';
