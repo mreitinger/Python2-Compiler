@@ -99,8 +99,8 @@ grammar Python2::Grammar::Expressions {
     # basic, reused, tokens
     # TODO migrate to dedicated module
     token string            {
-        | "'" (<-[']>*) "'"
-        | '"' (<-["]>*) '"'
+        | "'" (<-['\v]>*) "'"
+        | '"' (<-["\v]>*) '"'
     }
     token number            {
         | <float>
