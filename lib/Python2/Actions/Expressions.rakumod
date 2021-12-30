@@ -3,32 +3,11 @@ use Data::Dump;
 
 class Python2::Actions::Expressions {
     # top level 'expression'
-    multi method expression ($/ where $/<literal>) {
-        $/.make($/<literal>.made);
-    }
+    method expression ($/) {
+        die("Expression Action expects exactly one child but we got { $/.values.elems }")
+            unless $/.values.elems == 1;
 
-    multi method expression ($/ where $/<arithmetic-operation>) {
-        $/.make($/<arithmetic-operation>.made);
-    }
-
-    multi method expression ($/ where $/<variable-access>) {
-        $/.make($/<variable-access>.made);
-    }
-
-    multi method expression ($/ where $/<list-definition>) {
-        $/.make($/<list-definition>.made);
-    }
-
-    multi method expression ($/ where $/<dictionary-definition>) {
-        $/.make($/<dictionary-definition>.made);
-    }
-
-    multi method expression($/ where $<function-call>) {
-        $/.make($<function-call>.made);
-    }
-
-    multi method expression($/ where $<method-call>) {
-        $/.make($<method-call>.made);
+        $/.make($/.values[0].made);
     }
 
     # literals
@@ -211,11 +190,5 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(@argument-list);
-    }
-
-
-    # fallback
-    multi method expression ($/) {
-        die("Action for expression not implemented: " ~ $/)
     }
 }
