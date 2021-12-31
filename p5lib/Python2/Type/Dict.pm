@@ -8,9 +8,10 @@ sub new {
 
     return bless({
         elements    => { @initial_elements },
-        stack       => { # make it look like a normal object. it'll inhert from a base class soon
-                         # enough.
-            funcs => {
+        stack       => [
+            undef,
+            undef,
+            {
                 keys => sub {
                     return Python2::Type::List->new(keys %{ shift->[0]->{elements} })
                 },
@@ -18,7 +19,7 @@ sub new {
                     return Python2::Type::List->new(values %{ shift->[0]->{elements} })
                 },
             },
-        },
+        ],
     }, $self);
 }
 

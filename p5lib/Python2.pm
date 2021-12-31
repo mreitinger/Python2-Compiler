@@ -8,26 +8,33 @@ use Clone qw/ clone /;
 use Python2::Type::List;
 use Python2::Type::Dict;
 
+use constant {
+    PARENT      => 0,
+    VARIABLES   => 1,
+    FUNCTIONS   => 2,
+    CLASSES     => 3
+};
+
 # set a variable on our stack
 sub setvar {
     my ($stack, $name, $value) = @_;
 
-    $stack->{vars}->{$name} = $value;
+    $stack->[VARIABLES]->{$name} = $value;
 }
 
 # receive a variable from our stack
 sub getvar {
     my ($stack, $name) = @_;
 
-    until (exists $stack->{vars}->{$name} or not defined $stack->{parent}) {
-        $stack = $stack->{parent};
+    until (exists $stack->[VARIABLES]->{$name} or not defined $stack->[PARENT]) {
+        $stack = $stack->[PARENT];
     }
 
     # TODO we are going to need a decent exception object here
     die("NameError: name '$name' is not defined")
-        unless exists $stack->{vars}->{$name};
+        unless exists $stack->[VARIABLES]->{$name};
 
-    return $stack->{vars}->{$name};
+    return $stack->[VARIABLES]->{$name};
 }
 
 # print like python does: attempt to produce output perfectly matching Python's
@@ -127,7 +134,7 @@ sub register_function {
     die("register_function expects a coderef")
         unless ref($coderef) eq 'CODE';
 
-    $stack->{funcs}->{$name} = $coderef;
+    $stack->[FUNCTIONS]->{$name} = $coderef;
 }
 
 my $builtins = {
@@ -163,11 +170,11 @@ sub call {
     return $builtins->{$function_name}->($arguments)
         if defined $builtins->{$function_name};
 
-    return $stack->{funcs}->{$function_name}->($arguments)
-        if defined $stack->{funcs}->{$function_name};
+    return $stack->[FUNCTIONS]->{$function_name}->($arguments)
+        if defined $stack->[FUNCTIONS]->{$function_name};
 
     return Python2::create_object($stack, $function_name)
-        if defined $stack->{classes}->{$function_name};
+        if defined $stack->[CLASSES]->{$function_name};
 
     die("unknown function: $function_name");
 }
@@ -183,21 +190,21 @@ sub create_class {
     die("register_class expects a build coderef")
         unless ref($build) eq 'CODE';
 
-    $stack->{classes}->{$name} = { stack => {} };
+    $stack->[CLASSES]->{$name} = { stack => [] };
 
     # python runs the class code block on class creation time and __init__ on object creation
-    $build->($stack->{classes}->{$name}->{stack});
+    $build->($stack->[CLASSES]->{$name}->{stack});
 }
 
 sub create_object {
     my ($stack, $class_name) = @_;
 
-    die("no class for $class_name") unless defined $stack->{classes}->{$class_name};
+    die("no class for $class_name") unless defined $stack->[CLASSES]->{$class_name};
 
-    my $object = clone($stack->{classes}->{$class_name});
+    my $object = clone($stack->[CLASSES]->{$class_name});
 
-    $object->{stack}->{funcs}->{__init__}->([$object])
-        if exists $object->{stack}->{funcs}->{__init__};
+    $object->{stack}->[FUNCTIONS]->{__init__}->([$object])
+        if exists $object->{stack}->[FUNCTIONS]->{__init__};
 
     return $object;
 }

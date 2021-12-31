@@ -7,8 +7,16 @@ class Python2::Backend::Perl5 {
         "use strict;\n" ~
         "use lib qw( p5lib );\n" ~
         "use Python2;\n\n" ~
-        'my $stack = {};' ~ "\n\n";
-    ;
+        'my $stack = [];' ~ "\n\n";
+
+    # we use an array instead of a hash for faster lookups.
+    # Layout:
+    #[
+    #    $parent,    # reference to parent stack
+    #    {},         # variables in our scope
+    #    {},         # function definitions in our scope
+    #    {},         # class definitions in our scope
+    #]
 
     # root node: iteral over all statements and create perl code for them
     multi method e(Python2::AST::Node::Root $node) {
@@ -84,7 +92,7 @@ class Python2::Backend::Perl5 {
         my $p5 = 'Python2::register_function($stack, \'' ~ $node.function-name ~ '\', sub {' ~ "\n";
 
         $p5 ~= 'my $arguments = shift;' ~ "\n";
-        $p5 ~= 'my $stack = { parent => $stack };' ~ "\n";
+        $p5 ~= 'my $stack = [ $stack ];' ~ "\n";
 
         for $node.argument-list -> $argument {
             $p5 ~= 'Python2::setvar($stack, \'' ~ $argument ~ '\', shift @$arguments);' ~ "\n";
