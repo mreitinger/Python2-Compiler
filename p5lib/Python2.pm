@@ -7,7 +7,6 @@ use Clone qw/ clone /;
 
 use Python2::Type::List;
 use Python2::Type::Dict;
-use Python2::Type::Object;
 
 # set a variable on our stack
 sub setvar {
@@ -131,26 +130,6 @@ sub register_function {
     $stack->{funcs}->{$name} = $coderef;
 }
 
-# register a class definition on the stack
-sub register_class {
-    my ($stack, $name, $prototype, $build) = @_;
-
-    die("register_class called without a valid name")
-        unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
-
-    die("register_class expects a prototype")
-        unless ref($prototype) eq 'Python2::Type::Object';
-
-    die("register_class expects a build coderef")
-        unless ref($build) eq 'CODE';
-
-    # python runs the class code block on class creation time and __init__ on object creation
-    $build->($prototype->stack);
-
-
-    $stack->{classes}->{$name} = $prototype;
-}
-
 my $builtins = {
     'sorted' => sub {
         my ($arguments) = @_;
@@ -194,6 +173,22 @@ sub call {
 }
 
 
+# register a class definition on the stack
+sub create_class {
+    my ($stack, $name, $build) = @_;
+
+    die("register_class called without a valid name")
+        unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
+
+    die("register_class expects a build coderef")
+        unless ref($build) eq 'CODE';
+
+    $stack->{classes}->{$name} = { stack => {} };
+
+    # python runs the class code block on class creation time and __init__ on object creation
+    $build->($stack->{classes}->{$name}->{stack});
+}
+
 sub create_object {
     my ($stack, $class_name) = @_;
 
@@ -201,12 +196,10 @@ sub create_object {
 
     my $object = clone($stack->{classes}->{$class_name});
 
-    $object->method_call('__init__', []) if $object->has_method('__init__');
+    $object->{stack}->{funcs}->{__init__}->([$object])
+        if exists $object->{stack}->{funcs}->{__init__};
 
     return $object;
 }
-
-
-
 
 1;

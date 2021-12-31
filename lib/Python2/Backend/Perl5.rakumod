@@ -95,9 +95,8 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
-        my $p5 = Q:c "Python2::register_class($stack, ";
+        my $p5 = Q:c "Python2::create_class($stack, ";
         $p5   ~= Q:c "'{ $node.class-name }', ";
-        $p5   ~= Q:c "Python2::Type::Object->new(), ";
         $p5   ~=     "sub \{ my \$stack = shift; { $.e($node.block) }\})";
     }
 
