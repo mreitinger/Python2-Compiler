@@ -150,10 +150,16 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
-        my $p5 = 'Python2::setvar(';
-        $p5 ~=   'Python2::getvar($stack, \'' ~ $node.object-name ~ '\')->{stack}, ';
-        $p5 ~=   '\'' ~ $node.variable-name ~ "',";
+        # get the stack of the parent object
+        my $p5 = 'Python2::setvar(' ~ $.e($node.object-access) ~ '->{stack},';
+
+        # the last node in the chain represents the target variable. it still gets captures
+        # by object-access-operation so we extract the variable-name here
+        $p5 ~=   '\'' ~ $node.target-variable.variable-name.Str ~ '\', ';
+
+        # new value to set
         $p5 ~=   $.e($node.expression);
+
         $p5 ~=   ")";
         return $p5;
     }

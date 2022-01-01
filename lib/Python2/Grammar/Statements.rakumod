@@ -62,8 +62,10 @@ grammar Python2::Grammar::Statements {
         <variable-name> <.ws> '=' <.ws> <expression>
     }
 
+    # we can't use object-access directly since we need access to the last element so
+    # it can be passed to setvar()
     token instance-variable-assignment {
-       <variable-name> '.' <variable-name> <.ws> '=' <.ws> <expression>
+       <variable-name> <object-access-operation>+ <.ws> '=' <.ws> <expression>
     }
 
     token function-definition {

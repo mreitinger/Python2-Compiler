@@ -88,9 +88,9 @@ class Python2::AST {
     }
 
     class Node::Statement::InstanceVariableAssignment is Node::Expression {
-        has Str                 $.object-name   is required;
-        has Str                 $.variable-name is required;
-        has Node::Expression    $.expression    is required;
+        has Node::Expression::ObjectAccess  $.object-access is required;
+        has Node                            $.target-variable is required;
+        has Node::Expression                $.expression    is required;
     }
 
     class Node::Statement::LoopFor is Node::Expression {
