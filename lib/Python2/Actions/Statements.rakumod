@@ -7,7 +7,8 @@ class Python2::Actions::Statements {
             unless $/.values.elems == 1;
 
         $/.make(Python2::AST::Node::Statement.new(
-                statement => $/.values[0].made
+                statement   => $/.values[0].made,
+                line-number => $/.prematch.indices("\n").elems+1,
         ));
     }
 

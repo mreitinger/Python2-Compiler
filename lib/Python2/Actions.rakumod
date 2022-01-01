@@ -10,9 +10,8 @@ class Python2::Actions
         my $root = Python2::AST::Node::Root.new();
 
         for $<statement> -> $statement {
-            $root.nodes.push(Python2::AST::Node::Statement.new(
-                statement => $statement.made
-            )) unless $statement === Nil;
+            $root.nodes.push($statement.made)
+                unless $statement === Nil;
         }
 
         $/.make($root);
