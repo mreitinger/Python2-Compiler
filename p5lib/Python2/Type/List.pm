@@ -18,4 +18,11 @@ sub print {
 
 sub elements { shift->{elements} }
 
+
+sub set {
+    my ($self, $key, $value) = @_;
+
+    $self->{elements}->[$key] = $value;
+}
+
 1;

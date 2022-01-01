@@ -22,6 +22,12 @@ sub setvar {
     $stack->[VARIABLES]->{$name} = $value;
 }
 
+sub setvar_e {
+    my ($stack, $name, $element, $value) = @_;
+
+    $stack->[VARIABLES]->{$name}->set($element, $value);
+}
+
 # receive a variable from our stack
 sub getvar {
     my ($stack, $name) = @_;

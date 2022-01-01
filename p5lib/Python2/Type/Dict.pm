@@ -45,4 +45,10 @@ sub element {
     return $self->{elements}->{$key};
 }
 
+sub set {
+    my ($self, $key, $value) = @_;
+
+    $self->{elements}->{$key} = $value;
+}
+
 1;

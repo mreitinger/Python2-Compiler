@@ -43,7 +43,11 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
-        return 'Python2::setvar($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.expression) ~ ");";
+        if ($node.list-or-dict-element) {
+            return 'Python2::setvar_e($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.list-or-dict-element) ~ ", " ~ $.e($node.expression) ~ ");";
+        } else {
+            return 'Python2::setvar($stack, \'' ~ $node.variable-name ~ "', " ~ $.e($node.expression) ~ ");";
+        }
     }
 
     multi method e(Python2::AST::Node::Statement::Return $node) {
@@ -150,17 +154,30 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
-        # get the stack of the parent object
-        my $p5 = 'Python2::setvar(' ~ $.e($node.object-access) ~ '->{stack},';
+        my Str $p5;
+        if ($node.list-or-dict-element) {
+            # assuming object.array[0]
+            # fetch stack for object
+            $p5 ~= 'Python2::setvar_e(' ~ $.e($node.object-access) ~ '->{stack}, ';
 
-        # the last node in the chain represents the target variable. it still gets captures
-        # by object-access-operation so we extract the variable-name here
-        $p5 ~=   '\'' ~ $node.target-variable.variable-name.Str ~ '\', ';
+            # add target variable ('array')
+            $p5 ~= '\'' ~ $node.target-variable.variable-name.Str ~ '\', ';
+
+            # add item ([0])
+            $p5 ~= $.e($node.list-or-dict-element) ~ ',';
+        } else {
+            # assuming object.item
+            # fetch stack for object
+            $p5 ~= 'Python2::setvar(' ~ $.e($node.object-access) ~ '->{stack}, ';
+
+            # add target variable ('item')
+            $p5 ~= '\'' ~ $node.target-variable.variable-name.Str ~ '\', ';
+        }
 
         # new value to set
         $p5 ~=   $.e($node.expression);
-
         $p5 ~=   ")";
+
         return $p5;
     }
 

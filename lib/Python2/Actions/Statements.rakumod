@@ -26,9 +26,14 @@ class Python2::Actions::Statements {
 
     method variable-assignment($/) {
         $/.make(Python2::AST::Node::Statement::VariableAssignment.new(
-            variable-name   => $/<variable-name>.Str,
-            expression      => $/<expression>.made
+            variable-name           => $/<variable-name>.Str,
+            list-or-dict-element    => $/<list-or-dict-element>.made,
+            expression              => $/<expression>.made
         ));
+    }
+
+    method list-or-dict-element($/) {
+        $/.make($/<literal>.made)
     }
 
     method instance-variable-assignment($/) {
@@ -49,8 +54,9 @@ class Python2::Actions::Statements {
                 object-name => $/<variable-name>.Str,
                 operations  => @operations,
             ),
-            target-variable => $final-node.made,
-            expression      => $/<expression>.made
+            target-variable         => $final-node.made,
+            list-or-dict-element    => $/<list-or-dict-element>.made,
+            expression              => $/<expression>.made
         ));
     }
 
