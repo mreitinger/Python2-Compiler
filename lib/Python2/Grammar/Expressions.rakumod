@@ -1,6 +1,5 @@
 grammar Python2::Grammar::Expressions {
     token expression {
-        | <method-call>
         | <function-call>
 
         | <arithmetic-operation>
@@ -40,14 +39,9 @@ grammar Python2::Grammar::Expressions {
 
     # access to a single variable
     token variable-access {
-        | <instance-variable-access>
+        | <object-access>
         | <dictionary-access>
         | <variable-name>
-    }
-
-    # access to a instance variable
-    token instance-variable-access {
-        <variable-name> '.' <variable-name>
     }
 
     token dictionary-access {
@@ -90,9 +84,23 @@ grammar Python2::Grammar::Expressions {
     token function-name     { [<lower>|<upper>|<digit>|_]+ }
 
 
-    # method call
+    # access to object instance variables and methods
+    token object-access {
+        <variable-name> <object-access-operation>+
+    }
+
+    token object-access-operation {
+        || <method-call>
+        || <instance-variable-access>
+    }
+
     token method-call {
-        <variable-name> '.' <function-name> '(' <function-call-argument-list> ')'
+        '.' <function-name> '(' <function-call-argument-list> ')'
+    }
+
+    # access to a instance variable
+    token instance-variable-access {
+        '.' <variable-name>
     }
 
 

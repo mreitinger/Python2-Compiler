@@ -33,7 +33,6 @@ class Python2::AST {
     }
 
     class Node::Expression::InstanceVariableAccess is Node::Expression {
-        has Str $.object-name is required;
         has Str $.variable-name is required;
     }
 
@@ -59,8 +58,12 @@ class Python2::AST {
         has Node    @.arguments;
     }
 
+    class Node::Expression::ObjectAccess is Node::Expression {
+        has Str     $.object-name   is required;
+        has Node    @.operations    is required;
+    }
+
     class Node::Expression::MethodCall is Node::Expression {
-        has Node    $.object is required;
         has Str     $.method-name is required;
         has Node    @.arguments is required;
     }

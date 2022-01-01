@@ -91,20 +91,12 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    multi method variable-access ($/ where $/<instance-variable-access>) {
-        $/.make($/<instance-variable-access>.made);
+    multi method variable-access ($/ where $/<object-access>) {
+        $/.make($/<object-access>.made);
     }
 
     multi method variable-access ($/ where $/<dictionary-access>) {
         $/.make($/<dictionary-access>.made);
-    }
-
-    # instance variable access
-    method instance-variable-access ($/) {
-        $/.make(Python2::AST::Node::Expression::InstanceVariableAccess.new(
-            object-name   => $/<variable-name>[0].Str,
-            variable-name => $/<variable-name>[1].Str,
-        ))
     }
 
     # dictionary access
@@ -167,6 +159,27 @@ class Python2::Actions::Expressions {
         ));
     }
 
+    method object-access($/) {
+        my Python2::AST::Node @operations;
+
+        for ($/<object-access-operation>) -> $operation {
+            push(@operations, $operation.made);
+        }
+
+        $/.make(Python2::AST::Node::Expression::ObjectAccess.new(
+            object-name => $/<variable-name>.Str,
+            operations  => @operations,
+        ));
+    }
+
+    multi method object-access-operation ($/ where $/<method-call>) {
+        $/.make($/<method-call>.made);
+    }
+
+    multi method object-access-operation ($/ where $/<instance-variable-access>) {
+        $/.make($/<instance-variable-access>.made);
+    }
+
     multi method method-call($/) {
         my @arguments;
 
@@ -175,12 +188,16 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::MethodCall.new(
-            method-name     => $/<function-name>.Str,
-            object          => Python2::AST::Node::Expression::VariableAccess.new(
-                variable-name => $/<variable-name>.Str,
-            ),
-            arguments       => @arguments,
+            method-name => $/<function-name>.Str,
+            arguments   => @arguments,
         ));
+    }
+
+    # instance variable access
+    method instance-variable-access ($/) {
+        $/.make(Python2::AST::Node::Expression::InstanceVariableAccess.new(
+            variable-name => $/<variable-name>.Str,
+        ))
     }
 
     # TODO we should do a a AST intermediate here to provide more data for further optimization

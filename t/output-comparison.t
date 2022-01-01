@@ -24,13 +24,13 @@ for $testcase_directory.dir -> $testcase {
                 sub { $parsed = Python2::Grammar.parse($testcase.slurp, actions => Python2::Actions) },
             );
         };
-        $parsed or bail-out("parser failed");
+        $parsed or fail("parser failed for $testcase");
 
 
         subtest 'AST' => sub { lives-ok {
             $ast = $parsed.made;
         }};
-        $ast or bail-out("parser failed");
+        $ast or fail("AST generation failed for $testcase");
 
 
         subtest 'Python 2 execution' => sub {
@@ -50,7 +50,7 @@ for $testcase_directory.dir -> $testcase {
             my $backend = Python2::Backend::Perl5.new();
             ok($generated_perl5_code = $backend.e($ast));
         }};
-        $generated_perl5_code or bail-out("failed to generate Perl 5 code");
+        $generated_perl5_code or fail("failed to generate Perl 5 code");
 
         subtest 'Perl 5 execution' => sub { 
             my $perl5;

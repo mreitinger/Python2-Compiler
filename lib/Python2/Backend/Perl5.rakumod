@@ -1,13 +1,18 @@
 use Python2::AST;
 use Data::Dump;
 
-class Python2::Backend::Perl5 {
+use Python2::Backend::Perl5::ObjectAccess;
+
+class Python2::Backend::Perl5
+    does Python2::Backend::Perl5::ObjectAccess
+{
     has Str $!o =
         "use v5.26.0;\n" ~
         "use strict;\n" ~
         "use lib qw( p5lib );\n" ~
         "use Python2;\n\n" ~
-        'my $stack = [];' ~ "\n\n";
+        'my $stack = [];' ~ "\n\n" ~
+        'use constant { PARENT => 0, VARIABLES => 1, FUNCTIONS => 2, CLASSES => 3 };' ~ "\n\n";
 
     # we use an array instead of a hash for faster lookups.
     # Layout:
@@ -144,13 +149,6 @@ class Python2::Backend::Perl5 {
         return 'Python2::getvar($stack, \'' ~ $node.variable-name ~ "')";
     }
 
-    multi method e(Python2::AST::Node::Expression::InstanceVariableAccess $node) {
-        my $p5 = 'Python2::getvar(';    # get variable from a $stack
-        $p5 ~=   'Python2::getvar($stack, \'' ~ $node.object-name ~ '\')->{stack}, ';
-        $p5 ~=   '\'' ~ $node.variable-name ~ "')";
-        return $p5;
-    }
-
     multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
         my $p5 = 'Python2::setvar(';
         $p5 ~=   'Python2::getvar($stack, \'' ~ $node.object-name ~ '\')->{stack}, ';
@@ -182,22 +180,7 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
-    multi method e(Python2::AST::Node::Expression::MethodCall $node) {
-        my $p5 = 'Python2::call(' ~ $.e($node.object) ~ '->{stack}, \'' ~ $node.method-name ~ '\', [';
 
-        # push the object to the front of the argument list. ends up in self or whatever you
-        # like to call it
-        $p5 ~= $.e($node.object) ~ ', ';
-
-        for $node.arguments -> $argument {
-            $p5 ~= $.e($argument);
-            $p5 ~= ','; # TODO trailing slash
-        }
-
-        $p5 ~=   '])' ~ "\n";
-
-        return $p5;
-    }
 
 
     # list handling
