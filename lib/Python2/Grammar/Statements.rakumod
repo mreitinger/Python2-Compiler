@@ -19,8 +19,7 @@ grammar Python2::Grammar::Statements {
 
     # TODO: we need a intermediate step here like python's test/testlist
     token statement-print {
-        | 'print' <.ws> <function-call>
-        | 'print' <.ws> <expression>
+        'print' <.ws> <expression>
     }
 
     token statement-return {
