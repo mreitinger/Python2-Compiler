@@ -9,37 +9,36 @@ use Python2::Type::List;
 use Python2::Type::Dict;
 
 use constant {
-    PARENT      => 0,
-    VARIABLES   => 1,
-    FUNCTIONS   => 2,
+    PARENT  => 0,
+    ITEMS   => 1,
 };
 
 # set a variable on our stack
 sub setvar {
     my ($stack, $name, $value) = @_;
 
-    $stack->[VARIABLES]->{$name} = $value;
+    $stack->[ITEMS]->{$name} = $value;
 }
 
 sub setvar_e {
     my ($stack, $name, $element, $value) = @_;
 
-    $stack->[VARIABLES]->{$name}->set($element, $value);
+    $stack->[ITEMS]->{$name}->set($element, $value);
 }
 
 # receive a variable from our stack
 sub getvar {
     my ($stack, $name) = @_;
 
-    until (exists $stack->[VARIABLES]->{$name} or not defined $stack->[PARENT]) {
+    until (exists $stack->[ITEMS]->{$name} or not defined $stack->[PARENT]) {
         $stack = $stack->[PARENT];
     }
 
     # TODO we are going to need a decent exception object here
     die("NameError: name '$name' is not defined")
-        unless exists $stack->[VARIABLES]->{$name};
+        unless exists $stack->[ITEMS]->{$name};
 
-    return $stack->[VARIABLES]->{$name};
+    return $stack->[ITEMS]->{$name};
 }
 
 # print like python does: attempt to produce output perfectly matching Python's
@@ -139,7 +138,7 @@ sub register_function {
     die("register_function expects a coderef")
         unless ref($coderef) eq 'CODE';
 
-    $stack->[FUNCTIONS]->{$name} = $coderef;
+    $stack->[ITEMS]->{$name} = $coderef;
 }
 
 my $builtins = {
@@ -175,8 +174,8 @@ sub call {
     return $builtins->{$function_name}->($arguments)
         if defined $builtins->{$function_name};
 
-    return $stack->[FUNCTIONS]->{$function_name}->($arguments)
-        if defined $stack->[FUNCTIONS]->{$function_name};
+    return $stack->[ITEMS]->{$function_name}->($arguments)
+        if defined $stack->[ITEMS]->{$function_name};
 
     die("unknown function: $function_name");
 }
@@ -202,11 +201,11 @@ sub create_class {
 
     # since everything shares a namespace on the stack we need to turn object instance creation
     # into a function. this clones the class, runs the __init__ method and returns the object.
-    $stack->[FUNCTIONS]->{$name} = sub {
+    $stack->[ITEMS]->{$name} = sub {
          my $object = clone($class);
 
-         $object->{stack}->[FUNCTIONS]->{__init__}->([$object])
-             if exists $object->{stack}->[FUNCTIONS]->{__init__};
+         $object->{stack}->[ITEMS]->{__init__}->([$object])
+             if exists $object->{stack}->[ITEMS]->{__init__};
 
          return $object;
     }

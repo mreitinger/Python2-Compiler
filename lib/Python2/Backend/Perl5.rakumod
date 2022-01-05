@@ -12,14 +12,16 @@ class Python2::Backend::Perl5
         "use lib qw( p5lib );\n" ~
         "use Python2;\n\n" ~
         'my $stack = [];' ~ "\n\n" ~
-        'use constant { PARENT => 0, VARIABLES => 1, FUNCTIONS => 2, CLASSES => 3 };' ~ "\n\n";
+        'use constant { PARENT => 0, ITEMS => 1 };' ~ "\n\n";
 
     # we use an array instead of a hash for faster lookups.
     # Layout:
     #[
     #    $parent,    # reference to parent stack
-    #    {},         # variables in our scope
-    #    {},         # function definitions in our scope
+    #    {           # items in our scope
+    #       name1 => value1,
+    #       name2 => value2
+    #    },
     #]
 
     # root node: iteral over all statements and create perl code for them

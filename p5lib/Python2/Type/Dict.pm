@@ -10,7 +10,6 @@ sub new {
         elements    => { @initial_elements },
         stack       => [
             undef,
-            undef,
             {
                 keys => sub {
                     return Python2::Type::List->new(keys %{ shift->[0]->{elements} })
