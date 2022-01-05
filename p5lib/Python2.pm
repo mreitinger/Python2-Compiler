@@ -12,7 +12,6 @@ use constant {
     PARENT      => 0,
     VARIABLES   => 1,
     FUNCTIONS   => 2,
-    CLASSES     => 3
 };
 
 # set a variable on our stack
@@ -179,9 +178,6 @@ sub call {
     return $stack->[FUNCTIONS]->{$function_name}->($arguments)
         if defined $stack->[FUNCTIONS]->{$function_name};
 
-    return Python2::create_object($stack, $function_name)
-        if defined $stack->[CLASSES]->{$function_name};
-
     die("unknown function: $function_name");
 }
 
@@ -196,23 +192,24 @@ sub create_class {
     die("register_class expects a build coderef")
         unless ref($build) eq 'CODE';
 
-    $stack->[CLASSES]->{$name} = { stack => [] };
+    my $class = {
+        stack => [],
+    };
 
-    # python runs the class code block on class creation time and __init__ on object creation
-    $build->($stack->[CLASSES]->{$name}->{stack});
-}
+    # python runs the class code block on class creation time and __init__ on object creation.
+    # this takes care of the class code block
+    $build->($class->{stack});
 
-sub create_object {
-    my ($stack, $class_name) = @_;
+    # since everything shares a namespace on the stack we need to turn object instance creation
+    # into a function. this clones the class, runs the __init__ method and returns the object.
+    $stack->[FUNCTIONS]->{$name} = sub {
+         my $object = clone($class);
 
-    die("no class for $class_name") unless defined $stack->[CLASSES]->{$class_name};
+         $object->{stack}->[FUNCTIONS]->{__init__}->([$object])
+             if exists $object->{stack}->[FUNCTIONS]->{__init__};
 
-    my $object = clone($stack->[CLASSES]->{$class_name});
-
-    $object->{stack}->[FUNCTIONS]->{__init__}->([$object])
-        if exists $object->{stack}->[FUNCTIONS]->{__init__};
-
-    return $object;
+         return $object;
+    }
 }
 
 1;

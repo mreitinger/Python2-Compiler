@@ -20,7 +20,6 @@ class Python2::Backend::Perl5
     #    $parent,    # reference to parent stack
     #    {},         # variables in our scope
     #    {},         # function definitions in our scope
-    #    {},         # class definitions in our scope
     #]
 
     # root node: iteral over all statements and create perl code for them
