@@ -8,6 +8,9 @@ use Clone qw/ clone /;
 use Python2::Type::List;
 use Python2::Type::Dict;
 
+use Exporter qw/ import /;
+our @EXPORT = qw/ getvar setvar setvar_e call py2print compare register_function create_class /;
+
 use constant {
     PARENT  => 0,
     ITEMS   => 1,
