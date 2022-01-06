@@ -81,8 +81,6 @@ role Python2::Grammar::Expressions {
         <expression>* %% <list-delimiter>
     }
 
-    token function-name     { [<lower>|<upper>|<digit>|_]+ }
-
 
     # access to object instance variables and methods
     token object-access {
@@ -131,7 +129,6 @@ role Python2::Grammar::Expressions {
     }
     token float             { \d+\.\d+ }
     token integer           { \d+ }
-    token variable-name     { [<lower>|<upper>|_][<lower>|<upper>|<digit>|_]* }
     token dictionary-key    {
         | <integer>+
         | <string>

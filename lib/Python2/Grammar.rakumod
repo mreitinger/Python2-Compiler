@@ -1,5 +1,6 @@
 use Python2::Grammar::Statements;
 use Python2::Grammar::Expressions;
+use Python2::Grammar::Common;
 
 #use Grammar::Tracer;
 
@@ -8,6 +9,7 @@ use Python2::Grammar::Expressions;
 grammar Python2::Grammar
     does Python2::Grammar::Statements
     does Python2::Grammar::Expressions
+    does Python2::Grammar::Common
 {
 
     token TOP {

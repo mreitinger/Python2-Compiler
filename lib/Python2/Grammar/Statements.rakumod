@@ -79,13 +79,7 @@ role Python2::Grammar::Statements {
         'class' <.ws> <class-name> ':' <block>
     }
 
-    token class-name     { <lower>+ }
-
     token function-definition-argument-list {
         <variable-name>* %% <list-delimiter>
-    }
-
-    token list-delimiter {
-        <.ws> ',' <.ws>
     }
 }
