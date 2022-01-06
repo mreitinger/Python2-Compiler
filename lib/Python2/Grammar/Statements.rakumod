@@ -1,4 +1,4 @@
-grammar Python2::Grammar::Statements {
+role Python2::Grammar::Statements {
     token statement {
         [
             | <function-definition>

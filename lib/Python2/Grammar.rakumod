@@ -6,8 +6,8 @@ use Python2::Grammar::Expressions;
 
 # in most places this Grammar is limited on purpose until the tests cover more
 grammar Python2::Grammar
-    is Python2::Grammar::Statements
-    is Python2::Grammar::Expressions
+    does Python2::Grammar::Statements
+    does Python2::Grammar::Expressions
 {
 
     token TOP {

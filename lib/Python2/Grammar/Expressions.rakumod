@@ -1,4 +1,4 @@
-grammar Python2::Grammar::Expressions {
+role Python2::Grammar::Expressions {
     token expression {
         | <function-call>
 
