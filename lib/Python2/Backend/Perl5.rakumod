@@ -46,13 +46,13 @@ class Python2::Backend::Perl5
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
         if ($node.list-or-dict-element) {
             return sprintf('setvar_e($stack, \'%s\', %s, %s)',
-                $node.variable-name,
+                $node.name,
                 $.e($node.list-or-dict-element),
                 $.e($node.expression),
             );
         } else {
             return sprintf('setvar($stack, \'%s\', %s)',
-                $node.variable-name,
+                $node.name,
                 $.e($node.expression)
             );
         }
@@ -68,7 +68,7 @@ class Python2::Backend::Perl5
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
         return sprintf('foreach my $var (@{ %s->elements }) { setvar($stack, \'%s\', $var); %s }',
             $.e($node.iterable),
-            $node.variable-name,
+            $node.name,
             $.e($node.block),
         );
     }
@@ -105,7 +105,7 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
-        my $p5 = sprintf('register_function($stack, \'%s\', sub {', $node.function-name);
+        my $p5 = sprintf('register_function($stack, \'%s\', sub {', $node.name);
 
         $p5 ~= 'my $arguments = shift;' ~ "\n";
         $p5 ~= 'my $stack = [ $stack ];' ~ "\n";
@@ -120,7 +120,7 @@ class Python2::Backend::Perl5
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
         return sprintf('create_class($stack, \'%s\', sub { my $stack = shift; %s })',
-            $node.class-name,
+            $node.name,
             $.e($node.block)
         );
     }
@@ -158,7 +158,7 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Expression::VariableAccess $node) {
-        return 'getvar($stack, \'' ~ $node.variable-name ~ "')";
+        return 'getvar($stack, \'' ~ $node.name ~ "')";
     }
 
     multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
@@ -168,7 +168,7 @@ class Python2::Backend::Perl5
             # fetch stack for object
             return sprintf('setvar_e(%s->{stack}, \'%s\', %s, %s)',
                 $.e($node.object-access),
-                $node.target-variable.variable-name.Str,
+                $node.target-variable.name.Str,
                 $.e($node.list-or-dict-element),
                 $.e($node.expression)
             );
@@ -177,7 +177,7 @@ class Python2::Backend::Perl5
             # fetch stack for object
             return sprintf('setvar(%s->{stack}, \'%s\', %s)',
                 $.e($node.object-access),
-                $node.target-variable.variable-name.Str,
+                $node.target-variable.name.Str,
                 $.e($node.expression),
             );
         }
@@ -193,7 +193,7 @@ class Python2::Backend::Perl5
     # function calls
     multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
         return sprintf('call($stack, \'%s\', [ %s ])',
-            $node.function-name,
+            $node.name,
             $node.arguments.map({ self.e($_) }).join(', ')
         );
     }

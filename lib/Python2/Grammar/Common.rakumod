@@ -1,9 +1,8 @@
 role Python2::Grammar::Common {
-    token class-name        { <lower>+ }
-    token function-name     { [<lower>|<upper>|<digit>|_]+ }
-    token variable-name     { [<lower>|<upper>|_][<lower>|<upper>|<digit>|_]* }
+    # Match function/variable/class names. Matches the NAME token in Python's grammar.
+    token name  { [<lower>|<upper>|_][<lower>|<upper>|<digit>|_]* }
 
-    # match the comma used in lists (actual Lists and Argument defintions) including
-    # optional whitespace around it
+    # Match the comma used in lists (actual Lists and Argument defintions) including
+    # optional whitespace around it.
     token list-delimiter { <.ws> ',' <.ws> }
 }

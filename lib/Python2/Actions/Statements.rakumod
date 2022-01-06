@@ -26,7 +26,7 @@ class Python2::Actions::Statements {
 
     method variable-assignment($/) {
         $/.make(Python2::AST::Node::Statement::VariableAssignment.new(
-            variable-name           => $/<variable-name>.Str,
+            name                    => $/<name>.Str,
             list-or-dict-element    => $/<list-or-dict-element>.made,
             expression              => $/<expression>.made
         ));
@@ -40,7 +40,7 @@ class Python2::Actions::Statements {
         # the final node in the chain ('object.foo.bar().final_node'). this doesn't get passed
         # to getvar since we need it as a parameter for setvar instead. getvar will only traverse
         # up to the parent object
-        # TODO this could be handled a bit cleaner by capturing a trailing variable-name
+        # TODO this could be handled a bit cleaner by capturing a trailing name
         my $final-node = pop $/<object-access-operation>;
 
         my Python2::AST::Node @operations;
@@ -50,9 +50,9 @@ class Python2::Actions::Statements {
         }
 
         $/.make(Python2::AST::Node::Statement::InstanceVariableAssignment.new(
-            object-access   => Python2::AST::Node::Expression::ObjectAccess.new(
-                object-name => $/<variable-name>.Str,
-                operations  => @operations,
+                object-access   => Python2::AST::Node::Expression::ObjectAccess.new(
+                name            => $/<name>.Str,
+                operations      => @operations,
             ),
             target-variable         => $final-node.made,
             list-or-dict-element    => $/<list-or-dict-element>.made,
@@ -62,9 +62,9 @@ class Python2::Actions::Statements {
 
     method statement-loop-for($/) {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
-            variable-name   => $/<variable-name>.Str,
-            iterable        => $/<expression>.made,
-            block           => $/<block>.made,
+            name        => $/<name>.Str,
+            iterable    => $/<expression>.made,
+            block       => $/<block>.made,
         ));
     }
 
@@ -108,7 +108,7 @@ class Python2::Actions::Statements {
 
     method function-definition($/) {
         $/.make(Python2::AST::Node::Statement::FunctionDefinition.new(
-            function-name   => $/<function-name>.Str,
+            name            => $/<name>.Str,
             argument-list   => $/<function-definition-argument-list>.made,
             block           => $/<block>.made,
         ));
@@ -116,8 +116,8 @@ class Python2::Actions::Statements {
 
     method class-definition($/) {
         $/.make(Python2::AST::Node::Statement::ClassDefinition.new(
-            class-name  => $/<class-name>.Str,
-            block       => $/<block>.made,
+            name    => $/<name>.Str,
+            block   => $/<block>.made,
         ));
     }
 
@@ -131,7 +131,7 @@ class Python2::Actions::Statements {
     method function-definition-argument-list($/) {
         my Str @argument-list;
 
-        for $/<variable-name> -> $argument {
+        for $/<name> -> $argument {
             @argument-list.push($argument.Str);
         }
 

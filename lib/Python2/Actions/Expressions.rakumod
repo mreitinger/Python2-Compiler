@@ -85,9 +85,9 @@ class Python2::Actions::Expressions {
     }
 
     # variable access
-    multi method variable-access ($/ where $/<variable-name>) {
+    multi method variable-access ($/ where $/<name>) {
         $/.make(Python2::AST::Node::Expression::VariableAccess.new(
-            variable-name => $/<variable-name>.Str,
+            name => $/<name>.Str,
         ))
     }
 
@@ -102,7 +102,7 @@ class Python2::Actions::Expressions {
     # dictionary access
     method dictionary-access ($/) {
         $/.make(Python2::AST::Node::Expression::DictionaryAccess.new(
-            dictionary-name => $/<variable-name>.Str,
+            dictionary-name => $/<name>.Str,
             key             => $/<literal>.Str,
         ))
     }
@@ -154,8 +154,8 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::FunctionCall.new(
-            function-name => $/<function-name>.Str,
-            arguments     => @arguments,
+            name        => $/<name>.Str,
+            arguments   => @arguments,
         ));
     }
 
@@ -167,7 +167,7 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::ObjectAccess.new(
-            object-name => $/<variable-name>.Str,
+            name        => $/<name>.Str,
             operations  => @operations,
         ));
     }
@@ -188,7 +188,7 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::MethodCall.new(
-            method-name => $/<function-name>.Str,
+            name        => $/<name>.Str,
             arguments   => @arguments,
         ));
     }
@@ -196,7 +196,7 @@ class Python2::Actions::Expressions {
     # instance variable access
     method instance-variable-access ($/) {
         $/.make(Python2::AST::Node::Expression::InstanceVariableAccess.new(
-            variable-name => $/<variable-name>.Str,
+            name => $/<name>.Str,
         ))
     }
 

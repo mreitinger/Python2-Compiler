@@ -27,7 +27,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-loop-for {
-        'for' <.ws> <variable-name> <.ws> 'in' <.ws> <expression> ':' <block>
+        'for' <.ws> <name> <.ws> 'in' <.ws> <expression> ':' <block>
     }
 
     token statement-if {
@@ -58,13 +58,13 @@ role Python2::Grammar::Statements {
     token comparison-operator:sym<\<=>  { <sym> }
 
     token variable-assignment {
-        <variable-name> <list-or-dict-element>? <.ws> '=' <.ws> <expression>
+        <name> <list-or-dict-element>? <.ws> '=' <.ws> <expression>
     }
 
     # we can't use object-access directly since we need access to the last element so
     # it can be passed to setvar()
     token instance-variable-assignment {
-       <variable-name> <object-access-operation>+ <list-or-dict-element>? <.ws> '=' <.ws> <expression>
+       <name> <object-access-operation>+ <list-or-dict-element>? <.ws> '=' <.ws> <expression>
     }
 
     token list-or-dict-element {
@@ -72,14 +72,14 @@ role Python2::Grammar::Statements {
     }
 
     token function-definition {
-        'def' <.ws> <function-name> '(' <function-definition-argument-list> ')' ':' <block>
+        'def' <.ws> <name> '(' <function-definition-argument-list> ')' ':' <block>
     }
 
     token class-definition {
-        'class' <.ws> <class-name> ':' <block>
+        'class' <.ws> <name> ':' <block>
     }
 
     token function-definition-argument-list {
-        <variable-name>* %% <list-delimiter>
+        <name>* %% <list-delimiter>
     }
 }

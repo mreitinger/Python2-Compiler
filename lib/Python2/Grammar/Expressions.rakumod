@@ -41,11 +41,11 @@ role Python2::Grammar::Expressions {
     token variable-access {
         | <object-access>
         | <dictionary-access>
-        | <variable-name>
+        | <name>
     }
 
     token dictionary-access {
-        <variable-name> '[' <literal> ']'
+        <name> '[' <literal> ']'
     }
 
 
@@ -74,7 +74,7 @@ role Python2::Grammar::Expressions {
 
     # function call
     token function-call {
-        <function-name> '(' <function-call-argument-list> ')'
+        <name> '(' <function-call-argument-list> ')'
     }
 
     token function-call-argument-list {
@@ -84,7 +84,7 @@ role Python2::Grammar::Expressions {
 
     # access to object instance variables and methods
     token object-access {
-        <variable-name> <object-access-operation>+
+        <name> <object-access-operation>+
     }
 
     token object-access-operation {
@@ -93,12 +93,12 @@ role Python2::Grammar::Expressions {
     }
 
     token method-call {
-        '.' <function-name> '(' <function-call-argument-list> ')'
+        '.' <name> '(' <function-call-argument-list> ')'
     }
 
     # access to a instance variable
     token instance-variable-access {
-        '.' <variable-name>
+        '.' <name>
     }
 
 
