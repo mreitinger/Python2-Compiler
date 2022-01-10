@@ -7,6 +7,10 @@ class Python2::AST {
 
     class Node::Expression is Node {}
 
+    class Node::Name is Node {
+        has Str $.name is required;
+    }
+
     # Expressions
     class Node::Expression::Container is Node::Expression {
         has Node::Expression $.expression is required;
@@ -25,7 +29,7 @@ class Python2::AST {
     }
 
     class Node::Expression::VariableAccess is Node::Expression {
-        has Str $.name is required;
+        has Node $.name is required;
     }
 
     class Node::Expression::ArithmeticOperator is Node::Expression {
@@ -33,12 +37,12 @@ class Python2::AST {
     }
 
     class Node::Expression::InstanceVariableAccess is Node::Expression {
-        has Str $.name is required;
+        has Node $.name is required;
     }
 
     class Node::Expression::DictionaryAccess is Node::Expression {
-        has Str $.dictionary-name is required;
-        has Str $.key is required;
+        has Node $.dictionary-name  is required;
+        has Str $.key               is required;
     }
 
     class Node::Expression::ListDefinition is Node::Expression {
@@ -54,17 +58,17 @@ class Python2::AST {
     }
 
     class Node::Expression::FunctionCall is Node::Expression {
-        has Str     $.name is required;
+        has Node    $.name is required;
         has Node    @.arguments;
     }
 
     class Node::Expression::ObjectAccess is Node::Expression {
-        has Str     $.name   is required;
+        has Node    $.name   is required;
         has Node    @.operations    is required;
     }
 
     class Node::Expression::MethodCall is Node::Expression {
-        has Str     $.name is required;
+        has Node    $.name is required;
         has Node    @.arguments is required;
     }
 
@@ -83,7 +87,7 @@ class Python2::AST {
     }
 
     class Node::Statement::VariableAssignment is Node::Expression {
-        has Str     $.name is required;
+        has Node    $.name is required;
         has Node    $.expression    is required;
         has Node    $.list-or-dict-element;
     }
@@ -96,7 +100,7 @@ class Python2::AST {
     }
 
     class Node::Statement::LoopFor is Node::Expression {
-        has Str     $.name is required;
+        has Node    $.name          is required;
         has Node    $.iterable      is required;
         has Node    $.block         is required;
     }
@@ -129,13 +133,13 @@ class Python2::AST {
     }
 
     class Node::Statement::FunctionDefinition is Node::Expression {
-        has Str     $.name is required;
+        has Node    $.name is required;
         has Str     @.argument-list is required;
         has Node    $.block is required;
     }
 
     class Node::Statement::ClassDefinition is Node::Expression {
-        has Str     $.name is required;
+        has Node    $.name is required;
         has Node    $.block is required;
     }
 

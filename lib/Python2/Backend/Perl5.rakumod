@@ -33,6 +33,10 @@ class Python2::Backend::Perl5
         return $!o;
     }
 
+    multi method e(Python2::AST::Node::Name $node) {
+        return "'" ~ $node.name.subst("'", "\\'", :g) ~ "'";
+    }
+
     # Statements
     # statement 'container': if it's a statement append ; to make the perl parser happy
     multi method e(Python2::AST::Node::Statement $node) {
@@ -45,14 +49,14 @@ class Python2::Backend::Perl5
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
         if ($node.list-or-dict-element) {
-            return sprintf('setvar_e($stack, \'%s\', %s, %s)',
-                $node.name,
+            return sprintf('setvar_e($stack, %s, %s, %s)',
+                $.e($node.name),
                 $.e($node.list-or-dict-element),
                 $.e($node.expression),
             );
         } else {
-            return sprintf('setvar($stack, \'%s\', %s)',
-                $node.name,
+            return sprintf('setvar($stack, %s, %s)',
+                $.e($node.name),
                 $.e($node.expression)
             );
         }
@@ -66,9 +70,9 @@ class Python2::Backend::Perl5
 
     # loops
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
-        return sprintf('foreach my $var (@{ %s->elements }) { setvar($stack, \'%s\', $var); %s }',
+        return sprintf('foreach my $var (@{ %s->elements }) { setvar($stack, %s, $var); %s }',
             $.e($node.iterable),
-            $node.name,
+            $.e($node.name),
             $.e($node.block),
         );
     }
@@ -105,7 +109,7 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
-        my $p5 = sprintf('register_function($stack, \'%s\', sub {', $node.name);
+        my $p5 = sprintf('register_function($stack, %s, sub {', $.e($node.name));
 
         $p5 ~= 'my $arguments = shift;' ~ "\n";
         $p5 ~= 'my $stack = [ $stack ];' ~ "\n";
@@ -119,8 +123,8 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
-        return sprintf('create_class($stack, \'%s\', sub { my $stack = shift; %s })',
-            $node.name,
+        return sprintf('create_class($stack, %s, sub { my $stack = shift; %s })',
+            $.e($node.name),
             $.e($node.block)
         );
     }
@@ -158,7 +162,7 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Expression::VariableAccess $node) {
-        return 'getvar($stack, \'' ~ $node.name ~ "')";
+        return sprintf('getvar($stack, %s)', $.e($node.name));
     }
 
     multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
@@ -166,34 +170,34 @@ class Python2::Backend::Perl5
         if ($node.list-or-dict-element) {
             # assuming object.array[0]
             # fetch stack for object
-            return sprintf('setvar_e(%s->{stack}, \'%s\', %s, %s)',
+            return sprintf('setvar_e(%s->{stack}, %s, %s, %s)',
                 $.e($node.object-access),
-                $node.target-variable.name.Str,
+                $.e($node.target-variable.name),
                 $.e($node.list-or-dict-element),
                 $.e($node.expression)
             );
         } else {
             # assuming object.item
             # fetch stack for object
-            return sprintf('setvar(%s->{stack}, \'%s\', %s)',
+            return sprintf('setvar(%s->{stack}, %s, %s)',
                 $.e($node.object-access),
-                $node.target-variable.name.Str,
+                $.e($node.target-variable.name),
                 $.e($node.expression),
             );
         }
     }
 
     multi method e(Python2::AST::Node::Expression::DictionaryAccess $node) {
-        return sprintf('getvar($stack, \'%s\')->element(%s)',
-            $node.dictionary-name,
+        return sprintf('getvar($stack, %s)->element(%s)',
+            $.e($node.dictionary-name),
             $node.key
         );
     }
 
     # function calls
     multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
-        return sprintf('call($stack, \'%s\', [ %s ])',
-            $node.name,
+        return sprintf('call($stack, %s, [ %s ])',
+            $.e($node.name),
             $node.arguments.map({ self.e($_) }).join(', ')
         );
     }

@@ -12,6 +12,12 @@ class Python2::Actions::Expressions {
         ));
     }
 
+    method name ($/) {
+        $/.make(Python2::AST::Node::Name.new(
+            name => $/.Str
+        ))
+    }
+
     # literals
     multi method literal ($/ where $/<string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
@@ -87,7 +93,7 @@ class Python2::Actions::Expressions {
     # variable access
     multi method variable-access ($/ where $/<name>) {
         $/.make(Python2::AST::Node::Expression::VariableAccess.new(
-            name => $/<name>.Str,
+            name => $/<name>.made,
         ))
     }
 
@@ -102,7 +108,7 @@ class Python2::Actions::Expressions {
     # dictionary access
     method dictionary-access ($/) {
         $/.make(Python2::AST::Node::Expression::DictionaryAccess.new(
-            dictionary-name => $/<name>.Str,
+            dictionary-name => $/<name>.made,
             key             => $/<literal>.Str,
         ))
     }
@@ -154,7 +160,7 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::FunctionCall.new(
-            name        => $/<name>.Str,
+            name        => $/<name>.made,
             arguments   => @arguments,
         ));
     }
@@ -167,7 +173,7 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::ObjectAccess.new(
-            name        => $/<name>.Str,
+            name        => $/<name>.made,
             operations  => @operations,
         ));
     }
@@ -188,7 +194,7 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::MethodCall.new(
-            name        => $/<name>.Str,
+            name        => $/<name>.made,
             arguments   => @arguments,
         ));
     }
@@ -196,7 +202,7 @@ class Python2::Actions::Expressions {
     # instance variable access
     method instance-variable-access ($/) {
         $/.make(Python2::AST::Node::Expression::InstanceVariableAccess.new(
-            name => $/<name>.Str,
+            name => $/<name>.made,
         ))
     }
 

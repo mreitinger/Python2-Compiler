@@ -26,7 +26,7 @@ class Python2::Actions::Statements {
 
     method variable-assignment($/) {
         $/.make(Python2::AST::Node::Statement::VariableAssignment.new(
-            name                    => $/<name>.Str,
+            name                    => $/<name>.made,
             list-or-dict-element    => $/<list-or-dict-element>.made,
             expression              => $/<expression>.made
         ));
@@ -51,7 +51,7 @@ class Python2::Actions::Statements {
 
         $/.make(Python2::AST::Node::Statement::InstanceVariableAssignment.new(
                 object-access   => Python2::AST::Node::Expression::ObjectAccess.new(
-                name            => $/<name>.Str,
+                name            => $/<name>.made,
                 operations      => @operations,
             ),
             target-variable         => $final-node.made,
@@ -62,7 +62,7 @@ class Python2::Actions::Statements {
 
     method statement-loop-for($/) {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
-            name        => $/<name>.Str,
+            name        => $/<name>.made,
             iterable    => $/<expression>.made,
             block       => $/<block>.made,
         ));
@@ -108,7 +108,7 @@ class Python2::Actions::Statements {
 
     method function-definition($/) {
         $/.make(Python2::AST::Node::Statement::FunctionDefinition.new(
-            name            => $/<name>.Str,
+            name            => $/<name>.made,
             argument-list   => $/<function-definition-argument-list>.made,
             block           => $/<block>.made,
         ));
@@ -116,7 +116,7 @@ class Python2::Actions::Statements {
 
     method class-definition($/) {
         $/.make(Python2::AST::Node::Statement::ClassDefinition.new(
-            name    => $/<name>.Str,
+            name    => $/<name>.made,
             block   => $/<block>.made,
         ));
     }
