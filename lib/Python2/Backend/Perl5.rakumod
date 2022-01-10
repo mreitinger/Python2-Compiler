@@ -196,6 +196,15 @@ class Python2::Backend::Perl5
 
     # function calls
     multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
+        my @builtins = ( 'sorted', 'int', 'print' );
+
+        if @builtins.first($node.name.name) {
+            return sprintf('$builtins->{%s}->([%s])',
+                $.e($node.name),
+                $node.arguments.map({ self.e($_) }).join(', ')
+            );
+        }
+
         return sprintf('call($stack, %s, [ %s ])',
             $.e($node.name),
             $node.arguments.map({ self.e($_) }).join(', ')

@@ -9,7 +9,11 @@ use Python2::Type::List;
 use Python2::Type::Dict;
 
 use Exporter qw/ import /;
-our @EXPORT = qw/ getvar setvar setvar_e call py2print compare register_function create_class /;
+our @EXPORT = qw/
+    getvar              setvar          setvar_e
+    call                py2print        compare
+    register_function   create_class    $builtins
+/;
 
 use constant {
     PARENT  => 0,
@@ -144,7 +148,7 @@ sub register_function {
     $stack->[ITEMS]->{$name} = $coderef;
 }
 
-my $builtins = {
+our $builtins = {
     'sorted' => sub {
         my ($arguments) = @_;
 
@@ -173,9 +177,6 @@ my $builtins = {
 
 sub call {
     my ($stack, $function_name, $arguments) = @_;
-
-    return $builtins->{$function_name}->($arguments)
-        if defined $builtins->{$function_name};
 
     return $stack->[ITEMS]->{$function_name}->($arguments)
         if defined $stack->[ITEMS]->{$function_name};
