@@ -203,12 +203,14 @@ class Python2::Backend::Perl5
                 $.e($node.name),
                 $node.arguments.map({ self.e($_) }).join(', ')
             );
+        } else {
+            return sprintf('exists $stack->[ITEMS]->{%s} ? $stack->[ITEMS]->{%s}->([%s]) : die("unknown function %s")',
+                $.e($node.name),
+                $.e($node.name),
+                $node.arguments.map({ self.e($_) }).join(', '),
+                $.e($node.name),
+            );
         }
-
-        return sprintf('call($stack, %s, [ %s ])',
-            $.e($node.name),
-            $node.arguments.map({ self.e($_) }).join(', ')
-        );
     }
 
 

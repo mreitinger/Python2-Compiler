@@ -175,16 +175,6 @@ our $builtins = {
     }
 };
 
-sub call {
-    my ($stack, $function_name, $arguments) = @_;
-
-    return $stack->[ITEMS]->{$function_name}->($arguments)
-        if defined $stack->[ITEMS]->{$function_name};
-
-    die("unknown function: $function_name");
-}
-
-
 # register a class definition on the stack
 sub create_class {
     my ($stack, $name, $build) = @_;

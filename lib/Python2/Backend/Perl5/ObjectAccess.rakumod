@@ -16,16 +16,11 @@ role Python2::Backend::Perl5::ObjectAccess {
     }
 
     multi method e(Python2::AST::Node::Expression::MethodCall $node) {
-        my $p5 = sprintf('$p = call($p->{stack}, %s, [$p, ', $.e($node.name));
-
-        for $node.arguments -> $argument {
-            $p5 ~= $.e($argument);
-            $p5 ~= ','; # TODO trailing slash
-        }
-
-        $p5 ~=   ']); ';
-
-        return $p5;
+        # TODO unkown method check
+        return sprintf('$p = $p->{stack}->[ITEMS]->{%s}->([$p, %s]);',
+            $.e($node.name),
+            $node.arguments.map({ self.e($_) }).join(', '),
+        );
     }
 
     multi method e(Python2::AST::Node::Expression::InstanceVariableAccess $node) {
