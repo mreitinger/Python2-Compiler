@@ -12,28 +12,17 @@ class Python2::Actions::Statements {
         ));
     }
 
-    multi method statement-print($/ where $/<expression>) {
+    method statement-print($/) {
         $/.make(Python2::AST::Node::Statement::Print.new(
-            value => $/<expression>.made
-        ));
-    }
-
-    multi method statement-print($/ where $/<function-call>) {
-        $/.make(Python2::AST::Node::Statement::Print.new(
-            value => $/<function-call>.made
+            value => $/.values[0].made
         ));
     }
 
     method variable-assignment($/) {
         $/.make(Python2::AST::Node::Statement::VariableAssignment.new(
-            name                    => $/<name>.made,
-            list-or-dict-element    => $/<list-or-dict-element>.made,
-            expression              => $/<expression>.made
+            target      => $/<power>.made,
+            expression  => $/<test>.made
         ));
-    }
-
-    method list-or-dict-element($/) {
-        $/.make($/<literal>.made)
     }
 
     method instance-variable-assignment($/) {
@@ -84,18 +73,19 @@ class Python2::Actions::Statements {
         ));
     }
 
-    multi method test($/ where $/<comparison-operator>) {
-        $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
-            left                => $/<expression>[0].made,
-            comparison-operator => $/<comparison-operator>.Str,
-            right               => $/<expression>[1].made,
+    method test($/ where $/<comparison>) {
+        $/.make(Python2::AST::Node::Test.new(
+            left      => $<comparison>[0].made,
+            right     => $<test>          ?? $<test>.made          !! Nil,
+            condition => $<comparison>[1] ?? $<comparison>[1].made !! Nil,
         ));
     }
 
-    multi method test($/) {
-        $/.make(Python2::AST::Node::Statement::Test::Expression.new(
-            expression => $/<expression>[0].made, # the 'test' rule has alternatives with >1 expression
-                                                  # so we seem to get an array all the time
+    method comparison ($/) {
+        $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
+            left                => $/<expression>[0].made,
+            comparison-operator => $/<comparison-operator> ?? $/<comparison-operator>.Str   !! Nil,
+            right               => $/<expression>[1]       ?? $/<expression>[1].made        !! Nil,
         ));
     }
 

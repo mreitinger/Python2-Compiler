@@ -11,10 +11,26 @@ class Python2::AST {
         has Str $.name is required;
     }
 
+    class Node::Power is Node {
+        has Node $.atom     is required;
+        has Node @.trailers is required;
+    }
+
+    class Node::Atom is Node {
+        has Node $.expression is required;
+    }
+
+    class Node::Test is Node {
+        has Node $.condition    is required;
+        has Node $.left         is required;
+        has Node $.right        is required;
+    }
+
     # Expressions
     class Node::Expression::Container is Node::Expression {
-        has Node::Expression $.expression is required;
+        has Node $.expression   is required;
     }
+
 
     class Node::Expression::Literal::String is Node::Expression {
         has Str $.value is required;
@@ -40,9 +56,8 @@ class Python2::AST {
         has Node $.name is required;
     }
 
-    class Node::Expression::DictionaryAccess is Node::Expression {
-        has Node $.dictionary-name  is required;
-        has Str $.key               is required;
+    class Node::Subscript is Node::Expression {
+        has Node $.value is required;
     }
 
     class Node::Expression::ListDefinition is Node::Expression {
@@ -58,7 +73,7 @@ class Python2::AST {
     }
 
     class Node::Expression::FunctionCall is Node::Expression {
-        has Node    $.name is required;
+        has Node    $.atom is required;
         has Node    @.arguments;
     }
 
@@ -70,6 +85,10 @@ class Python2::AST {
     class Node::Expression::MethodCall is Node::Expression {
         has Node    $.name is required;
         has Node    @.arguments is required;
+    }
+
+    class Node::ArgumentList is Node {
+        has Node @.arguments is required;
     }
 
     # Arithmetic
@@ -87,9 +106,8 @@ class Python2::AST {
     }
 
     class Node::Statement::VariableAssignment is Node::Expression {
-        has Node    $.name is required;
+        has Node    $.target        is required;
         has Node    $.expression    is required;
-        has Node    $.list-or-dict-element;
     }
 
     class Node::Statement::InstanceVariableAssignment is Node::Expression {
@@ -128,8 +146,8 @@ class Python2::AST {
 
     class Node::Statement::Test::Comparison is Node::Expression {
         has Node $.left is required;
-        has Str $.comparison-operator is required;
-        has Node $.right is required;
+        has Str $.comparison-operator;
+        has Node $.right;
     }
 
     class Node::Statement::FunctionDefinition is Node::Expression {

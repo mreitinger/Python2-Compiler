@@ -7,16 +7,16 @@ sub new {
     my ($self, @initial_elements) = @_;
 
     return bless({
-        elements    => { @initial_elements },
         stack       => [
             undef,
             {
                 keys => sub {
-                    return Python2::Type::List->new(keys %{ shift->[0]->{elements} })
+                    return Python2::Type::List->new(keys %{ shift->[0]->{stack}->[1]->{elements} });
                 },
                 values => sub {
-                    return Python2::Type::List->new(values %{ shift->[0]->{elements} })
+                    return Python2::Type::List->new(values  %{ shift->[0]->{stack}->[1]->{elements} })
                 },
+                elements => { @initial_elements },
             },
         ],
     }, $self);
@@ -25,7 +25,7 @@ sub new {
 sub print {
     my ($self) = @_;
 
-    my $var = $self->{elements};
+    my $var = $self->{stack}->[1]->{elements};
 
     say "{" .
         join (', ',
@@ -41,13 +41,13 @@ sub print {
 sub element {
     my ($self, $key) = @_;
 
-    return $self->{elements}->{$key};
+    return \$self->{stack}->[1]->{elements}->{$key};
 }
 
 sub set {
     my ($self, $key, $value) = @_;
 
-    $self->{elements}->{$key} = $value;
+    $self->{stack}->[0]->{elements}->{$key} = $value;
 }
 
 1;

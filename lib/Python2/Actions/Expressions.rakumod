@@ -4,12 +4,13 @@ use Data::Dump;
 class Python2::Actions::Expressions {
     # top level 'expression'
     method expression ($/) {
-        die("Expression Action expects exactly one child but we got { $/.values.elems }")
-            unless $/.values.elems == 1;
-
         $/.make(Python2::AST::Node::Expression::Container.new(
-            expression => $/.values[0].made
+            expression  => $/<arithmetic-operation>.made,
         ));
+    }
+
+    method trailer ($/) {
+        $/.make($/.values[0].made);
     }
 
     method name ($/) {
@@ -18,15 +19,32 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    # literals
-    multi method literal ($/ where $/<string>) {
-        $/.make(Python2::AST::Node::Expression::Literal::String.new(
-            value => $/<string>[0].Str.subst('\"', '"', :g).subst("\\'", "'", :g),
+    # this does not yet implement power (as in **) but is here for future expansion and since
+    # we need it to match atom/trailers.
+    method power ($/) {
+        $/.make(Python2::AST::Node::Power.new(
+            atom        => $/<atom>.made,
+            trailers    => $/<trailer>.map({ $_.made })
         ))
     }
 
-    multi method literal ($/ where $/<number>) {
-        $/.make($/<number>.made)
+    multi method atom ($/ where $/<dictionary-entry-list>) {
+        $/.make(Python2::AST::Node::Atom.new(
+            expression => $/<dictionary-entry-list>.made
+        ))
+    }
+
+    multi method atom ($/) {
+        $/.make(Python2::AST::Node::Atom.new(
+            expression => $/.values[0].made
+        ))
+    }
+
+    # literals
+    method string ($/) {
+        $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            value => $/<string-literal>.subst('\"', '"', :g).subst("\\'", "'", :g),
+        ))
     }
 
     multi method number ($/ where $/<integer>) {
@@ -59,12 +77,8 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    multi method operand ($/ where $/<number>) {
-        $/.make($/<number>.made);
-    }
-
-    multi method operand ($/ where $/<variable-access>) {
-        $/.make($/<variable-access>.made);
+    method operand ($/) {
+        $/.make($/.values[0].made);
     }
 
     # arithmetic operations
@@ -74,15 +88,15 @@ class Python2::Actions::Expressions {
         my @operations;
 
         # the the first (left-most) number
-        @operations.push($/<operand>.shift.made);
+        @operations.push($/<power>.shift.made);
 
-        # for every remaining number
-        while ($/<operand>.elems) {
+         #for every remaining number
+        while ($/<power>.elems) {
             # get the next operator in line
             push(@operations, $/<arithmetic-operator>.shift.made);
 
             # and the next number
-            push(@operations, $/<operand>.shift.made);
+            push(@operations, $/<power>.shift.made);
         }
 
         $/.make(Python2::AST::Node::Expression::ArithmeticOperation.new(
@@ -101,16 +115,16 @@ class Python2::Actions::Expressions {
         $/.make($/<object-access>.made);
     }
 
-    multi method variable-access ($/ where $/<dictionary-access>) {
-        $/.make($/<dictionary-access>.made);
+
+    # subscript
+    method subscript ($/) {
+        $/.make(Python2::AST::Node::Subscript.new(
+            value => $/<literal>.made, #TODO we only support literals at this time
+        ))
     }
 
-    # dictionary access
-    method dictionary-access ($/) {
-        $/.make(Python2::AST::Node::Expression::DictionaryAccess.new(
-            dictionary-name => $/<name>.made,
-            key             => $/<literal>.Str,
-        ))
+    method literal ($/) {
+        $/.make($/.values[0].made);
     }
 
 
@@ -133,14 +147,12 @@ class Python2::Actions::Expressions {
 
 
     # dictionary handling
-    method dictionary-definition($/) {
-        use Data::Dump;
-
+    method dictionary-entry-list($/) {
         # get every dictionary entry in the list. we just bypass the intermediate
         # dictionary-entry-list that we just use for the grammar so far.
         my %dictionary-entries;
 
-        for $/<dictionary-entry-list><dictionary-entry> -> $entry {
+        for $/<dictionary-entry> -> $entry {
             my $key = $entry<dictionary-key>.Str;
             my $expression = $entry<expression>.made;
 
@@ -149,19 +161,6 @@ class Python2::Actions::Expressions {
 
         $/.make(Python2::AST::Node::Expression::DictionaryDefinition.new(
             entries => %dictionary-entries,
-        ));
-    }
-
-    multi method function-call($/) {
-        my @arguments;
-
-        for $/<function-call-argument-list>.made -> $argument {
-            @arguments.push($argument);
-        }
-
-        $/.make(Python2::AST::Node::Expression::FunctionCall.new(
-            name        => $/<name>.made,
-            arguments   => @arguments,
         ));
     }
 
@@ -206,14 +205,9 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    # TODO we should do a a AST intermediate here to provide more data for further optimization
-    method function-call-argument-list($/) {
-        my Python2::AST::Node @argument-list;
-
-        for $/<expression> -> $argument {
-            @argument-list.push($argument.made);
-        }
-
-        $/.make(@argument-list);
+    method argument-list($/) {
+        $/.make(Python2::AST::Node::ArgumentList.new(
+            arguments => $/<test>.map({ $_.made })
+        ));
     }
 }

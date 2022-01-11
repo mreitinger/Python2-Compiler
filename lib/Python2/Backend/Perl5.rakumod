@@ -10,8 +10,9 @@ class Python2::Backend::Perl5
         "use v5.26.0;\n" ~
         "use strict;\n" ~
         "use lib qw( p5lib );\n" ~
+        "use Data::Dumper;\n" ~
         "use Python2;\n\n" ~
-        'my $stack = [];' ~ "\n\n" ~
+        'my $stack = [ $builtins ];' ~ "\n\n" ~
         'use constant { PARENT => 0, ITEMS => 1 };' ~ "\n\n";
 
     # we use an array instead of a hash for faster lookups.
@@ -33,8 +34,20 @@ class Python2::Backend::Perl5
         return $!o;
     }
 
+    multi method e(Python2::AST::Node::Atom $node) {
+        if ($node.expression ~~ Python2::AST::Node::Name) {
+            return sprintf('getvar($stack, %s)', $.e($node.expression));
+        } else {
+            return sprintf('%s', $.e($node.expression));
+        }
+    }
+
     multi method e(Python2::AST::Node::Name $node) {
-        return "'" ~ $node.name.subst("'", "\\'", :g) ~ "'";
+        return sprintf("'%s'", $node.name.subst("'", "\\'", :g));
+    }
+
+    multi method e(Python2::AST::Node::ArgumentList $node) {
+        return sprintf('%s', $node.arguments.map({ '${' ~ $.e($_) ~ '}' }).join(', '));
     }
 
     # Statements
@@ -44,33 +57,25 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
-        return sprintf('py2print(%s)', $.e($node.value));
+        return sprintf('py2print(${ %s })', $.e($node.value));
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
-        if ($node.list-or-dict-element) {
-            return sprintf('setvar_e($stack, %s, %s, %s)',
-                $.e($node.name),
-                $.e($node.list-or-dict-element),
-                $.e($node.expression),
-            );
-        } else {
-            return sprintf('setvar($stack, %s, %s)',
-                $.e($node.name),
-                $.e($node.expression)
-            );
-        }
+        return sprintf('${%s} = ${%s}',
+            $.e($node.target),
+            $.e($node.expression)
+        );
     }
 
     multi method e(Python2::AST::Node::Statement::Return $node) {
-        return sprintf('return %s', $.e($node.value));
+        return sprintf('return ${%s}', $.e($node.value));
     }
 
 
 
     # loops
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
-        return sprintf('foreach my $var (@{ %s->elements }) { setvar($stack, %s, $var); %s }',
+        return sprintf('foreach my $var (@{ ${%s}->elements }) { setvar($stack, %s, $var); %s }',
             $.e($node.iterable),
             $.e($node.name),
             $.e($node.block),
@@ -88,8 +93,27 @@ class Python2::Backend::Perl5
         return $p5;
     }
 
+    multi method e(Python2::AST::Node::Test $node) {
+        my $p5;
+
+        if ($node.condition) {
+            $p5 ~= sprintf(
+                '${ sub { my $p = %s; $$p // die("NameError" ); $p; }->() } ? ',
+                $.e($node.condition)
+            );
+        }
+
+         $p5 ~= sprintf('sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.left));
+
+        if ($node.condition) {
+            $p5 ~= sprintf(': sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.right));
+        }
+
+        return $p5;
+    }
+
     multi method e(Python2::AST::Node::Statement::If $node) {
-        my $p5 = sprintf('if (%s) { %s }', $.e($node.test), $.e($node.block));
+        my $p5 = sprintf('if (${ %s }) { %s }', $.e($node.test), $.e($node.block));
 
         $p5 ~= sprintf('else { %s }', $.e($node.else)) if $node.else;
 
@@ -97,22 +121,30 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Expression $node) {
+        die;
         return $.e($node.expression);
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
-        return sprintf('compare(%s, %s, \'%s\')',
-            $.e($node.left),
-            $.e($node.right),
-            $node.comparison-operator
-        );
+        if ($node.right) { #tmp hack until we get this right
+            return sprintf('compare(${%s}, ${%s}, \'%s\')',
+                $.e($node.left),
+                $.e($node.right),
+                $node.comparison-operator
+            );
+        } else {
+            return $.e($node.left);
+        }
     }
 
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
-        my $p5 = sprintf('register_function($stack, %s, sub {', $.e($node.name));
+        my $p5 = sprintf(
+            'setvar($stack, \'%s\', sub {',
+            $node.name.name.subst("'", "\\'", :g)
+        );
 
         $p5 ~= 'my $arguments = shift;' ~ "\n";
-        $p5 ~= 'my $stack = [ $stack ];' ~ "\n";
+        $p5 ~= 'my $stack = [$builtins];' ~ "\n";
 
         for $node.argument-list -> $argument {
             $p5 ~= sprintf('setvar($stack, \'%s\', shift @$arguments);', $argument);
@@ -123,8 +155,8 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
-        return sprintf('create_class($stack, %s, sub { my $stack = shift; %s })',
-            $.e($node.name),
+        return sprintf('create_class($stack, \'%s\', sub { my $stack = shift; %s })',
+            $node.name.name.subst("'", "\\'", :g),
             $.e($node.block)
         );
     }
@@ -134,15 +166,55 @@ class Python2::Backend::Perl5
         return $.e($node.expression);
     }
 
+    multi method e(Python2::AST::Node::Power $node) {
+        my $p5 = 'sub {';
+        $p5   ~= 'my $p2 = undef;';
+        $p5   ~= sprintf('my $p = %s;', $.e($node.atom));
+
+        my $prev;
+
+        for $node.trailers -> $trailer {
+            if ($trailer ~~ Python2::AST::Node::Name) {
+                $p5 ~= sprintf('$p2 = $p; $p = getvar(${$p}->{stack}, %s);', $.e($trailer));
+            }
+            elsif ($trailer ~~ Python2::AST::Node::ArgumentList) {
+                if ($prev ~~ Python2::AST::Node::Name) {
+                    # the previous trailer was method name: pass the previous object to it
+                    # so it ends up in 'self'
+                    $p5 ~= sprintf('$p = \${$p}->([${$p2}, %s]);', $.e($trailer));
+                } else {
+                    $p5 ~= sprintf('$p = \${$p}->([%s]);', $.e($trailer));
+                }
+            }
+            elsif ($trailer ~~ Python2::AST::Node::Subscript) {
+                $p5 ~= sprintf('$p = ${$p}->element(${ %s });', $.e($trailer));
+            }
+            else {
+                die("invalid trailer: $trailer");
+            }
+
+            $prev = $trailer;
+        }
+
+        $p5 ~= '}->()';
+
+        return $p5;
+    }
+
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
     multi method e(Python2::AST::Node::Expression::ArithmeticOperation $node) {
         my $p5;
 
         for $node.operations -> $operation {
-            $p5 ~= $.e($operation);
+            if ($operation ~~ Python2::AST::Node::Expression::ArithmeticOperator) {
+                $p5 ~= $.e($operation);
+            } else {
+                $p5 ~= '${' ~ $.e($operation) ~ '}';
+            }
         }
 
-        return $p5;
+
+        return 'sub { my $p = ' ~ $p5 ~ '; return \$p }->()';
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticOperator $node) {
@@ -150,19 +222,15 @@ class Python2::Backend::Perl5
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::String $node) {
-        return "'" ~ $node.value.subst("'", "\\'", :g) ~ "'";
+        return "\\'" ~ $node.value.subst("'", "\\'", :g) ~ "'";
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
-        return $node.value;
+        return '\\' ~ $node.value;
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
-        return $node.value;
-    }
-
-    multi method e(Python2::AST::Node::Expression::VariableAccess $node) {
-        return sprintf('getvar($stack, %s)', $.e($node.name));
+        return '\\' ~ $node.value;
     }
 
     multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
@@ -187,45 +255,22 @@ class Python2::Backend::Perl5
         }
     }
 
-    multi method e(Python2::AST::Node::Expression::DictionaryAccess $node) {
-        return sprintf('getvar($stack, %s)->element(%s)',
-            $.e($node.dictionary-name),
-            $node.key
-        );
+    multi method e(Python2::AST::Node::Subscript $node) {
+        return sprintf('%s', $.e($node.value));
     }
-
-    # function calls
-    multi method e(Python2::AST::Node::Expression::FunctionCall $node) {
-        my @builtins = ( 'sorted', 'int', 'print' );
-
-        if @builtins.first($node.name.name) {
-            return sprintf('$builtins->{%s}->([%s])',
-                $.e($node.name),
-                $node.arguments.map({ self.e($_) }).join(', ')
-            );
-        } else {
-            return sprintf('exists $stack->[ITEMS]->{%s} ? $stack->[ITEMS]->{%s}->([%s]) : die("unknown function %s")',
-                $.e($node.name),
-                $.e($node.name),
-                $node.arguments.map({ self.e($_) }).join(', '),
-                $.e($node.name),
-            );
-        }
-    }
-
 
     # list handling
-    multi method e(Python2::AST::Node::Expression::ListDefinition $node) {
-        return sprintf('Python2::Type::List->new(%s)',
-            $node.expressions.map({ self.e($_ )}).join(', ')
+    multi method e(Python2::AST::Node::Expression::ExpressionList $node) {
+        return sprintf('\Python2::Type::List->new(%s)',
+            $node.expressions.map({ '${' ~ self.e($_ ) ~ '}' }).join(', ')
         );
     }
 
 
     # dictionary handling
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {
-        return sprintf('Python2::Type::Dict->new(%s)',
-            $node.entries.map({ $_.key ~ '=>' ~ $.e($_.value) }).join(', ')
+        return sprintf('\Python2::Type::Dict->new(%s)',
+            $node.entries.map({ $_.key ~ '=> ${' ~ $.e($_.value) ~ '}' }).join(', ')
         );
     }
 

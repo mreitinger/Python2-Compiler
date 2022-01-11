@@ -1,13 +1,6 @@
 role Python2::Grammar::Expressions {
     token expression {
-        | <function-call>
-
-        | <arithmetic-operation>
-        || <literal>
-
-        | <variable-access>
-        | <list-definition>
-        | <dictionary-definition>
+        <arithmetic-operation>
     }
 
 
@@ -17,15 +10,15 @@ role Python2::Grammar::Expressions {
         | <number>
     }
 
-
-    # arithmetic
-    rule arithmetic-operation {
-        <operand> [<arithmetic-operator> <operand>]+
+    token argument-list {
+        '(' <test>* %% <list-delimiter> ')'
     }
 
-    token operand {
-        | <number>
-        | <variable-access>
+
+
+    # arithmetic
+    token arithmetic-operation {
+        <power> [<.ws> <arithmetic-operator> <.ws> <power>]*
     }
 
     token arithmetic-operator {
@@ -40,30 +33,17 @@ role Python2::Grammar::Expressions {
     # access to a single variable
     token variable-access {
         | <object-access>
-        | <dictionary-access>
         | <name>
-    }
-
-    token dictionary-access {
-        <name> '[' <literal> ']'
     }
 
 
     # list handling
-    token list-definition {
-        '[' <.ws> <expression-list> <.ws> ']'
-    }
-
     token expression-list {
         <expression>* %% <list-delimiter>
     }
 
 
     # dictionary handling
-    token dictionary-definition {
-        '{' <.ws> <dictionary-entry-list> <.ws> '}'
-    }
-
     token dictionary-entry-list {
         <dictionary-entry>* %% <list-delimiter>
     }
@@ -72,14 +52,7 @@ role Python2::Grammar::Expressions {
         <.ws> <dictionary-key> <.ws> ':' <.ws> <expression> <.ws>
     }
 
-    # function call
-    token function-call {
-        <name> '(' <function-call-argument-list> ')'
-    }
 
-    token function-call-argument-list {
-        <expression>* %% <list-delimiter>
-    }
 
 
     # access to object instance variables and methods
@@ -88,12 +61,7 @@ role Python2::Grammar::Expressions {
     }
 
     token object-access-operation {
-        || <method-call>
-        || <instance-variable-access>
-    }
-
-    token method-call {
-        '.' <name> '(' <function-call-argument-list> ')'
+        <instance-variable-access>
     }
 
     # access to a instance variable
@@ -108,8 +76,8 @@ role Python2::Grammar::Expressions {
     # string machting including escaped quotes
     # currently we don't allow any other escape sequences
     token string {
-        | "'" (<string-literal>) "'"
-        | '"' (<string-literal>) '"'
+        | "'" <string-literal> "'"
+        | '"' <string-literal> '"'
     }
 
     token string-literal {

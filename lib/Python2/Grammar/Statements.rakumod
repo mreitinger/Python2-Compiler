@@ -19,7 +19,7 @@ role Python2::Grammar::Statements {
 
     # TODO: we need a intermediate step here like python's test/testlist
     token statement-print {
-        'print' <.ws> <expression>
+        'print' <.ws> <test>
     }
 
     token statement-return {
@@ -44,6 +44,10 @@ role Python2::Grammar::Statements {
     }
 
     token test {
+        <comparison> [ <.ws> 'if' <.ws> <comparison> <.ws> 'else' <.ws> <test> ]?
+    }
+
+    token comparison {
         | <expression> <.ws> <comparison-operator> <.ws> <expression>
         | <expression>
     }
@@ -57,8 +61,11 @@ role Python2::Grammar::Statements {
     token comparison-operator:sym<\>=>  { <sym> }
     token comparison-operator:sym<\<=>  { <sym> }
 
+    # power ain't right here it would allow too much in the future like
+    # '(a if 1 else b) = 3'. not sure if we can prevent this here of if we do some post
+    # processing?
     token variable-assignment {
-        <name> <list-or-dict-element>? <.ws> '=' <.ws> <expression>
+        <power> <.ws> '=' <.ws> <test>
     }
 
     # we can't use object-access directly since we need access to the last element so

@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Scalar::Util qw/ looks_like_number /;
 use Clone qw/ clone /;
+use Carp qw/ confess /;
 
 use Python2::Type::List;
 use Python2::Type::Dict;
@@ -33,19 +34,53 @@ sub setvar_e {
     $stack->[ITEMS]->{$name}->set($element, $value);
 }
 
-# receive a variable from our stack
+# builtins is used as our top level stack so it must look like one
+our $builtins = [
+    [
+        undef,
+        {
+            'sorted' => sub {
+                my $arguments = shift;
+
+                use Data::Dumper;
+                warn Dumper($arguments);
+
+                die("sorted() expects a list as parameter")
+                    unless ref($arguments->[0]) eq 'Python2::Type::List';
+
+                return Python2::Type::List->new( sort(@{ $arguments->[0]->elements }) );
+            },
+
+            'int' => sub {
+                my $arguments = shift // [];
+
+                die ("NYI: int called with multiple arguments") if (scalar(@$arguments) > 1);
+
+                return int($arguments->[0]);
+            },
+
+            'print' => sub {
+                my $arguments = shift // [];
+
+                die ("NYI: print called with multiple arguments") if (scalar(@$arguments) > 1);
+
+                Python2::py2print($arguments->[0]);
+            },
+        }
+    ]
+];
+
+# return a reference to a variable name on our stack
 sub getvar {
     my ($stack, $name) = @_;
 
-    until (exists $stack->[ITEMS]->{$name} or not defined $stack->[PARENT]) {
-        $stack = $stack->[PARENT];
+    my $call_frame = $stack;
+
+    until (exists $call_frame->[ITEMS]->{$name} or not defined $call_frame->[PARENT]) {
+        $call_frame = $call_frame->[PARENT];
     }
 
-    # TODO we are going to need a decent exception object here
-    die("NameError: name '$name' is not defined")
-        unless exists $stack->[ITEMS]->{$name};
-
-    return $stack->[ITEMS]->{$name};
+    return $call_frame->[ITEMS]->{$name} ? \$call_frame->[ITEMS]->{$name} : \$stack->[ITEMS]->{$name};
 }
 
 # print like python does: attempt to produce output perfectly matching Python's
@@ -60,7 +95,7 @@ sub py2print {
         say $var;
     }
     else {
-        die("not implemented for " . ref($var));
+        confess("not implemented for " . ref($var));
     }
 }
 
@@ -69,7 +104,7 @@ my $comparisons = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return ($left == $right);
+            return \($left == $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -79,7 +114,7 @@ my $comparisons = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return ($left != $right);
+            return \($left != $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -89,7 +124,7 @@ my $comparisons = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return ($left > $right);
+            return \($left > $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -99,7 +134,7 @@ my $comparisons = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return ($left < $right);
+            return \($left < $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -109,7 +144,7 @@ my $comparisons = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return ($left >= $right);
+            return \($left >= $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -119,7 +154,7 @@ my $comparisons = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return ($left <= $right);
+            return \($left <= $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -135,54 +170,14 @@ sub compare {
     die("comparison for $operator not yet implemented");
 }
 
-# register a function definition on the stack
-sub register_function {
-    my ($stack, $name, $coderef) = @_;
-
-    die("register_function called without a valid name")
-        unless $name =~ m/^[a-z\d_]+$/i; # TODO python accepts a lot more here
-
-    die("register_function expects a coderef")
-        unless ref($coderef) eq 'CODE';
-
-    $stack->[ITEMS]->{$name} = $coderef;
-}
-
-our $builtins = {
-    'sorted' => sub {
-        my ($arguments) = @_;
-
-        die("sorted() expects a list as parameter")
-            unless ref($arguments->[0]) eq 'Python2::Type::List';
-
-        return Python2::Type::List->new( sort(@{ $arguments->[0]->elements }) );
-    },
-
-    'int' => sub {
-        my ($arguments) = @_;
-
-        die ("NYI: int called with multiple arguments") if (scalar(@$arguments) > 1);
-
-        return int($arguments->[0]);
-    },
-
-    'print' => sub {
-        my ($arguments) = @_;
-
-        die ("NYI: print called with multiple arguments") if (scalar(@$arguments) > 1);
-
-        Python2::py2print($arguments->[0]);
-    }
-};
-
 # register a class definition on the stack
 sub create_class {
     my ($stack, $name, $build) = @_;
 
-    die("register_class called without a valid name")
+    die("create_class called without a valid name: got $name")
         unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
 
-    die("register_class expects a build coderef")
+    die("create_class expects a build coderef")
         unless ref($build) eq 'CODE';
 
     my $class = {

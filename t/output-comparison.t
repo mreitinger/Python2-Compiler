@@ -46,7 +46,7 @@ for $testcase_directory.dir -> $testcase {
         };
 
 
-        subtest 'Perl 5 code generation' => sub { lives-ok {
+        subtest "Perl 5 code generation for $testcase" => sub { lives-ok {
             my $backend = Python2::Backend::Perl5.new();
             ok($generated_perl5_code = $backend.e($ast));
         }};

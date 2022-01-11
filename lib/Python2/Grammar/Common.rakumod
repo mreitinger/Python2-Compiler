@@ -5,4 +5,24 @@ role Python2::Grammar::Common {
     # Match the comma used in lists (actual Lists and Argument defintions) including
     # optional whitespace around it.
     token list-delimiter { <.ws> ',' <.ws> }
+
+    token atom {
+        | '[' <.ws> <expression-list> <.ws> ']'
+        | '{' <.ws> <dictionary-entry-list> <.ws> '}'
+        | <name>
+        | <number>
+        | <string>
+    }
+
+    token power {
+        <atom> <trailer>*
+    }
+
+    token trailer {
+        | <argument-list>   # handles ('x')
+        | <subscript>       # handles ['x']
+        | '.' <name>        # handles .foo
+    }
+
+    token subscript { '[' <literal> ']' }
 }
