@@ -57,5 +57,14 @@ class Python2::Optimizer {
         $.t($node.right) if $node.right;
     }
 
+    multi method t (Python2::AST::Node::Statement::VariableAssignment $node) {
+        # expression is always a test
+        $.t($node.expression);
+
+        # optimize out the test if it has no condition
+        next if $node.expression.condition;
+        $node.expression = $node.expression.left;
+    }
+
     multi method t ($node) {}
 }

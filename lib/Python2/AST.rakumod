@@ -118,7 +118,7 @@ class Python2::AST {
 
     class Node::Statement::VariableAssignment is Node::Expression {
         has Node    $.target        is required;
-        has Node    $.expression    is required;
+        has Node    $.expression    is required is rw;
     }
 
     class Node::Statement::InstanceVariableAssignment is Node::Expression {
