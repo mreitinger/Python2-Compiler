@@ -41,16 +41,17 @@ class Python2::AST {
         has Node $.expression   is required;
     }
 
+    class Node::Expression::Literal is Node::Expression {}
 
-    class Node::Expression::Literal::String is Node::Expression {
+    class Node::Expression::Literal::String is Node::Expression::Literal {
         has Str $.value is required;
     }
 
-    class Node::Expression::Literal::Integer is Node::Expression {
+    class Node::Expression::Literal::Integer is Node::Expression::Literal {
         has Int $.value is required;
     }
 
-    class Node::Expression::Literal::Float is Node::Expression {
+    class Node::Expression::Literal::Float is Node::Expression::Literal {
         has Num $.value is required;
     }
 

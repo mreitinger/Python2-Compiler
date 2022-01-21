@@ -3,6 +3,7 @@ use lib './lib';
 
 use Python2::Grammar;
 use Python2::Actions;
+use Python2::Optimizer;
 use Python2::Backend::Perl5;
 
 my $testcase_directory = IO::Path.new("./t/output-comparison");
@@ -15,8 +16,10 @@ for $testcase_directory.dir -> $testcase {
     subtest $testcase => sub {
         my $ast;
         my $generated_perl5_code;
+        my $optimized_perl5_code;
         my $python2_output;
         my $perl5_output;
+        my $perl5_output_optimized;
         my $parsed;
 
         subtest 'parser' => sub {
@@ -52,7 +55,16 @@ for $testcase_directory.dir -> $testcase {
         }};
         $generated_perl5_code or fail("failed to generate Perl 5 code");
 
-        subtest 'Perl 5 execution' => sub { 
+        subtest "optimizer for $testcase" => sub { lives-ok {
+            my $optimizer = Python2::Optimizer.new();
+            my $backend = Python2::Backend::Perl5.new();
+
+            $optimizer.t($ast);
+            ok($optimized_perl5_code = $backend.e($ast));
+        }};
+        $optimized_perl5_code or fail("failed to optimize");
+
+        subtest 'Perl 5 execution' => sub {
             my $perl5;
             lives-ok {
                 $perl5 = run('perl', :in, :out, :err);
@@ -66,8 +78,26 @@ for $testcase_directory.dir -> $testcase {
                 unless $perl5.exitcode == 0;
         };
 
+        subtest 'Perl 5 execution for optimized code' => sub {
+            my $perl5;
+            lives-ok {
+                $perl5 = run('perl', :in, :out, :err);
+                $perl5.in.say($optimized_perl5_code);
+                $perl5.in.close;
+                ok($perl5.exitcode == 0, 'perl exit code');
+                $perl5_output_optimized = $perl5.out.slurp;
+            }
+
+            diag("perl 5 STDERR: { $perl5.err.slurp }")
+                unless $perl5.exitcode == 0;
+        };
+
         subtest 'Output comparison' => sub {
             is $perl5_output, $python2_output, 'output matches';
+        };
+
+        subtest 'Output comparison for optimized code' => sub {
+            is $perl5_output_optimized, $python2_output, 'output matches';
         };
     };
 }
