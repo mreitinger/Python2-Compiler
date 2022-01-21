@@ -26,6 +26,16 @@ class Python2::AST {
         has Node $.right        is required;
     }
 
+    class Node::Test::Logical is Node {
+        has Node $.condition    is required;
+        has Node $.left         is required;
+        has Node $.right;       # not provides not 'right'
+    }
+
+    class Node::Test::LogicalCondition is Node {
+        has Str $.condition    is required;
+    }
+
     # Expressions
     class Node::Expression::Container is Node::Expression {
         has Node $.expression   is required;

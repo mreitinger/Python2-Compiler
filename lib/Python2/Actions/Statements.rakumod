@@ -73,11 +73,38 @@ class Python2::Actions::Statements {
         ));
     }
 
-    method test($/ where $/<comparison>) {
+    method test($/) {
         $/.make(Python2::AST::Node::Test.new(
-            left      => $<comparison>[0].made,
-            right     => $<test>          ?? $<test>.made          !! Nil,
-            condition => $<comparison>[1] ?? $<comparison>[1].made !! Nil,
+            left      => $<or_test>[0].made,
+            right     => $<test>          ?? $<test>.made       !! Nil,
+            condition => $<or_test>[1]    ?? $<or_test>[1].made !! Nil,
+        ));
+    }
+
+    method or_test($/) {
+        $/.make(Python2::AST::Node::Test::Logical.new(
+            left      => $<and_test>[0].made,
+            right     => $<and_test>[1]   ?? $<and_test>[1].made    !! Nil,
+            condition => $<and_test>[1]   ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'or')                   !! Nil,
+        ));
+    }
+
+    method and_test($/) {
+        $/.make(Python2::AST::Node::Test::Logical.new(
+            left      => $<not_test>[0].made,
+            right     => $<not_test>[1]   ?? $<not_test>[1].made   !! Nil,
+            condition => $<not_test>[1]   ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'and')          !! Nil,
+        ));
+    }
+
+    multi method not_test($/ where $/<comparison>) {
+        $/.make($/<comparison>.made);
+    }
+
+    multi method not_test($/ where $/<not_test>) {
+        $/.make(Python2::AST::Node::Test::Logical.new(
+            left      => $<not_test>.made,
+            condition => Python2::AST::Node::Test::LogicalCondition.new(condition => 'not'),
         ));
     }
 

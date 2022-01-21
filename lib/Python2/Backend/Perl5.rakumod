@@ -137,6 +137,22 @@ class Python2::Backend::Perl5
         }
     }
 
+    multi method e(Python2::AST::Node::Test::Logical $node) {
+        return $.e($node.left) unless $node.condition;
+
+        if ($node.condition.condition eq 'not') {
+            return sprintf('\not ${%s}', $.e($node.left));
+        } else {
+            return $node.condition
+                ?? sprintf('\(${%s} %s ${%s})', $.e($node.left), $.e($node.condition), $.e($node.right))
+                !! $.e($node.left);
+        }
+    }
+
+    multi method e(Python2::AST::Node::Test::LogicalCondition $node) {
+        return sprintf('%s', $node.condition);
+    }
+
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
         my $p5 = sprintf(
             'setvar($stack, \'%s\', sub {',

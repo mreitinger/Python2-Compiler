@@ -44,7 +44,20 @@ role Python2::Grammar::Statements {
     }
 
     token test {
-        <comparison> [ <.ws> 'if' <.ws> <comparison> <.ws> 'else' <.ws> <test> ]?
+        <or_test> [ <.ws> 'if' <.ws> <or_test> <.ws> 'else' <.ws> <test> ]?
+    }
+
+    token or_test {
+        <and_test>  [<.ws> 'or' <.ws> <and_test> ]?
+    }
+
+    token and_test {
+        <not_test> [ <.ws> 'and' <.ws> <not_test> ]?
+    }
+
+    token not_test {
+        | 'not' <.ws> <not_test>
+        | <comparison>
     }
 
     token comparison {
