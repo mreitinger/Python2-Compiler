@@ -50,6 +50,18 @@ class Python2::Optimizer {
     multi method t (Python2::AST::Node::Test::Logical $node) {
         $.t($node.left);
         $.t($node.right) if $node.right;
+
+        # left/right is always a comparison or logical test. strip it out if it has no
+        # condition
+
+        for ($node.left, $node.right) {
+            if ($_ ~~ Python2::AST::Node::Statement::Test::Comparison) {
+                $_ = $_.left if not $_.comparison-operator;
+            }
+            elsif ($_ ~~ Python2::AST::Node::Test::Logical) {
+                $_ = $_.left if not $_.condition;
+            }
+        }
     }
 
     multi method t (Python2::AST::Node::Statement::Test::Comparison $node) {

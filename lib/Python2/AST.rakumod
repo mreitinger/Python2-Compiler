@@ -28,8 +28,8 @@ class Python2::AST {
 
     class Node::Test::Logical is Node {
         has Node $.condition    is required;
-        has Node $.left         is required;
-        has Node $.right;       # not provides not 'right'
+        has Node $.left         is rw is required;
+        has Node $.right        is rw; # not provides not 'right'
     }
 
     class Node::Test::LogicalCondition is Node {
@@ -156,9 +156,9 @@ class Python2::AST {
     }
 
     class Node::Statement::Test::Comparison is Node::Expression {
-        has Node $.left is required;
-        has Str $.comparison-operator;
+        has Node $.left     is required;
         has Node $.right;
+        has Str $.comparison-operator;
     }
 
     class Node::Statement::FunctionDefinition is Node::Expression {
