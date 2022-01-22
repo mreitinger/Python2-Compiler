@@ -282,6 +282,10 @@ class Python2::Backend::Perl5
         );
     }
 
+    multi method e(Python2::AST::Node::Expression::TestList $node) {
+        return $node.tests.map({ $.e($_) }).join(' ');
+    }
+
 
     # dictionary handling
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {

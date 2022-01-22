@@ -43,6 +43,10 @@ role Python2::Grammar::Statements {
         [<level> 'finally' ':' <block>]?
     }
 
+    token test-list {
+        <test>+ %% <list-delimiter>
+    }
+
     token test {
         <or_test> [ <.ws> 'if' <.ws> <or_test> <.ws> 'else' <.ws> <test> ]?
     }

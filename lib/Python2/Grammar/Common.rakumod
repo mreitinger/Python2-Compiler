@@ -7,6 +7,7 @@ role Python2::Grammar::Common {
     token list-delimiter { <.ws> ',' <.ws> }
 
     token atom {
+        | '(' <.ws> <test-list> <.ws> ')'
         | '[' <.ws> <expression-list> <.ws> ']'
         | '{' <.ws> <dictionary-entry-list> <.ws> '}'
         | <name>

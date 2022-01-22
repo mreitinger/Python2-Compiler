@@ -145,6 +145,16 @@ class Python2::Actions::Expressions {
         $/.make($expression-list);
     }
 
+    method test-list($/) {
+        my $test-list = Python2::AST::Node::Expression::TestList.new();
+
+        for $/<test> -> $test {
+            $test-list.tests.push($test.made);
+        }
+
+        $/.make($test-list);
+    }
+
 
     # dictionary handling
     method dictionary-entry-list($/) {

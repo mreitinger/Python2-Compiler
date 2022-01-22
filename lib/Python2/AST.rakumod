@@ -79,6 +79,10 @@ class Python2::AST {
         has Node @.expressions;
     }
 
+    class Node::Expression::TestList is Node {
+        has Node @.tests;
+    }
+
     class Node::Expression::DictionaryDefinition is Node::Expression {
         has Node %.entries is required;
     }
