@@ -92,11 +92,6 @@ class Python2::AST {
         has Node    @.arguments;
     }
 
-    class Node::Expression::ObjectAccess is Node::Expression {
-        has Node    $.name   is required;
-        has Node    @.operations    is required;
-    }
-
     class Node::Expression::MethodCall is Node::Expression {
         has Node    $.name is required;
         has Node    @.arguments is required;
@@ -123,13 +118,6 @@ class Python2::AST {
     class Node::Statement::VariableAssignment is Node::Expression {
         has Node    $.target        is required;
         has Node    $.expression    is required is rw;
-    }
-
-    class Node::Statement::InstanceVariableAssignment is Node::Expression {
-        has Node::Expression::ObjectAccess  $.object-access         is required;
-        has Node                            $.target-variable       is required;
-        has Node                            $.list-or-dict-element;
-        has Node::Expression                $.expression            is required;
     }
 
     class Node::Statement::LoopFor is Node::Expression {

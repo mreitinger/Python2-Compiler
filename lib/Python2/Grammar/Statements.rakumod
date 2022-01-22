@@ -4,7 +4,6 @@ role Python2::Grammar::Statements {
             | <function-definition>
             | <statement-try-except>
             | <variable-assignment>
-            | <instance-variable-assignment>
             | <statement-print>
             | <expression>
             | <statement-loop-for>
@@ -17,7 +16,6 @@ role Python2::Grammar::Statements {
         "\n"?
     }
 
-    # TODO: we need a intermediate step here like python's test/testlist
     token statement-print {
         'print' <.ws> <test>
     }
@@ -36,8 +34,6 @@ role Python2::Grammar::Statements {
     }
 
     token statement-try-except {
-        # a block gets terminated with a trailing semicolon. capture it here to prevent
-        # our grammer from starting a new statement.
         'try' ':' <block>
         <level> 'except' ':' <block>
         [<level> 'finally' ':' <block>]?
@@ -83,12 +79,6 @@ role Python2::Grammar::Statements {
     # processing?
     token variable-assignment {
         <power> <.ws> '=' <.ws> <test>
-    }
-
-    # we can't use object-access directly since we need access to the last element so
-    # it can be passed to setvar()
-    token instance-variable-assignment {
-       <name> <object-access-operation>+ <list-or-dict-element>? <.ws> '=' <.ws> <expression>
     }
 
     token list-or-dict-element {

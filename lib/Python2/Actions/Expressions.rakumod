@@ -59,26 +59,10 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    multi method iterable ($/ where $/<list-definition>) {
-        $/.make($/<list-definition>.made);
-    }
-
-    multi method iterable ($/ where $/<variable-access>) {
-        $/.make($/<variable-access>.made);
-    }
-
-    multi method iterable ($/) {
-        die("iterable not implemented for " ~ Dump($/))
-    }
-
     method arithmetic-operator ($/) {
         $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
             arithmetic-operator => $/.Str,
         ))
-    }
-
-    method operand ($/) {
-        $/.make($/.values[0].made);
     }
 
     # arithmetic operations
@@ -104,18 +88,6 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    # variable access
-    multi method variable-access ($/ where $/<name>) {
-        $/.make(Python2::AST::Node::Expression::VariableAccess.new(
-            name => $/<name>.made,
-        ))
-    }
-
-    multi method variable-access ($/ where $/<object-access>) {
-        $/.make($/<object-access>.made);
-    }
-
-
     # subscript
     method subscript ($/) {
         $/.make(Python2::AST::Node::Subscript.new(
@@ -125,14 +97,6 @@ class Python2::Actions::Expressions {
 
     method literal ($/) {
         $/.make($/.values[0].made);
-    }
-
-
-    # list handling
-    method list-definition($/) {
-        $/.make(Python2::AST::Node::Expression::ListDefinition.new(
-            expressions => $/<expression-list>.made.expressions
-        ));
     }
 
     method expression-list($/) {
@@ -174,38 +138,8 @@ class Python2::Actions::Expressions {
         ));
     }
 
-    method object-access($/) {
-        my Python2::AST::Node @operations;
-
-        for ($/<object-access-operation>) -> $operation {
-            push(@operations, $operation.made);
-        }
-
-        $/.make(Python2::AST::Node::Expression::ObjectAccess.new(
-            name        => $/<name>.made,
-            operations  => @operations,
-        ));
-    }
-
-    multi method object-access-operation ($/ where $/<method-call>) {
-        $/.make($/<method-call>.made);
-    }
-
     multi method object-access-operation ($/ where $/<instance-variable-access>) {
         $/.make($/<instance-variable-access>.made);
-    }
-
-    multi method method-call($/) {
-        my @arguments;
-
-        for $/<function-call-argument-list>.made -> $argument {
-            @arguments.push($argument);
-        }
-
-        $/.make(Python2::AST::Node::Expression::MethodCall.new(
-            name        => $/<name>.made,
-            arguments   => @arguments,
-        ));
     }
 
     # instance variable access

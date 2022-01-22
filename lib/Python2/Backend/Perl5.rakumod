@@ -1,11 +1,7 @@
 use Python2::AST;
 use Data::Dump;
 
-use Python2::Backend::Perl5::ObjectAccess;
-
-class Python2::Backend::Perl5
-    does Python2::Backend::Perl5::ObjectAccess
-{
+class Python2::Backend::Perl5 {
     has Str $!o =
         "use v5.26.0;\n" ~
         "use strict;\n" ~
@@ -118,11 +114,6 @@ class Python2::Backend::Perl5
         $p5 ~= sprintf('else { %s }', $.e($node.else)) if $node.else;
 
         return $p5;
-    }
-
-    multi method e(Python2::AST::Node::Statement::Test::Expression $node) {
-        die;
-        return $.e($node.expression);
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
@@ -247,28 +238,6 @@ class Python2::Backend::Perl5
 
     multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
         return '\\' ~ $node.value;
-    }
-
-    multi method e(Python2::AST::Node::Statement::InstanceVariableAssignment $node) {
-        my Str $p5;
-        if ($node.list-or-dict-element) {
-            # assuming object.array[0]
-            # fetch stack for object
-            return sprintf('setvar_e(%s->{stack}, %s, %s, %s)',
-                $.e($node.object-access),
-                $.e($node.target-variable.name),
-                $.e($node.list-or-dict-element),
-                $.e($node.expression)
-            );
-        } else {
-            # assuming object.item
-            # fetch stack for object
-            return sprintf('setvar(%s->{stack}, %s, %s)',
-                $.e($node.object-access),
-                $.e($node.target-variable.name),
-                $.e($node.expression),
-            );
-        }
     }
 
     multi method e(Python2::AST::Node::Subscript $node) {

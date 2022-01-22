@@ -25,30 +25,6 @@ class Python2::Actions::Statements {
         ));
     }
 
-    method instance-variable-assignment($/) {
-        # the final node in the chain ('object.foo.bar().final_node'). this doesn't get passed
-        # to getvar since we need it as a parameter for setvar instead. getvar will only traverse
-        # up to the parent object
-        # TODO this could be handled a bit cleaner by capturing a trailing name
-        my $final-node = pop $/<object-access-operation>;
-
-        my Python2::AST::Node @operations;
-
-        for ($/<object-access-operation>) -> $operation {
-            push(@operations, $operation.made);
-        }
-
-        $/.make(Python2::AST::Node::Statement::InstanceVariableAssignment.new(
-                object-access   => Python2::AST::Node::Expression::ObjectAccess.new(
-                name            => $/<name>.made,
-                operations      => @operations,
-            ),
-            target-variable         => $final-node.made,
-            list-or-dict-element    => $/<list-or-dict-element>.made,
-            expression              => $/<expression>.made
-        ));
-    }
-
     method statement-loop-for($/) {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             name        => $/<name>.made,
