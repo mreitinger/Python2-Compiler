@@ -2,16 +2,6 @@ use Data::Dump;
 use Python2::AST;
 
 class Python2::Optimizer {
-    multi method t (Python2::AST::Node::Root $node) {
-        for $node.nodes -> $node {
-            $.t($node);
-        }
-    }
-
-    multi method t (Python2::AST::Node::Statement $node) {
-        $.t($node.statement);
-    }
-
     multi method t (Python2::AST::Node::Expression::Container $node) {
         $.t($node.expression);
 
@@ -38,15 +28,6 @@ class Python2::Optimizer {
         }
     }
 
-    multi method t (Python2::AST::Node::ArgumentList $node) {
-        for $node.arguments { $.t($_) }
-    }
-
-    multi method t (Python2::AST::Node::Test $node) {
-        $.t($node.left);
-        $.t($node.right) if $node.right;
-    }
-
     multi method t (Python2::AST::Node::Test::Logical $node) {
         $.t($node.left);
         $.t($node.right) if $node.right;
@@ -64,11 +45,6 @@ class Python2::Optimizer {
         }
     }
 
-    multi method t (Python2::AST::Node::Statement::Test::Comparison $node) {
-        $.t($node.left);
-        $.t($node.right) if $node.right;
-    }
-
     multi method t (Python2::AST::Node::Statement::VariableAssignment $node) {
         # expression is always a test
         $.t($node.expression);
@@ -78,5 +54,27 @@ class Python2::Optimizer {
         $node.expression = $node.expression.left;
     }
 
+    # fallback: if we don't know better just optimize all attributes on the current
+    # AST node.
+    multi method t (Python2::AST::Node $node) {
+        for $node.^attributes -> $attribute {
+            my $name = $attribute.name.subst(/^[\$|\@|\%]\!?/, '');
+
+            if ($attribute.name ~~ /^^\$/) {
+                $.t( $node."$name"() );
+            }
+            elsif ($attribute.name ~~ /^^\@/) {
+                for $node."$name"() { $.t($_) }
+            }
+            elsif ($attribute.name ~~ /^^\%/) {
+                for $node."$name"().kv { $.t($_) }
+            }
+            else {
+                die("unsupported attribute type: {$attribute.name}");
+            }
+        }
+    }
+
+    # noop for literals
     multi method t ($node) {}
 }
