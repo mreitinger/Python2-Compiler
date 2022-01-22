@@ -17,11 +17,16 @@ class Python2::Optimizer {
         for $node.operations {
             next unless $_ ~~ Python2::AST::Node::Power;
 
+            # handle the atom part
+            $.t($_.atom);
+
             # handle argument lists/subscripts/etc
             for $_.trailers { $.t($_) }
 
+            # if there a trailers we don't optimize anything
             next unless $_.trailers.elems == 0;
 
+            # if the atom is just a literal in the end skip it
             if ($_.atom.expression ~~ Python2::AST::Node::Expression::Literal) {
                 $_ = $_.atom.expression;
             }
