@@ -2,6 +2,9 @@ package Python2;
 use v5.26.0;
 use warnings;
 use strict;
+use List::Util qw( max );
+use List::Util::XS; # ensure we use the ::XS version
+
 use Scalar::Util qw/ looks_like_number /;
 use Clone qw/ clone /;
 use Carp qw/ confess /;
@@ -51,20 +54,29 @@ our $builtins = [
             'map' => sub {
                 my $arguments = shift;
 
+
+                # first argument is the function to call
                 my $function    = shift @$arguments;
 
-                # TODO support >1 iterable
-                my $iterable    = shift @$arguments;
+                # all remaining arguments are iterables that will be passed, in parallel, to the function
+                # if one iterable has fewer items than the others it will be passed with None (undef)
+                #
+                # figure out the largest argument and use that to iterate over
+                my $iterable_item_count = max( map { $_->__len__ } @$arguments);
 
-                for (my $i = 0; $i < $iterable->__len__; $i++) {
-                    $iterable->__setitem__($i,
-                        $function->([
-                            ${$iterable->element($i)}
-                        ])
-                    );
+                # number of iterable arguments passed to map()
+                my $argument_count      = scalar @$arguments;
+
+                my $result = Python2::Type::List->new();
+
+                for (my $i = 0; $i < $iterable_item_count; $i++) {
+                    # iterables to be passed to $function. first one gets modified
+                    my $iterables = [map { ${$arguments->[$_]->element($i)} } (0 .. $argument_count-1 )];
+
+                    $result->__setitem__($i, $function->($iterables));
                 }
 
-                return $iterable;
+                return $result;
             },
 
             'int' => sub {
