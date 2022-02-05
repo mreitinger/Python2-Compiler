@@ -42,13 +42,29 @@ our $builtins = [
             'sorted' => sub {
                 my $arguments = shift;
 
-                use Data::Dumper;
-                warn Dumper($arguments);
-
                 die("sorted() expects a list as parameter")
                     unless ref($arguments->[0]) eq 'Python2::Type::List';
 
                 return Python2::Type::List->new( sort(@{ $arguments->[0]->elements }) );
+            },
+
+            'map' => sub {
+                my $arguments = shift;
+
+                my $function    = shift @$arguments;
+
+                # TODO support >1 iterable
+                my $iterable    = shift @$arguments;
+
+                for (my $i = 0; $i < $iterable->__len__; $i++) {
+                    $iterable->__setitem__($i,
+                        $function->([
+                            ${$iterable->element($i)}
+                        ])
+                    );
+                }
+
+                return $iterable;
             },
 
             'int' => sub {

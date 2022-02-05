@@ -30,4 +30,16 @@ sub set {
     $self->{elements}->[$key] = $value;
 }
 
+sub __len__ {
+    my ($self) = @_;
+
+    return scalar@{ $self->{elements} };
+}
+
+sub __setitem__ {
+    my ($self, $key, $value) = @_;
+
+    $self->{elements}->[$key] = $value;
+}
+
 1;
