@@ -19,6 +19,13 @@ class Python2::Actions::Expressions {
         ))
     }
 
+    method lambda-definition ($/) {
+        $/.make(Python2::AST::Node::LambdaDefinition.new(
+            argument-list   => $/<function-definition-argument-list>.made,
+            block           => $/<test>.made,
+        ));
+    }
+
     # this does not yet implement power (as in **) but is here for future expansion and since
     # we need it to match atom/trailers.
     method power ($/) {

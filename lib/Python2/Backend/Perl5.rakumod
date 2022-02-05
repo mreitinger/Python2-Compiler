@@ -161,6 +161,20 @@ class Python2::Backend::Perl5 {
         $p5   ~= "});"
     }
 
+    multi method e(Python2::AST::Node::LambdaDefinition $node) {
+        my $p5 = '\sub {${ ';
+
+        $p5 ~= 'my $arguments = shift;' ~ "\n";
+        $p5 ~= 'my $stack = [$stack];' ~ "\n"; #TODO check this
+
+        for $node.argument-list -> $argument {
+            $p5 ~= sprintf('setvar($stack, \'%s\', shift @$arguments);', $argument);
+        }
+
+        $p5   ~= $.e($node.block);
+        $p5   ~= "}}"
+    }
+
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
         return sprintf('create_class($stack, \'%s\', sub { my $stack = shift; %s })',
             $node.name.name.subst("'", "\\'", :g),

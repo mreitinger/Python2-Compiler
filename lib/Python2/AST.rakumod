@@ -159,6 +159,11 @@ class Python2::AST {
         has Node    $.block is required;
     }
 
+    class Node::LambdaDefinition is Node::Expression {
+        has Str     @.argument-list is required;
+        has Node    $.block is required;
+    }
+
     class Node::Statement::ClassDefinition is Node::Expression {
         has Node    $.name is required;
         has Node    $.block is required;

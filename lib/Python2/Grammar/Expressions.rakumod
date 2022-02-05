@@ -53,6 +53,10 @@ role Python2::Grammar::Expressions {
     }
 
 
+    # lambda definition
+    token lambda-definition {
+        'lambda' <.ws> <function-definition-argument-list> <.ws> ':' <.ws> <test>
+    }
 
 
     # access to object instance variables and methods

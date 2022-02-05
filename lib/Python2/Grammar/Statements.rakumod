@@ -44,7 +44,8 @@ role Python2::Grammar::Statements {
     }
 
     token test {
-        <or_test> [ <.ws> 'if' <.ws> <or_test> <.ws> 'else' <.ws> <test> ]?
+        || <lambda-definition>
+        || <or_test> [ <.ws> 'if' <.ws> <or_test> <.ws> 'else' <.ws> <test> ]?
     }
 
     token or_test {

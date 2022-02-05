@@ -49,12 +49,20 @@ class Python2::Actions::Statements {
         ));
     }
 
-    method test($/) {
+    multi method test($/ where $/<lambda-definition>) {
         $/.make(Python2::AST::Node::Test.new(
-            left      => $<or_test>[0].made,
-            right     => $<test>          ?? $<test>.made       !! Nil,
-            condition => $<or_test>[1]    ?? $<or_test>[1].made !! Nil,
+            left        => $<lambda-definition>.made,
+            right       => Nil,
+            condition   => Nil,
         ));
+    }
+
+    multi method test($/) {
+        $/.make(Python2::AST::Node::Test.new(
+                left      => $<or_test>[0].made,
+                right     => $<test>          ?? $<test>.made       !! Nil,
+                condition => $<or_test>[1]    ?? $<or_test>[1].made !! Nil,
+                ));
     }
 
     method or_test($/) {
