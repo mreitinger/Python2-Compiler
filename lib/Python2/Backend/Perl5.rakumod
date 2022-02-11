@@ -2,14 +2,18 @@ use Python2::AST;
 use Data::Dump;
 
 class Python2::Backend::Perl5 {
-    has Str $!o =
-        "use v5.26.0;\n" ~
-        "use strict;\n" ~
-        "use lib qw( p5lib );\n" ~
-        "use Data::Dumper;\n" ~
-        "use Python2;\n\n" ~
-        'my $stack = [ $builtins ];' ~ "\n\n" ~
-        'use constant { PARENT => 0, ITEMS => 1 };' ~ "\n\n";
+    has Str $!o = q:to/END/;
+        use v5.26.0;
+        use strict;
+        use lib qw( p5lib );
+        use Data::Dumper;
+        use Ref::Util::XS qw/ is_arrayref is_hashref is_coderef /;
+        use Python2;
+
+        my $stack = [$builtins];
+
+        use constant { PARENT => 0, ITEMS => 1 };
+    END
 
     # we use an array instead of a hash for faster lookups.
     # Layout:
