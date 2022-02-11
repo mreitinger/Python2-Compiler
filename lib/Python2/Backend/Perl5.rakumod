@@ -2,17 +2,29 @@ use Python2::AST;
 use Data::Dump;
 
 class Python2::Backend::Perl5 {
-    has Str $!o = q:to/END/;
+    has Str $!o = '';
+
+    has Str $!wrapper = q:to/END/;
         use v5.26.0;
         use strict;
         use lib qw( p5lib );
-        use Data::Dumper;
-        use Ref::Util::XS qw/ is_arrayref is_hashref is_coderef /;
-        use Python2;
 
-        my $stack = [$builtins];
+        package python_class_main {
+            use Data::Dumper;
+            use Ref::Util::XS qw/ is_arrayref is_hashref is_coderef /;
+            use Python2;
 
-        use constant { PARENT => 0, ITEMS => 1 };
+            use constant { PARENT => 0, ITEMS => 1 };
+
+            sub new {
+                return bless({ stack => [$builtins] }, 'python_class_main');
+            }
+
+            sub block { my $self = shift; my $stack = $self->{stack}; %s }
+        }
+
+        my $p2 = python_class_main->new();
+        $p2->block();
     END
 
     # we use an array instead of a hash for faster lookups.
@@ -31,7 +43,7 @@ class Python2::Backend::Perl5 {
             $!o ~= $.e($_);
         }
 
-        return $!o;
+        return sprintf($!wrapper, $!o);
     }
 
     multi method e(Python2::AST::Node::Atom $node) {
@@ -162,7 +174,9 @@ class Python2::Backend::Perl5 {
         }
 
         $p5   ~= $.e($node.block);
-        $p5   ~= "});"
+
+        $p5   ~= "})";
+
     }
 
     multi method e(Python2::AST::Node::LambdaDefinition $node) {
