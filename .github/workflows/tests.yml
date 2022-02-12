@@ -11,7 +11,7 @@ jobs:
 
     env:
       RAKUDO_VERSION: rakudo-moar-2021.12-01-linux-x86_64-gcc.tar.gz
-      RAKUDO_MODULES: Data::Dump App::Prove6
+      RAKUDO_MODULES: Data::Dump App::Prove6 Digest::SHA1::Native
 
     steps:
       - uses: actions/checkout@v2

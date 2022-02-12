@@ -1,13 +1,18 @@
 use Python2::AST;
+use Digest::SHA1::Native;
 use Data::Dump;
 
 class Python2::Backend::Perl5 {
     has Str $!o = '';
+    has Str $!modules = '';
+
 
     has Str $!wrapper = q:to/END/;
         use v5.26.0;
         use strict;
         use lib qw( p5lib );
+
+        %s
 
         package python_class_main {
             use Data::Dumper;
@@ -43,7 +48,7 @@ class Python2::Backend::Perl5 {
             $!o ~= $.e($_);
         }
 
-        return sprintf($!wrapper, $!o);
+        return sprintf($!wrapper, $!modules, $!o);
     }
 
     multi method e(Python2::AST::Node::Atom $node) {
@@ -59,7 +64,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::ArgumentList $node) {
-        return sprintf('%s', $node.arguments.map({ '${' ~ $.e($_) ~ '}' }).join(', '));
+        return sprintf('%s', $node.arguments.map({
+            '${' ~ $.e($_) ~ '}'
+        }).join(', '));
     }
 
     # Statements
@@ -76,11 +83,11 @@ class Python2::Backend::Perl5 {
         return sprintf('${%s} = ${%s}',
             $.e($node.target),
             $.e($node.expression)
-        );
+                       );
     }
 
     multi method e(Python2::AST::Node::Statement::Return $node) {
-        return sprintf('return ${%s}', $.e($node.value));
+        return sprintf('return %s', $.e($node.value));
     }
 
 
@@ -91,14 +98,14 @@ class Python2::Backend::Perl5 {
             $.e($node.iterable),
             $.e($node.name),
             $.e($node.block),
-        );
+                       );
     }
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {
         my $p5 = sprintf('eval { %s } or do { %s };',
             $.e($node.try-block),
             $.e($node.except-block),
-        );
+                         );
 
         $p5 ~= sprintf('; { %s }', $.e($node.finally-block)) if $node.finally-block;
 
@@ -112,10 +119,10 @@ class Python2::Backend::Perl5 {
             $p5 ~= sprintf(
                 '${ sub { my $p = %s; $$p // die("NameError" ); $p; }->() } ? ',
                 $.e($node.condition)
-            );
+                                            );
         }
 
-         $p5 ~= sprintf('sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.left));
+        $p5 ~= sprintf('sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.left));
 
         if ($node.condition) {
             $p5 ~= sprintf(': sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.right));
@@ -133,12 +140,13 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
-        if ($node.right) { #tmp hack until we get this right
+        if ($node.right) {
+            #tmp hack until we get this right
             return sprintf('compare(${%s}, ${%s}, \'%s\')',
                 $.e($node.left),
                 $.e($node.right),
                 $node.comparison-operator
-            );
+                           );
         } else {
             return $.e($node.left);
         }
@@ -164,16 +172,20 @@ class Python2::Backend::Perl5 {
         my $p5 = sprintf(
             'setvar($stack, \'%s\', sub {',
             $node.name.name.subst("'", "\\'", :g)
-        );
+                                      );
 
-        $p5 ~= 'my $arguments = shift;' ~ "\n";
         $p5 ~= 'my $stack = [$builtins];' ~ "\n";
 
         for $node.argument-list -> $argument {
-            $p5 ~= sprintf('setvar($stack, \'%s\', shift @$arguments);', $argument);
+            $p5 ~= sprintf('setvar($stack, \'%s\', shift @_);', $argument);
         }
 
         $p5   ~= $.e($node.block);
+
+        $p5   ~= 'return \""';     # if $node.block contains a return statement it will execute before this
+                                   # TODO this should return some Nonetype object?
+                                   # TODO on python this returns None but if we return undef this would hit the NameError
+                                   # TODO check further down. this is still wrong but at least it returns 'false'
 
         $p5   ~= "})";
 
@@ -182,62 +194,116 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::LambdaDefinition $node) {
         my $p5 = '\sub {${ ';
 
-        $p5 ~= 'my $arguments = shift;' ~ "\n";
-        $p5 ~= 'my $stack = [$stack];' ~ "\n"; #TODO check this
+        $p5 ~= 'my $stack = [$stack];' ~ "\n";
+        #TODO check this
 
         for $node.argument-list -> $argument {
-            $p5 ~= sprintf('setvar($stack, \'%s\', shift @$arguments);', $argument);
+            $p5 ~= sprintf('setvar($stack, \'%s\', shift @_);', $argument);
         }
 
-        $p5   ~= $.e($node.block);
+        $p5   ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
         $p5   ~= "}}"
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
-        return sprintf('create_class($stack, \'%s\', sub { my $stack = shift; %s })',
-            $node.name.name.subst("'", "\\'", :g),
+        my Str $perl5_class_name = 'python_class_' ~ sha1-hex($node.name.name ~ $.e($node.block));
+        my Str $preamble = 'use Python2;';
+
+        $!modules ~= sprintf(
+            'package %s { use base qw/ Python2::Type::Object /; %s sub __build__ { my $self = shift; my $stack = $self->{stack}; %s; return $self; } }',
+            $perl5_class_name,
+            $preamble,
             $.e($node.block)
+                                      );
+
+        return sprintf('setvar($stack, \'%s\', sub { my $object = %s->new(); return \$object; });',
+            $node.name.name.subst("'", "\\'", :g),
+            $perl5_class_name,
         );
     }
+
 
     # Expressions
     multi method e(Python2::AST::Node::Expression::Container $node) {
         return $.e($node.expression);
     }
 
+    # this implementation does not account for some of the more complex constructs like chaining function calls
+    # to call returned references to functions:
+    #
+    # def foo():
+    #     def bar():
+    #         print 1
+    #
+    # return bar
+    #
+    # foo()()
+    #
+    # to handle this way more complicated code needs to be generated, see this method around b76c82b3ff351510adb9d7de3da34bc630ea55cc
+    # which did not handle calling methods on perl objects.
+
     multi method e(Python2::AST::Node::Power $node) {
-        my $p5 = 'sub {';
-        $p5   ~= 'my $p2 = undef;';
-        $p5   ~= sprintf('my $p = %s;', $.e($node.atom));
+        my @elements = ($node.atom, $node.trailers).flat;
 
-        my $prev;
-
-        for $node.trailers -> $trailer {
-            if ($trailer ~~ Python2::AST::Node::Name) {
-                $p5 ~= sprintf('$p2 = $p; $p = getvar(${$p}->{stack}, %s);', $.e($trailer));
-            }
-            elsif ($trailer ~~ Python2::AST::Node::ArgumentList) {
-                if ($prev ~~ Python2::AST::Node::Name) {
-                    # the previous trailer was method name: pass the previous object to it
-                    # so it ends up in 'self'
-                    $p5 ~= sprintf('$p = \${$p}->([${$p2}, %s]);', $.e($trailer));
-                } else {
-                    $p5 ~= sprintf('$p = \${$p}->([%s]);', $.e($trailer));
-                }
-            }
-            elsif ($trailer ~~ Python2::AST::Node::Subscript) {
-                $p5 ~= sprintf('$p = ${$p}->element(${ %s });', $.e($trailer));
-            }
-            else {
-                die("invalid trailer: $trailer");
-            }
-
-            $prev = $trailer;
+        # simple function-call. we handle this first so we produce simpler code and don't conflict with method calls
+        # down below
+        # TODO handle elemns == 1 up here and skip the sub{}
+        if @elements.elems == 2 and @elements[1] ~~ Python2::AST::Node::ArgumentList {
+            return sprintf('${ %s }->(%s)', $.e(@elements[0]), $.e(@elements[1]));
         }
 
-        $p5 ~= '}->()';
 
-        return $p5;
+        # chained expressions get wrapped in a sub{}
+        my Str $p5 = '';
+        while @elements.elems > 0 {
+            my $current-element = @elements.shift;
+            my $next-element = @elements.first;
+
+            if $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
+                my $argument-list = @elements.shift;
+                $p5 ~= sprintf('$p = ${$p}->%s(%s);', $current-element.name, $.e($argument-list));
+            }
+            elsif $current-element ~~ Python2::AST::Node::Subscript {
+                $p5 ~= sprintf('$p = ${$p}->element(${ %s });', $.e($current-element));
+            }
+            elsif $current-element ~~ Python2::AST::Node::Name {
+                $p5 ~= sprintf('$p = ${$p}->__getattr__(%s);', $.e($current-element));
+            }
+            else {
+                $p5 ~= sprintf('$p = %s;', $.e($current-element));
+            }
+        }
+
+        return sprintf('sub{my $p = undef; %s}->()', $p5);
+
+
+
+        #        for $node.trailers -> $trailer {
+        #            if ($trailer ~~ Python2::AST::Node::Name) {
+        #                $p5 ~= sprintf('$p2 = $p; $p = getvar(${$p}->{stack}, %s);', $.e($trailer));
+        #            }
+        #            elsif ($trailer ~~ Python2::AST::Node::ArgumentList) {
+        #                if ($prev ~~ Python2::AST::Node::Name) {
+        #                    # the previous trailer was method name: pass the previous object to it
+        #                    # so it ends up in 'self'
+        #                    $p5 ~= sprintf('$p = \${$p}->([${$p2}, %s]);', $.e($trailer));
+        #                } else {
+        #                    $p5 ~= sprintf('$p = \${$p}->([%s]);', $.e($trailer));
+        #                }
+        #            }
+        #            elsif ($trailer ~~ Python2::AST::Node::Subscript) {
+        #                $p5 ~= sprintf('$p = ${$p}->element(${ %s });', $.e($trailer));
+        #            }
+        #            else {
+        #                die("invalid trailer: $trailer");
+        #            }
+        #
+        #            $prev = $trailer;
+        #        }
+        #
+        #        $p5 ~= '}->()';
+
+        #return $p5;
     }
 
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
@@ -279,24 +345,32 @@ class Python2::Backend::Perl5 {
     # list handling
     multi method e(Python2::AST::Node::Expression::ExpressionList $node) {
         return sprintf('\Python2::Type::List->new(%s)',
-            $node.expressions.map({ '${' ~ self.e($_ ) ~ '}' }).join(', ')
-        );
+            $node.expressions.map({
+                '${' ~ self.e($_) ~ '}'
+            }).join(', ')
+       );
     }
 
     multi method e(Python2::AST::Node::Expression::TestList $node) {
-        return $node.tests.map({ $.e($_) }).join(' ');
+        return $node.tests.map({
+            $.e($_)
+        }).join(' ');
     }
 
 
     # dictionary handling
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {
         return sprintf('\Python2::Type::Dict->new(%s)',
-            $node.entries.map({ $_.key ~ '=> ${' ~ $.e($_.value) ~ '}' }).join(', ')
-        );
+            $node.entries.map({
+                $_.key ~ '=> ${' ~ $.e($_.value) ~ '}'
+            }).join(', ')
+       );
     }
 
     multi method e(Python2::AST::Node::Block $node) {
-        return sprintf('{ %s }',  $node.statements.map({ self.e($_) }).join(''));
+        return sprintf('{ %s }', $node.statements.map({
+            self.e($_)
+        }).join(''));
     }
 
 

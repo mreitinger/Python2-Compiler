@@ -7,19 +7,18 @@ sub new {
     my ($self, @initial_elements) = @_;
 
     return bless({
-        stack       => [
-            undef,
-            {
-                keys => sub {
-                    return Python2::Type::List->new(keys %{ shift->[0]->{stack}->[1]->{elements} });
-                },
-                values => sub {
-                    return Python2::Type::List->new(values  %{ shift->[0]->{stack}->[1]->{elements} })
-                },
-                elements => { @initial_elements },
-            },
-        ],
+        stack => [ undef, { elements => { @initial_elements } } ],
     }, $self);
+}
+
+sub keys {
+    my $self = shift;
+    return \Python2::Type::List->new(keys %{ $self->{stack}->[1]->{elements} });
+}
+
+sub values {
+    my $self = shift;
+    return \Python2::Type::List->new(values  %{ $self->{stack}->[1]->{elements} })
 }
 
 sub print {
@@ -33,7 +32,7 @@ sub print {
                 ($_ =~ m/^\d+$/ ? $_ : "'$_'") .  # TODO add a quote-like-python function
                 ': ' .
                 ($var->{$_} =~ m/^\d+$/ ? $var->{$_} : "'$var->{$_}'")
-            } sort keys %$var
+            } sort CORE::keys %$var
         ) .
     "}";
 }

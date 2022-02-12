@@ -14,7 +14,7 @@ use Python2::Type::Dict;
 
 use Exporter qw/ import /;
 our @EXPORT = qw/
-    getvar              setvar          setvar_e
+    getvar              setvar           compare
     call                py2print        compare
     register_function   create_class    $builtins
 /;
@@ -43,48 +43,36 @@ our $builtins = [
         undef,
         {
             'sorted' => sub {
-                my $arguments = shift;
-
-                die("sorted() expects a list as parameter")
-                    unless ref($arguments->[0]) eq 'Python2::Type::List';
-
-                return Python2::Type::List->new( sort(@{ $arguments->[0]->elements }) );
+                return \Python2::Type::List->new( sort(@{ $_[0]->elements }) );
             },
 
             'map' => sub {
-                my $arguments = shift;
-
-
                 # first argument is the function to call
-                my $function    = shift @$arguments;
+                my $function    = shift @_;
 
                 # all remaining arguments are iterables that will be passed, in parallel, to the function
                 # if one iterable has fewer items than the others it will be passed with None (undef)
                 #
                 # figure out the largest argument and use that to iterate over
-                my $iterable_item_count = max( map { $_->__len__ } @$arguments);
+                my $iterable_item_count = max( map { $_->__len__ } @_);
 
                 # number of iterable arguments passed to map()
-                my $argument_count      = scalar @$arguments;
+                my $argument_count      = scalar @_;
 
                 my $result = Python2::Type::List->new();
 
                 for (my $i = 0; $i < $iterable_item_count; $i++) {
                     # iterables to be passed to $function. first one gets modified
-                    my $iterables = [map { ${$arguments->[$_]->element($i)} } (0 .. $argument_count-1 )];
+                    my @iterables = map { ${$_[$_]->element($i)} } (0 .. $argument_count-1 );
 
-                    $result->__setitem__($i, $function->($iterables));
+                    $result->__setitem__($i, ${ $function->(@iterables) });
                 }
 
-                return $result;
+                return \$result;
             },
 
             'int' => sub {
-                my $arguments = shift // [];
-
-                die ("NYI: int called with multiple arguments") if (scalar(@$arguments) > 1);
-
-                return int($arguments->[0]);
+                return \int($_[0]);
             },
 
             'print' => sub {
@@ -196,36 +184,6 @@ sub compare {
         if defined $comparisons->{$operator};
 
     die("comparison for $operator not yet implemented");
-}
-
-# register a class definition on the stack
-sub create_class {
-    my ($stack, $name, $build) = @_;
-
-    die("create_class called without a valid name: got $name")
-        unless $name =~ m/^[a-z]+$/; # TODO python accepts a lot more here
-
-    die("create_class expects a build coderef")
-        unless ref($build) eq 'CODE';
-
-    my $class = {
-        stack => [],
-    };
-
-    # python runs the class code block on class creation time and __init__ on object creation.
-    # this takes care of the class code block
-    $build->($class->{stack});
-
-    # since everything shares a namespace on the stack we need to turn object instance creation
-    # into a function. this clones the class, runs the __init__ method and returns the object.
-    $stack->[ITEMS]->{$name} = sub {
-         my $object = clone($class);
-
-         $object->{stack}->[ITEMS]->{__init__}->([$object])
-             if exists $object->{stack}->[ITEMS]->{__init__};
-
-         return $object;
-    }
 }
 
 1;
