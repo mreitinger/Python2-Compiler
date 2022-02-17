@@ -98,14 +98,14 @@ class Python2::Backend::Perl5 {
             $.e($node.iterable),
             $.e($node.name),
             $.e($node.block),
-                       );
+        );
     }
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {
         my $p5 = sprintf('eval { %s } or do { %s };',
             $.e($node.try-block),
             $.e($node.except-block),
-                         );
+        );
 
         $p5 ~= sprintf('; { %s }', $.e($node.finally-block)) if $node.finally-block;
 
@@ -275,35 +275,6 @@ class Python2::Backend::Perl5 {
         }
 
         return sprintf('sub{my $p = undef; %s}->()', $p5);
-
-
-
-        #        for $node.trailers -> $trailer {
-        #            if ($trailer ~~ Python2::AST::Node::Name) {
-        #                $p5 ~= sprintf('$p2 = $p; $p = getvar(${$p}->{stack}, %s);', $.e($trailer));
-        #            }
-        #            elsif ($trailer ~~ Python2::AST::Node::ArgumentList) {
-        #                if ($prev ~~ Python2::AST::Node::Name) {
-        #                    # the previous trailer was method name: pass the previous object to it
-        #                    # so it ends up in 'self'
-        #                    $p5 ~= sprintf('$p = \${$p}->([${$p2}, %s]);', $.e($trailer));
-        #                } else {
-        #                    $p5 ~= sprintf('$p = \${$p}->([%s]);', $.e($trailer));
-        #                }
-        #            }
-        #            elsif ($trailer ~~ Python2::AST::Node::Subscript) {
-        #                $p5 ~= sprintf('$p = ${$p}->element(${ %s });', $.e($trailer));
-        #            }
-        #            else {
-        #                die("invalid trailer: $trailer");
-        #            }
-        #
-        #            $prev = $trailer;
-        #        }
-        #
-        #        $p5 ~= '}->()';
-
-        #return $p5;
     }
 
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
