@@ -27,6 +27,7 @@ role Python2::Grammar::Expressions {
             | '-'
             | '*'
             | '/'
+            | '%'
         ]
     }
 
