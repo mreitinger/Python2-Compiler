@@ -6,7 +6,7 @@ use Python2::Actions;
 use Python2::Optimizer;
 use Python2::Backend::Perl5;
 
-my $testcase_directory = IO::Path.new("./t/output-comparison");
+my $testcase_directory = IO::Path.new("./t/output-comparison-python-interpreter");
 
 unless $testcase_directory.e {
     die("Testcase directory not found, are you running tests from the wrong directory?");
