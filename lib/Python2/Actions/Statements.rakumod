@@ -12,6 +12,14 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-p5import($/) {
+        $/.make(Python2::AST::Node::Statement::P5Import.new(
+            perl5-package-name  => $/<perl5-package-name>.Str,
+            name                => $/<name>.Str
+        ));
+    }
+
+
     method statement-print($/) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             value => $/.values[0].made

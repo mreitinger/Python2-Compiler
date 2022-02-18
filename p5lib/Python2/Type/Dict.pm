@@ -1,5 +1,6 @@
 package Python2::Type::Dict;
 use v5.26.0;
+use base qw/ Python2::Type /;
 use warnings;
 use strict;
 
@@ -48,5 +49,19 @@ sub set {
 
     $self->{stack}->[0]->{elements}->{$key} = $value;
 }
+
+# convert to a 'native' perl5 hashref
+sub __tonative__ {
+    my $self = shift;
+
+    my $retvar = {};
+
+    while (my ($key, $value) = each(%{ $self->{stack}->[1]->{elements} })) {
+        $retvar->{$key} = ref($value) ? $value->__tonative__ : $value;
+    }
+
+    return $retvar;
+}
+
 
 1;

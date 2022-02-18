@@ -1,6 +1,6 @@
 package Python2::Type::Object;
 use Python2;
-
+use base qw/ Python2::Type /;
 use v5.26.0;
 use warnings;
 use strict;

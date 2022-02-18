@@ -59,6 +59,14 @@ class Python2::Backend::Perl5 {
         }
     }
 
+    multi method e(Python2::AST::Node::Statement::P5Import $node) {
+        return sprintf('use %s; setvar($stack, \'%s\', sub { my $object = %s->new(); return \$object; });',
+            $node.perl5-package-name,
+            $node.name,
+            $node.perl5-package-name,
+        );
+    }
+
     multi method e(Python2::AST::Node::Name $node) {
         return sprintf("'%s'", $node.name.subst("'", "\\'", :g));
     }
@@ -261,7 +269,10 @@ class Python2::Backend::Perl5 {
 
             if $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
-                $p5 ~= sprintf('$p = ${$p}->%s(%s);', $current-element.name, $.e($argument-list));
+                $p5 ~= sprintf('$p = ${$p}->isa("Python2::Type") ? ${$p}->%s(%s) : \${$p}->%s(map { ref($_) ? $_->__tonative__ : $_ } (%s));',
+                    $current-element.name, $.e($argument-list),
+                    $current-element.name, $.e($argument-list),
+                );
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {
                 $p5 ~= sprintf('$p = ${$p}->element(${ %s });', $.e($current-element));

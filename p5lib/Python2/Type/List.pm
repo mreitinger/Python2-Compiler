@@ -1,5 +1,6 @@
 package Python2::Type::List;
 use v5.26.0;
+use base qw/ Python2::Type /;
 use warnings;
 use strict;
 
@@ -40,6 +41,13 @@ sub __setitem__ {
     my ($self, $key, $value) = @_;
 
     $self->{elements}->[$key] = $value;
+}
+
+# convert to a 'native' perl5 arrayref
+sub __tonative__ {
+    return [
+        map { ref($_) ? $_->__tonative__ : $_ } @{ shift->elements }
+    ];
 }
 
 1;

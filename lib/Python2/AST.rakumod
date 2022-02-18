@@ -11,6 +11,11 @@ class Python2::AST {
         has Str $.name is required;
     }
 
+    class Node::Statement::P5Import is Node {
+        has Str $.perl5-package-name is required;
+        has Str $.name is required;
+    }
+
     class Node::Power is Node {
         has Node $.atom     is required;
         has Node @.trailers is required;

@@ -10,6 +10,7 @@ role Python2::Grammar::Statements {
             | <statement-if>
             | <class-definition>
             | <statement-return>
+            | <statement-p5import>
         ]
 
         # ? to match EOF
@@ -18,6 +19,15 @@ role Python2::Grammar::Statements {
 
     token statement-print {
         'print' <.ws> <test>
+    }
+
+    token statement-p5import {
+        'p5import' <.ws> <perl5-package-name> <.ws> 'as' <.ws> <name>
+    }
+
+    # TODO p5 probably permits more here
+    token perl5-package-name {
+        [<lower>|<upper>|<digit>|_|\:]+
     }
 
     token statement-return {
