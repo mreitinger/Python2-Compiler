@@ -5,7 +5,7 @@ class Python2::Actions::Expressions {
     # top level 'expression'
     method expression ($/) {
         $/.make(Python2::AST::Node::Expression::Container.new(
-            expression  => $/<arithmetic-operation>.made,
+            expression  => $/<arithmetic-expression-low-precedence>.made,
         ));
     }
 
@@ -66,14 +66,42 @@ class Python2::Actions::Expressions {
         ))
     }
 
-    method arithmetic-operator ($/) {
+    method arithmetic-operator-high-precedence ($/) {
         $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
-            arithmetic-operator => $/.Str,
-        ))
+            arithmetic-operator => $/.Str.trim, #TODO not sure why whitespace gets captured here?
+        ));
+    }
+
+    method arithmetic-operator-low-precedence ($/) {
+        $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
+            arithmetic-operator => $/.Str.trim, #TODO not sure why whitespace gets captured here?
+        ));
     }
 
     # arithmetic operations
-    method arithmetic-operation ($/) {
+    method arithmetic-expression-low-precedence ($/) {
+        # a list of 'operations' to be performed in order from 'left' to 'right'
+        # format: number, operator, number, operator, number, operator, number, ...
+        my @operations;
+
+        # the the first (left-most) number
+        @operations.push($/<arithmetic-expression-high-precedence>.shift.made);
+
+        #for every remaining number
+        while ($/<arithmetic-expression-high-precedence>.elems) {
+            # get the next operator in line
+            push(@operations, $/<arithmetic-operator-low-precedence>.shift.made);
+
+            # and the next number
+            push(@operations, $/<arithmetic-expression-high-precedence>.shift.made);
+        }
+
+        $/.make(Python2::AST::Node::Expression::ArithmeticExpression.new(
+            operations => @operations,
+        ));
+    }
+
+    method arithmetic-expression-high-precedence ($/) {
         # a list of 'operations' to be performed in order from 'left' to 'right'
         # format: number, operator, number, operator, number, operator, number, ...
         my @operations;
@@ -81,18 +109,18 @@ class Python2::Actions::Expressions {
         # the the first (left-most) number
         @operations.push($/<power>.shift.made);
 
-         #for every remaining number
+        #for every remaining number
         while ($/<power>.elems) {
             # get the next operator in line
-            push(@operations, $/<arithmetic-operator>.shift.made);
+            push(@operations, $/<arithmetic-operator-high-precedence>.shift.made);
 
             # and the next number
             push(@operations, $/<power>.shift.made);
         }
 
-        $/.make(Python2::AST::Node::Expression::ArithmeticOperation.new(
+        $/.make(Python2::AST::Node::Expression::ArithmeticExpression.new(
             operations => @operations,
-        ))
+        ));
     }
 
     # subscript

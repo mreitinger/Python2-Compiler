@@ -25,7 +25,7 @@ class Python2::Compiler {
             }
         }
 
-        my $root = $ast.made;
+        my $root = $ast.made.clone;
 
         $!optimizer.t($root) if $.optimize;
 
@@ -78,32 +78,5 @@ class Python2::Compiler {
         note '';
 
         exit 1;
-    }
-
-
-    method r ($node) {
-        if ($node ~~ Python2::AST::Node) {
-            warn $node;
-        } else {
-            use Data::Dump;
-            warn "Dubios node " ~ Dump($node);
-        }
-
-        for $node.^attributes -> $attribute {
-            my $name = $attribute.name.subst(/^[\$|\@|\%]\!?/, '');
-
-            if ($attribute.name ~~ /^^\$/) {
-                $.r( $node."$name"() );
-            }
-            elsif ($attribute.name ~~ /^^\@/) {
-                for $node."$name"() { $.r($_) }
-            }
-            elsif ($attribute.name ~~ /^^\%/) {
-                for $node."$name"().kv { $.r($_) }
-            }
-            else {
-                die("unsupported attribute type: {$attribute.name}");
-            }
-        }
     }
 }

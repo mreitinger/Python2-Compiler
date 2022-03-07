@@ -1,6 +1,6 @@
 role Python2::Grammar::Expressions {
     token expression {
-        <arithmetic-operation>
+        <arithmetic-expression-low-precedence>
     }
 
 
@@ -16,22 +16,25 @@ role Python2::Grammar::Expressions {
         [ ')' || <parse-fail(:input(self.target), :pos(self.pos), :what(')'))> ]
     }
 
-
-
-    # arithmetic
-    token arithmetic-operation {
-        <power> [<.ws> <arithmetic-operator> <.ws> <power>]*
+    # arithmetic expressions
+    # Credit for the high/low-precedence grammar solution goes to Andrew Shitov
+    # https://andrewshitov.com/2020/03/08/chapter-3-creating-a-calculator/
+    token arithmetic-expression-low-precedence {
+        <arithmetic-expression-high-precedence>+ %% <arithmetic-operator-low-precedence>
     }
 
-    token arithmetic-operator {
-        [
-            | '+'
-            | '-'
-            | '*'
-            | '/'
-            | '%'
-        ]
+    token arithmetic-expression-high-precedence {
+        <power>+ %% <arithmetic-operator-high-precedence>
     }
+
+    token arithmetic-operator-high-precedence {
+        <.ws> ['*' | '/' | '%'] <.ws>
+    }
+
+    token arithmetic-operator-low-precedence  {
+        <.ws> [|'+'|'-'] <.ws>
+    }
+
 
     # access to a single variable
     token variable-access {

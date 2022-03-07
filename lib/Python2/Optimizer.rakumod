@@ -1,39 +1,47 @@
-use Data::Dump;
 use Python2::AST;
 
 class Python2::Optimizer {
-    multi method t (Python2::AST::Node::Expression::Container $node) {
+    multi method t (Python2::AST::Node::Expression::Container $node is rw) {
         $.t($node.expression);
 
-        # always ArithmeticOperation. If it's just a single element we don't need the
-        # intermediate nodes
+        # usually this is an ArithmeticExpression but the optimizer might have reduced it to a
+        # Literal already
+        return unless $node.expression ~~ Python2::AST::Node::Expression::ArithmeticExpression;
+
         if ($node.expression.operations.elems == 1) {
             $node.expression = $node.expression.operations[0];
         }
     }
 
-    multi method t (Python2::AST::Node::Expression::ArithmeticOperation $node) {
+    multi method t (Python2::AST::Node::Expression::ArithmeticExpression $node is rw) {
         # strip intermediate nodes if it's just a literal in the end
         for $node.operations {
-            next unless $_ ~~ Python2::AST::Node::Power;
+            if ($_ ~~ Python2::AST::Node::Power) {
+                # handle the atom part
+                $.t($_.atom);
 
-            # handle the atom part
-            $.t($_.atom);
+                # handle argument lists/subscripts/etc
+                for $_.trailers { $.t($_) }
 
-            # handle argument lists/subscripts/etc
-            for $_.trailers { $.t($_) }
+                # if there a trailers we don't optimize anything
+                next unless $_.trailers.elems == 0;
 
-            # if there a trailers we don't optimize anything
-            next unless $_.trailers.elems == 0;
-
-            # if the atom is just a literal in the end skip it
-            if ($_.atom.expression ~~ Python2::AST::Node::Expression::Literal) {
-                $_ = $_.atom.expression;
+                # if the atom is just a literal in the end skip it
+                if ($_.atom.expression ~~ Python2::AST::Node::Expression::Literal) {
+                    $_ = $_.atom.expression;
+                }
             }
+            else {
+                $.t($_);
+            }
+        }
+
+        if ($node.operations.elems == 1 and $node.operations[0] ~~ Python2::AST::Node::Expression::Literal) {
+            $node = $node.operations[0];
         }
     }
 
-    multi method t (Python2::AST::Node::Test::Logical $node) {
+    multi method t (Python2::AST::Node::Test::Logical $node is rw) {
         $.t($node.left);
         $.t($node.right) if $node.right;
 
@@ -50,7 +58,7 @@ class Python2::Optimizer {
         }
     }
 
-    multi method t (Python2::AST::Node::Statement::VariableAssignment $node) {
+    multi method t (Python2::AST::Node::Statement::VariableAssignment $node is rw) {
         # expression is always a test
         $.t($node.expression);
 
@@ -61,7 +69,7 @@ class Python2::Optimizer {
 
     # fallback: if we don't know better just optimize all attributes on the current
     # AST node.
-    multi method t (Python2::AST::Node $node) {
+    multi method t (Python2::AST::Node $node is rw) {
         for $node.^attributes -> $attribute {
             my $name = $attribute.name.subst(/^[\$|\@|\%]\!?/, '');
 
@@ -80,6 +88,9 @@ class Python2::Optimizer {
         }
     }
 
-    # noop for literals
+    # noop for literals - no 'is rw' since they are immutable
     multi method t ($node) {}
+
+    # everything else needs to be handled above
+    multi method t ($node is rw) {}
 }

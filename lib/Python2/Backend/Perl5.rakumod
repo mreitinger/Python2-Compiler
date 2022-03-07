@@ -289,7 +289,7 @@ class Python2::Backend::Perl5 {
     }
 
     # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
-    multi method e(Python2::AST::Node::Expression::ArithmeticOperation $node) {
+    multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {
         my $p5;
 
         for $node.operations -> $operation {
@@ -358,6 +358,6 @@ class Python2::Backend::Perl5 {
 
     # Fallback
     multi method e($node) {
-        die("Perl 5 backed for node not implemented: " ~ Dump($node));
+        die("Perl 5 backed for node not implemented.");
     }
 }

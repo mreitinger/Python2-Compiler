@@ -24,7 +24,7 @@ use constant {
     ITEMS   => 1,
 };
 
-# set a variable on our stack
+# set a variable on our stack86:1
 sub setvar {
     my ($stack, $name, $value) = @_;
 
