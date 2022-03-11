@@ -1,0 +1,11 @@
+{
+    "perl"          : "6.d",
+    "name"          : "Python2::Compiler",
+    "auth"          : "github:mreitinger",
+    "version"       : "0.0.1",
+    "authors"       : [ "Mathias Reitinger", "Stefan Seifert" ],
+    "license"       : "MIT",
+    "depends"       : [ "Data::Dump", "Digest::SHA1::Native" ],
+    "test-depends"  : [ "App::Prove6" ],
+    "source-url"    : "git://github.com/mreitinger/Python2-Compiler.git"
+}
