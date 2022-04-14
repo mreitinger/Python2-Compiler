@@ -11,7 +11,9 @@ role Python2::Grammar::Expressions {
     }
 
     token argument-list {
-        '(' <test>* %% <list-delimiter> ')'
+        '('
+            <test>* %% <list-delimiter>
+        [ ')' || <parse-fail(:input(self.target), :pos(self.pos), :what(')'))> ]
     }
 
 

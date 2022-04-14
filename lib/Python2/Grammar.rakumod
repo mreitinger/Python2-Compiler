@@ -1,3 +1,5 @@
+use v6.e.PREVIEW;
+
 use Python2::Grammar::Statements;
 use Python2::Grammar::Expressions;
 use Python2::Grammar::Common;
@@ -11,6 +13,16 @@ grammar Python2::Grammar
     does Python2::Grammar::Expressions
     does Python2::Grammar::Common
 {
+    class ParseFail is Exception {
+        has Str $.input;
+        has Int $.pos;
+        has Str $.what;
+    }
+
+    # handled by Python2::Compiler
+    method parse-fail (Str :$input, Int :$pos, Str :$what) {
+        ParseFail.new(:$input, :$pos, :$what).throw();
+    }
 
     token TOP {
         :my @*levels = (0);

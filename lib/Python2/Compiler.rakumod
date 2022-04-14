@@ -12,6 +12,19 @@ class Python2::Compiler {
 
     method compile (Str $input) {
         my $ast = $!parser.parse($input, actions => $!actions);
+
+        CATCH {
+            # generic parser error
+            when X::Syntax::Confused {
+                self.parse-fail(:$input, :pos($_.pos));
+            }
+
+            # our custom exceptions
+            when Python2::Grammar::ParseFail {
+                self.parse-fail(:$input, :pos($_.pos), :what($_.what));
+            }
+        }
+
         my $root = $ast.made;
 
         $!optimizer.t($root) if $.optimize;
@@ -19,4 +32,78 @@ class Python2::Compiler {
         return $!backend.e($root);
     }
 
+    method parse-fail(Str :$input, Int :$pos, Str :$what?) {
+        my @input-as-lines          = $input.lines;
+        my $failed-at-line          = $input.substr(0, $pos).lines.elems;
+
+        my $failed-position-in-line =
+            $failed-at-line > 1
+            ??  # total position (in charaters) where the parser failed
+                $pos
+
+                # ignore all characters from preceeding lines
+                - @input-as-lines[0 .. $failed-at-line - 2] .join.chars
+
+                # ignore \n characters, except failing line
+                - $failed-at-line + 1
+
+            !! $pos;
+
+        note "Parsing failed at line $failed-at-line:";
+        note '';
+
+        # output preceeding line, if present
+        note sprintf("%5i | %s",
+            $failed-at-line - 1,
+            @input-as-lines[$failed-at-line - 2],
+        ) if @input-as-lines[$failed-at-line - 2].defined;
+
+        # output line with syntax error
+        note sprintf("%5i | %s",
+            $failed-at-line,
+            @input-as-lines[$failed-at-line - 1],
+        );
+
+        # output position of the parser failure and what we expected (if we know).
+        note $what.defined
+            ?? '        ' ~ ' ' x $failed-position-in-line ~ "^ -- expected '$what'"
+            !! '        ' ~ ' ' x $failed-position-in-line ~ '^ -- here';
+
+        # output subsequent line, if present
+        note sprintf("%5i | %s",
+            $failed-at-line + 1,
+            @input-as-lines[$failed-at-line - 0],
+        ) if @input-as-lines[$failed-at-line - 0].defined;
+
+        note '';
+
+        exit 1;
+    }
+
+
+    method r ($node) {
+        if ($node ~~ Python2::AST::Node) {
+            warn $node;
+        } else {
+            use Data::Dump;
+            warn "Dubios node " ~ Dump($node);
+        }
+
+        for $node.^attributes -> $attribute {
+            my $name = $attribute.name.subst(/^[\$|\@|\%]\!?/, '');
+
+            if ($attribute.name ~~ /^^\$/) {
+                $.r( $node."$name"() );
+            }
+            elsif ($attribute.name ~~ /^^\@/) {
+                for $node."$name"() { $.r($_) }
+            }
+            elsif ($attribute.name ~~ /^^\%/) {
+                for $node."$name"().kv { $.r($_) }
+            }
+            else {
+                die("unsupported attribute type: {$attribute.name}");
+            }
+        }
+    }
 }
