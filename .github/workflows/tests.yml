@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      RAKUDO_VERSION: rakudo-moar-2022.02-01-linux-x86_64-gcc.tar.gz
+      RAKUDO_VERSION: rakudo-moar-2022.04-01-linux-x86_64-gcc.tar.gz
       RAKUDO_MODULES: Data::Dump App::Prove6 Digest::SHA1::Native
 
     steps:
