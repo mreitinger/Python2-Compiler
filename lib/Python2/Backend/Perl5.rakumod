@@ -290,20 +290,33 @@ class Python2::Backend::Perl5 {
         return sprintf('sub{my $p = undef; %s}->()', $p5);
     }
 
-    # TODO ArithmeticOperation's should probably(?) operate on Literal::Integer
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {
         my $p5;
 
-        for $node.operations -> $operation {
-            if ($operation ~~ Python2::AST::Node::Expression::ArithmeticOperator) {
-                $p5 ~= $.e($operation);
-            } else {
-                $p5 ~= '${' ~ $.e($operation) ~ '}';
-            }
+        my @operations = $node.operations.clone;
+
+        # initial left element
+        my $left-element = @operations.shift;
+
+        my $operation;
+        my $right-element;
+
+        $p5 ~= sprintf('sub { my $left = %s;', $.e($left-element));
+
+        while @operations.elems {
+            $operation      = @operations.shift;
+            $right-element  = @operations.shift;
+
+            $p5 ~= sprintf(
+                q|$left = arithmetic(${ $left }, ${ %s }, '%s');|,
+                $.e($right-element),
+                $.e($operation)
+            );
         }
 
+        $p5 ~= 'return $left; }->();';
 
-        return 'sub { my $p = ' ~ $p5 ~ '; return \$p }->()';
+        return $p5;
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticOperator $node) {
@@ -360,6 +373,6 @@ class Python2::Backend::Perl5 {
 
     # Fallback
     multi method e($node) {
-        die("Perl 5 backed for node not implemented.");
+        die("Perl 5 backed for node not implemented: $node");
     }
 }

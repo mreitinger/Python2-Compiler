@@ -14,8 +14,8 @@ use Python2::Type::Dict;
 
 use Exporter qw/ import /;
 our @EXPORT = qw/
-    getvar              setvar           compare
-    call                py2print        compare
+    getvar              setvar          compare
+    call                py2print        arithmetic
     register_function   create_class    $builtins
 /;
 
@@ -185,5 +185,67 @@ sub compare {
 
     die("comparison for $operator not yet implemented");
 }
+
+my $arithmetic_operations = {
+    '+' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \($left + $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '-' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \($left - $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '*' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \($left * $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '/' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \($left / $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '%' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \($left % $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+};
+
+sub arithmetic {
+    my ($left, $right, $operator) = @_;
+
+    return $arithmetic_operations->{$operator}->($left, $right)
+        if defined $arithmetic_operations->{$operator};
+
+    die("arithmetic_operations for $operator not yet implemented");
+}
+
 
 1;
