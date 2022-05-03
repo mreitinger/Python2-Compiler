@@ -2,9 +2,11 @@ use Python2::Grammar;
 use Python2::Actions;
 use Python2::Backend::Perl5;
 use Python2::Optimizer;
+use Data::Dump;
 
 class Python2::Compiler {
     has Bool $.optimize = True;
+    has Bool $.dumpast  = False;
     has $!parser        = Python2::Grammar.new();
     has $!backend       = Python2::Backend::Perl5.new();
     has $!optimizer     = Python2::Optimizer.new();
@@ -28,6 +30,11 @@ class Python2::Compiler {
         my $root = $ast.made.clone;
 
         $!optimizer.t($root) if $.optimize;
+
+        if ($.dumpast)  {
+            note Dump($root, :no-postfix, :skip-methods);
+            exit 0;
+        }
 
         return $!backend.e($root);
     }
