@@ -86,17 +86,29 @@ role Python2::Grammar::Expressions {
     # string machting including escaped quotes
     # currently we don't allow any other escape sequences
     token string {
-        | "'" <string-literal> "'"
-        | '"' <string-literal> '"'
+        | <single-quoted-string>
+        | <double-quoted-string>
     }
 
-    token string-literal {
+    token single-quoted-string { "'" <string-literal-single-quoted> "'" }
+    token double-quoted-string { '"' <string-literal-double-quoted> '"' }
+
+    token string-literal-single-quoted {
         (
             [
-                | "\\'"        # escaped quote character
-                | '\\"'        # escaped quote character
-                | '\\'         # escaped literal backslash
-                | <-['"\\\v]>+   # everything except vertical whitespace, backslash and quote
+                | "\\'"         # escaped quote character
+                | '\\'          # escaped literal backslash
+                | <-['\\\v]>+   # everything except vertical whitespace, backslash and quote
+            ]*
+        )
+    }
+
+    token string-literal-double-quoted {
+        (
+            [
+                | '\\"'         # escaped quote character
+                | '\\'          # escaped literal backslash
+                | <-["\\\v]>+   # everything except vertical whitespace, backslash and quote
             ]*
         )
     }

@@ -48,9 +48,19 @@ class Python2::Actions::Expressions {
     }
 
     # literals
-    method string ($/) {
+    multi method string ($/ where $/<single-quoted-string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
-            value => $/<string-literal>.subst('\"', '"', :g).subst("\\'", "'", :g),
+            value =>    $/<single-quoted-string>.<string-literal-single-quoted>
+                        .subst("\\'", "'", :g)
+                        .subst('\"', '"', :g),
+        ))
+    }
+
+    multi method string ($/ where $/<double-quoted-string>) {
+        $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            value =>    $/<double-quoted-string>.<string-literal-double-quoted>.subst('\"', '"', :g)
+                        .subst("\\'", "'", :g)
+                        .subst('\"', '"', :g),
         ))
     }
 
