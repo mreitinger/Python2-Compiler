@@ -192,8 +192,16 @@ my $arithmetic_operations = {
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \($left + $right);
-        } else {
-            die("arithmetic op not yet implemented");
+        }
+
+        # this, unlike python, allows things like "print 1 + 'a'"
+        # avoiding this by doing harsher checks against perl's internals hinders
+        # interoperability with other perl objects
+        elsif (!looks_like_number($left) or !looks_like_number($right)) {
+            return \($left.$right);
+        }
+        else {
+            die("unsupported operand type(s) for '+'.");
         }
     },
 
@@ -232,7 +240,15 @@ my $arithmetic_operations = {
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \($left % $right);
-        } else {
+        }
+
+        # this, unlike python, allows things like "print 1 + 'a'"
+        # avoiding this by doing harsher checks against perl's internals hinders
+        # interoperability with other perl objects
+        elsif (!looks_like_number($left) or !looks_like_number($right)) {
+            return \sprintf($left, $right);
+        }
+        else {
             die("arithmetic op not yet implemented");
         }
     },
