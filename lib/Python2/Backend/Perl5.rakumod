@@ -95,7 +95,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Return $node) {
-        return sprintf('return %s', $.e($node.value));
+        return  $node.value
+                ??  sprintf('return %s', $.e($node.value))
+                !!  'return';
     }
 
 

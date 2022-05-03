@@ -20,9 +20,17 @@ def f():
 
     return foo()
 
+def g():
+    if 1:
+        return
+
+    print 'did-not-return'
+
+
 print a()
 print b()
 print c()
 print d()
 print e()
 print f()
+g()

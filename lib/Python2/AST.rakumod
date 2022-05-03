@@ -148,7 +148,7 @@ class Python2::AST {
     }
 
     class Node::Statement::Return is Node {
-        has Node $.value  is required is rw;
+        has Node $.value is rw;
     }
 
     class Node::Statement::Test::Comparison is Node::Expression {

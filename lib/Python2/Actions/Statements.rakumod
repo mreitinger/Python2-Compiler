@@ -132,7 +132,7 @@ class Python2::Actions::Statements {
 
     method statement-return ($/) {
         $/.make(Python2::AST::Node::Statement::Return.new(
-            value => $/.values[0].made,
+            value => $/.values[0] ?? $/.values[0].made !! Nil,
         ))
     }
 

@@ -5,11 +5,11 @@ role Python2::Grammar::Statements {
             | <statement-try-except>
             | <variable-assignment>
             | <statement-print>
+            | <statement-return>
             | <expression>
             | <statement-loop-for>
             | <statement-if>
             | <class-definition>
-            | <statement-return>
             | <statement-p5import>
         ]
 
@@ -31,7 +31,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-return {
-        | 'return' <.ws> <expression>
+        | 'return' [\h+ <expression>]?
     }
 
     token statement-loop-for {
