@@ -84,6 +84,7 @@ role Python2::Grammar::Statements {
     token comparison-operator:sym<\<>   { <sym> }
     token comparison-operator:sym<\>=>  { <sym> }
     token comparison-operator:sym<\<=>  { <sym> }
+    token comparison-operator:sym<is>   { <sym> }
 
     # power ain't right here it would allow too much in the future like
     # '(a if 1 else b) = 3'. not sure if we can prevent this here of if we do some post

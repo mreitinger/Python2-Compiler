@@ -82,6 +82,8 @@ our $builtins = [
 
                 Python2::py2print($arguments->[0]);
             },
+
+            'None' => sub { undef; }
         }
     ]
 ];
@@ -173,6 +175,17 @@ my $comparisons = {
             return \($left <= $right);
         } else {
             die("comparison net yet implemented");
+        }
+    },
+
+    'is' => sub {
+        my ($left, $right) = @_;
+
+        if ($left == $right) {
+            return \1;
+        }
+        else {
+            return \0;
         }
     }
 };
