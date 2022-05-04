@@ -151,9 +151,17 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::If $node) {
         my $p5 = sprintf('if (${ %s }) { %s }', $.e($node.test), $.e($node.block));
 
+        for $node.elifs -> $elif {
+            $p5 ~= $.e($elif);
+        }
+
         $p5 ~= sprintf('else { %s }', $.e($node.else)) if $node.else;
 
         return $p5;
+    }
+
+    multi method e(Python2::AST::Node::Statement::ElIf $node) {
+        return sprintf('elsif (${ %s }) { %s }', $.e($node.test), $.e($node.block));
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {

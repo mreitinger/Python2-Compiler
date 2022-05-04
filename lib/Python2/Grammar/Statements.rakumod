@@ -41,7 +41,12 @@ role Python2::Grammar::Statements {
 
     token statement-if {
         'if' <.ws> <test> ':' <block>
+        <statement-elif>*
         [<level> 'else' ':' <block>]?
+    }
+
+    token statement-elif {
+        <level> 'elif' <.ws> <test>':' <block>
     }
 
     token statement-try-except {

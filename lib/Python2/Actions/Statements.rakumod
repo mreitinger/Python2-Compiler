@@ -50,9 +50,17 @@ class Python2::Actions::Statements {
 
     method statement-if($/) {
         $/.make(Python2::AST::Node::Statement::If.new(
+            test    => $/<test>.made,
+            block   => $/<block>[0].made,
+            elifs   => $/<statement-elif>.List.map({ $_.made }),
+            else    => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
+        ));
+    }
+
+    method statement-elif($/) {
+        $/.make(Python2::AST::Node::Statement::ElIf.new(
             test            => $/<test>.made,
-            block           => $/<block>[0].made,
-            else            => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
+            block           => $/<block>.made,
         ));
     }
 

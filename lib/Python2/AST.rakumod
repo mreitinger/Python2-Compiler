@@ -140,7 +140,13 @@ class Python2::AST {
     class Node::Statement::If is Node::Expression {
         has Node    $.test  is required is rw;
         has Node    $.block is required is rw;
-        has Node    $.else is rw;
+        has Node    @.elifs is rw; #optional else-if blocks
+        has Node    $.else  is rw;
+    }
+
+    class Node::Statement::ElIf is Node::Expression {
+        has Node    $.test  is required is rw;
+        has Node    $.block is required is rw;
     }
 
     class Node::Statement::TryExcept is Node::Expression {
