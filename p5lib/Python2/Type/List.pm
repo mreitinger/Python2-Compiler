@@ -20,9 +20,18 @@ sub print {
 sub elements { shift->{elements} }
 
 sub element {
-    my ($self, $key) = @_;
+    my ($self, $key, $target) = @_;
 
-    return \$self->{elements}->[$key];
+    if ($target) {
+        # array slice
+        if ($target > $self->__len__) { $target = $self->__len__; }
+
+        return \Python2::Type::List->new( @{ $self->{elements} }[$key .. $target - 1] );
+    }
+    else {
+        # single element
+        return \$self->{elements}->[$key];
+    }
 }
 
 sub set {

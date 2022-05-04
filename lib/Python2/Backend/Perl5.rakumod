@@ -277,7 +277,7 @@ class Python2::Backend::Perl5 {
                 );
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {
-                $p5 ~= sprintf('$p = ${$p}->element(${ %s });', $.e($current-element));
+                $p5 ~= sprintf('$p = ${$p}->element(%s);', $.e($current-element));
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
                 $p5 ~= sprintf('$p = ${$p}->__getattr__(%s);', $.e($current-element));
@@ -336,7 +336,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Subscript $node) {
-        return sprintf('%s', $.e($node.value));
+        return $node.target
+            ?? sprintf('${ %s }, ${ %s }', $.e($node.value), $.e($node.target))
+            !! sprintf('${ %s }', $.e($node.value));
     }
 
     # list handling

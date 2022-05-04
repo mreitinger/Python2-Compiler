@@ -93,7 +93,7 @@ role Python2::Grammar::Statements {
     }
 
     token list-or-dict-element {
-        '[' <literal> ']'
+        '[' <literal> [':' <literal>]? ']'
     }
 
     token function-definition {

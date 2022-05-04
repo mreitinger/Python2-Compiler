@@ -25,5 +25,5 @@ role Python2::Grammar::Common {
         | '.' <name>        # handles .foo
     }
 
-    token subscript { '[' <literal> ']' }
+    token subscript { '[' <literal> [':' <literal>]? ']' }
 }

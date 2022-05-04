@@ -1,0 +1,6 @@
+foo = [1, 2, 3]
+print foo[0]
+print foo[0:1]
+print foo[0:3]
+print foo[0:5]
+print foo[5:5]

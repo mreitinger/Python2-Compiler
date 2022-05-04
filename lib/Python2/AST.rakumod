@@ -77,7 +77,8 @@ class Python2::AST {
     }
 
     class Node::Subscript is Node::Expression {
-        has Node $.value is required is rw;
+        has Node $.value    is required is rw;
+        has Node $.target   is rw; # for array slicing
     }
 
     class Node::Expression::ListDefinition is Node::Expression {
