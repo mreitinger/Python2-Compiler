@@ -324,7 +324,24 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::String $node) {
-        return "\\'" ~ $node.value.subst("'", "\\'", :g) ~ "'";
+        # TODO various escape sequences
+        my $string = $node.value
+            .subst('\"',    '"',    :g)
+            .subst('\\\'',  "'",    :g)
+        ;
+
+        # r'string' (python raw strings)
+        unless $node.raw {
+            $string = $string
+                .subst('\\\\',  '\\',   :g)
+                .subst('\\n',   "\n",   :g);
+        }
+
+        my $p5;
+
+        $p5 ~= "\n\\sub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
+        $p5 ~= $string;
+        $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \$s; }->()";
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {

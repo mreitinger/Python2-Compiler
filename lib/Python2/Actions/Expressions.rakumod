@@ -49,25 +49,27 @@ class Python2::Actions::Expressions {
 
     # literals
     multi method string ($/ where $/<single-quoted-string>) {
+        my $string-prefix = $/<string-prefix>:exists ?? $/<string-prefix> !! '';
+
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
-            value =>    $/<single-quoted-string>.<string-literal-single-quoted>
-                        .subst("\\'", "'", :g)
-                        .subst('\"', '"', :g),
-        ))
+            value => $/<single-quoted-string>.<string-literal-single-quoted>.Str,
+            raw   => $string-prefix eq 'r',
+        ));
     }
 
     multi method string ($/ where $/<double-quoted-string>) {
+        my $string-prefix = $/<string-prefix>:exists ?? $/<string-prefix> !! '';
+
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
-            value =>    $/<double-quoted-string>.<string-literal-double-quoted>.subst('\"', '"', :g)
-                        .subst("\\'", "'", :g)
-                        .subst('\"', '"', :g),
-        ))
+            value => $/<double-quoted-string>.<string-literal-double-quoted>.Str,
+            raw   => $string-prefix eq 'r'
+        ));
     }
 
     multi method number ($/ where $/<integer>) {
         $/.make(Python2::AST::Node::Expression::Literal::Integer.new(
             value => $/<integer>.Int,
-        ))
+        ));
     }
 
     multi method number ($/ where $/<float>) {

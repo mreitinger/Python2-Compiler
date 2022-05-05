@@ -49,7 +49,8 @@ class Python2::AST {
     class Node::Expression::Literal is Node::Expression {}
 
     class Node::Expression::Literal::String is Node::Expression::Literal {
-        has Str $.value is required  is rw;
+        has Str     $.value is required  is rw;
+        has Bool    $.raw   is required;
     }
 
     class Node::Expression::Literal::Integer is Node::Expression::Literal {

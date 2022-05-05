@@ -86,9 +86,17 @@ role Python2::Grammar::Expressions {
     # string machting including escaped quotes
     # currently we don't allow any other escape sequences
     token string {
+        | <string-prefix><single-quoted-string>
+        | <string-prefix><double-quoted-string>
         | <single-quoted-string>
         | <double-quoted-string>
     }
+
+    token string-prefix {
+        | <string-prefix-raw>
+    }
+
+    token string-prefix-raw { 'r' }
 
     token single-quoted-string { "'" <string-literal-single-quoted> "'" }
     token double-quoted-string { '"' <string-literal-double-quoted> '"' }
