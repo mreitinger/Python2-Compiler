@@ -94,6 +94,13 @@ class Python2::Backend::Perl5 {
                        );
     }
 
+    multi method e(Python2::AST::Node::Statement::AdditionAssignment $node) {
+        return sprintf('${%s} += ${%s}',
+            $.e($node.target),
+            $.e($node.value)
+        );
+    }
+
     multi method e(Python2::AST::Node::Statement::Return $node) {
         return  $node.value
                 ??  sprintf('return %s', $.e($node.value))

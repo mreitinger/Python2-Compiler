@@ -126,6 +126,11 @@ class Python2::AST {
         has Node    $.expression    is required is rw;
     }
 
+    class Node::Statement::AdditionAssignment is Node::Expression {
+        has Node    $.target    is required is rw;
+        has Node    $.value     is required is rw;
+    }
+
     class Node::Statement::LoopFor is Node::Expression {
         has Node    $.name          is required is rw;
         has Node    $.iterable      is required is rw;

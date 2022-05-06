@@ -4,6 +4,7 @@ role Python2::Grammar::Statements {
             | <function-definition>
             | <statement-try-except>
             | <variable-assignment>
+            | <addition-assignment>
             | <statement-print>
             | <statement-return>
             | <expression>
@@ -91,6 +92,10 @@ role Python2::Grammar::Statements {
     # processing?
     token variable-assignment {
         <power> <.ws> '=' <.ws> <test>
+    }
+
+    token addition-assignment {
+        <power> <.ws> '+=' <.ws> <test>
     }
 
     token list-or-dict-element {

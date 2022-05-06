@@ -33,6 +33,13 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method addition-assignment($/) {
+        $/.make(Python2::AST::Node::Statement::AdditionAssignment.new(
+            target  => $/<power>.made,
+            value   => $/<test>.made
+        ));
+    }
+
     method statement-loop-for($/) {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             name        => $/<name>.made,
