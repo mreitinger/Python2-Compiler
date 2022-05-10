@@ -30,4 +30,27 @@ class Python2::Actions
             comment => $0.Str
         );
     }
+
+    method FALLBACK($name, $args) {
+        my @whitelist = <
+            before
+            level ws scope-increase
+            float integer digit
+            lower upper
+            empty-lines
+            double-quoted-string         single-quoted-string
+            string-literal-double-quoted string-literal-single-quoted
+            list-delimiter
+            dictionary-key dictionary-entry
+            string-prefix string-prefix-raw
+            perl5-package-name
+        >;
+
+        return if @whitelist.first($name);
+
+        return if $name ~~ /^^arithmetic\-assignment\-operator/;
+        return if $name ~~ /^^comparison\-operator/;
+
+        die("No action for '$name'");
+    }
 }
