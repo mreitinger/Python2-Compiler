@@ -33,10 +33,11 @@ class Python2::Actions::Statements {
         ));
     }
 
-    method addition-assignment($/) {
-        $/.make(Python2::AST::Node::Statement::AdditionAssignment.new(
-            target  => $/<power>.made,
-            value   => $/<test>.made
+    method arithmetic-assignment($/) {
+        $/.make(Python2::AST::Node::Statement::ArithmeticAssignment.new(
+            target      => $/<power>.made,
+            value       => $/<test>.made,
+            operator    => $/<arithmetic-assignment-operator>.Str,
         ));
     }
 

@@ -4,7 +4,7 @@ role Python2::Grammar::Statements {
             | <function-definition>
             | <statement-try-except>
             | <variable-assignment>
-            | <addition-assignment>
+            | <arithmetic-assignment>
             | <statement-print>
             | <statement-return>
             | <expression>
@@ -99,9 +99,23 @@ role Python2::Grammar::Statements {
         <power> <.ws> '=' <.ws> <test>
     }
 
-    token addition-assignment {
-        <power> <.ws> '+=' <.ws> <test>
+    token arithmetic-assignment {
+        <power> <.ws> <arithmetic-assignment-operator> <.ws> <test>
     }
+
+    proto token arithmetic-assignment-operator {*}
+    token arithmetic-assignment-operator:sym<+=>    { <sym> }
+    token arithmetic-assignment-operator:sym<-=>    { <sym> }
+    token arithmetic-assignment-operator:sym<*=>    { <sym> }
+    token arithmetic-assignment-operator:sym</=>    { <sym> }
+    token arithmetic-assignment-operator:sym<%=>    { <sym> }
+    token arithmetic-assignment-operator:sym<//=>   { <sym> }
+    token arithmetic-assignment-operator:sym<**=>   { <sym> }
+    token arithmetic-assignment-operator:sym<&=>    { <sym> }
+    token arithmetic-assignment-operator:sym<|=>    { <sym> }
+    token arithmetic-assignment-operator:sym<^=>    { <sym> }
+    token arithmetic-assignment-operator:sym<\>\>=> { <sym> }
+    token arithmetic-assignment-operator:sym<\<\<=> { <sym> }
 
     token list-or-dict-element {
         '[' <literal> [':' <literal>]? ']'

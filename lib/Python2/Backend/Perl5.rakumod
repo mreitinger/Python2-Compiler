@@ -94,11 +94,16 @@ class Python2::Backend::Perl5 {
                        );
     }
 
-    multi method e(Python2::AST::Node::Statement::AdditionAssignment $node) {
-        return sprintf('${%s} += ${%s}',
-            $.e($node.target),
-            $.e($node.value)
-        );
+    multi method e(Python2::AST::Node::Statement::ArithmeticAssignment $node) {
+        given $node.operator {
+            when '//=' {
+                # //= is defined-or in perl so we need to map it to floordiv
+                return sprintf('${%s} = int(${%s} / ${%s})', $.e($node.target), $.e($node.target), $.e($node.value));
+            }
+            default {
+                return sprintf('${%s} %s ${%s}', $.e($node.target), $node.operator, $.e($node.value));
+            }
+        }
     }
 
     multi method e(Python2::AST::Node::Statement::Return $node) {
@@ -349,7 +354,8 @@ class Python2::Backend::Perl5 {
         unless $node.raw {
             $string = $string
                 .subst('\\\\',  '\\',   :g)
-                .subst('\\n',   "\n",   :g);
+                .subst('\\n',   "\n",   :g)
+                .subst('\\t',   "\t",   :g);
         }
 
         my $p5;
