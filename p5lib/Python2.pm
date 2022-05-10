@@ -259,7 +259,10 @@ my $arithmetic_operations = {
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
         elsif (!looks_like_number($left) or !looks_like_number($right)) {
-            return \sprintf($left, $right);
+            return \sprintf(
+                $left,
+                ref($right) eq 'ARRAY' ? @$right : $right
+            );
         }
         else {
             die("arithmetic op not yet implemented");

@@ -9,5 +9,8 @@ print a + "b"
 print "a" + b
 print c + d
 print d % c
-print "foo %s" % a
-print "foo %s" % c
+print "A %s" % a
+print "B %s" % c
+print "C %s %s" % (1, 2)
+print "D %s %s" % (b, c)
+print "E %s %s" % (a, 1)
