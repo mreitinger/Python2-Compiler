@@ -173,12 +173,17 @@ class Python2::AST {
 
     class Node::Statement::FunctionDefinition is Node::Expression {
         has Node    $.name is required is rw;
-        has Str     @.argument-list is required is rw;
+        has Node    @.argument-list is required is rw;
         has Node    $.block is required is rw;
     }
 
+    class Node::Statement::FunctionDefinition::Argument is Node {
+        has Node    $.name is required is rw;
+        has Node    $.default-value is rw;
+    }
+
     class Node::LambdaDefinition is Node::Expression {
-        has Str     @.argument-list is required  is rw;
+        has Node    @.argument-list is required  is rw;
         has Node    $.block is required is rw;
     }
 

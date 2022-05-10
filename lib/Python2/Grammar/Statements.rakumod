@@ -130,6 +130,10 @@ role Python2::Grammar::Statements {
     }
 
     token function-definition-argument-list {
-        <name>* %% <list-delimiter>
+        <function-definition-argument>* %% <list-delimiter>
+    }
+
+    token function-definition-argument {
+        <name> ['=' <test>]?
     }
 }

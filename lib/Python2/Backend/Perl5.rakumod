@@ -72,9 +72,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::ArgumentList $node) {
-        return sprintf('%s', $node.arguments.map({
-            '${' ~ $.e($_) ~ '}'
-        }).join(', '));
+        return $node.arguments.map({ '${' ~ $.e($_) ~ '}' }).join(', ');
     }
 
     # Statements
@@ -207,7 +205,14 @@ class Python2::Backend::Perl5 {
         $p5 ~= 'my $stack = [$builtins];' ~ "\n";
 
         for $node.argument-list -> $argument {
-            $p5 ~= sprintf('setvar($stack, \'%s\', shift @_);', $argument);
+            my $argument-definition = $argument.default-value
+                ??  sprintf('shift(@_) // ${ %s }', $.e($argument.default-value))
+                !!  sprintf(q|shift(@_) // die('%s(): argument %s missing')|,
+                        $node.name.name,
+                        $argument.name.name
+                    );
+
+            $p5 ~= sprintf('setvar($stack, \'%s\', %s);', $argument.name.name, $argument-definition);
         }
 
         $p5   ~= $.e($node.block);
@@ -228,7 +233,7 @@ class Python2::Backend::Perl5 {
         #TODO check this
 
         for $node.argument-list -> $argument {
-            $p5 ~= sprintf('setvar($stack, \'%s\', shift @_);', $argument);
+            $p5 ~= sprintf('setvar($stack, \'%s\', shift @_);',$argument.name.name);
         }
 
         $p5   ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
