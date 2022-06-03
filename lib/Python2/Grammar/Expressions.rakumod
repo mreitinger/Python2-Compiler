@@ -12,8 +12,13 @@ role Python2::Grammar::Expressions {
 
     token argument-list {
         '('
-            <test>* %% <list-delimiter>
+            <argument>* %% <list-delimiter>
         [ ')' || <parse-fail(:input(self.target), :pos(self.pos), :what(')'))> ]
+    }
+
+    token argument {
+        || <name> '=' <test>
+        || <test>
     }
 
     # arithmetic expressions

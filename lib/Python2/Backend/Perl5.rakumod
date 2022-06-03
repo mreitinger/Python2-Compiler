@@ -11,6 +11,8 @@ class Python2::Backend::Perl5 {
         use v5.26.0;
         use strict;
         use lib qw( p5lib );
+        use Carp;
+        $Carp::Verbose = 1;
 
         %s
 
@@ -60,10 +62,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::P5Import $node) {
-        return sprintf('use %s; setvar($stack, \'%s\', sub { my $object = %s->new(); return \$object; });',
-            $node.perl5-package-name,
+        return sprintf('setvar($stack, \'%s\', sub { my $object = Python2::Type::PerlObject->new(\'%s\'); return \$object; });',
             $node.name,
-            $node.perl5-package-name,
+            $node.perl5-package-name.subst("'", "\\'", :g),
         );
     }
 
@@ -72,7 +73,36 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::ArgumentList $node) {
-        return $node.arguments.map({ '${' ~ $.e($_) ~ '}' }).join(', ');
+        my @positional-arguments;
+        my @named-arguments;
+
+        for $node.arguments -> $argument {
+            if $argument.name {
+                @named-arguments.append($argument);
+            }
+            else {
+                # TODO die for mixed arguments
+                @positional-arguments.append($argument);
+            }
+        }
+
+        my Str $p5 = '';
+
+        if @positional-arguments {
+            # positional arguments get passed as regular arguments to the perl sub
+            $p5 ~= @positional-arguments.map({ '${' ~ $.e($_) ~ '}' }).join(', ');
+            $p5 ~= ','; # to accomodate a possible named argument hashref
+        }
+
+        # named arguments get passed as a hashref to the perl method. this is allways passed as the
+        # last argument and will be pop()'d before processing any other arguments.
+        $p5 ~= '{' ~ @named-arguments.map({ $.e($_.name) ~ ' => ' ~ $.e($_.value) }).join(',') ~ '}';
+
+        return $p5;
+    }
+
+    multi method e(Python2::AST::Node::Argument $node) {
+        return $.e($node.value);
     }
 
     # Statements
@@ -202,19 +232,25 @@ class Python2::Backend::Perl5 {
             $node.name.name.subst("'", "\\'", :g)
                                       );
 
+        # local stack frame for this function
         $p5 ~= 'my $stack = [$builtins];' ~ "\n";
 
+        # argument definition containing, if present, default vaules
+        my Str $argument-definition = '';
         for $node.argument-list -> $argument {
-            my $argument-definition = $argument.default-value
-                ??  sprintf('shift(@_) // ${ %s }', $.e($argument.default-value))
-                !!  sprintf(q|shift(@_) // die('%s(): argument %s missing')|,
-                        $node.name.name,
-                        $argument.name.name
-                    );
-
-            $p5 ~= sprintf('setvar($stack, \'%s\', %s);', $argument.name.name, $argument-definition);
+            $argument-definition  ~= sprintf('[ \'%s\', %s ],',
+                $argument.name.name,
+                $argument.default-value ?? $.e($argument.default-value) !! 'undef',
+            );
         }
 
+        # call Python2::getopt() to parse our arguments
+        $p5 ~= sprintf('getopt($stack, \'%s\', [%s], @_);',
+            $node.name.name.subst("'", "\\'", :g),
+            $argument-definition
+        );
+
+        # the code block (body) of the function
         $p5   ~= $.e($node.block);
 
         $p5   ~= 'return \""';     # if $node.block contains a return statement it will execute before this
@@ -223,7 +259,6 @@ class Python2::Backend::Perl5 {
                                    # TODO check further down. this is still wrong but at least it returns 'false'
 
         $p5   ~= "})";
-
     }
 
     multi method e(Python2::AST::Node::LambdaDefinition $node) {
@@ -296,9 +331,9 @@ class Python2::Backend::Perl5 {
 
             if $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
-                $p5 ~= sprintf('$p = ${$p}->isa("Python2::Type") ? ${$p}->%s(%s) : \${$p}->%s(map { ref($_) ? $_->__tonative__ : $_ } (%s));',
-                    $current-element.name, $.e($argument-list),
-                    $current-element.name, $.e($argument-list),
+                $p5 ~= sprintf('$p = ${$p}->%s(%s);',
+                    $current-element.name,
+                    $.e($argument-list)
                 );
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {

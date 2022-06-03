@@ -199,7 +199,14 @@ class Python2::Actions::Expressions {
 
     method argument-list($/) {
         $/.make(Python2::AST::Node::ArgumentList.new(
-            arguments => $/<test>.map({ $_.made })
+            arguments => $/<argument>.map({ $_.made })
+        ));
+    }
+
+    method argument($/) {
+        $/.make(Python2::AST::Node::Argument.new(
+            name    => $/<name> ?? $/<name>.made !! Nil,
+            value   => $/<test>.made,
         ));
     }
 }

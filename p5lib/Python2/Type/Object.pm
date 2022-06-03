@@ -13,7 +13,9 @@ sub new {
     die if $object->can('__init__');
 
     $object->__build__; #TODO wrong: this should be run on class creation
-    $object->__init__ if $object->can('__init__');
+
+    # {} for unused named variables
+    $object->__init__({}) if $object->can('__init__');
 
     return $object;
 }

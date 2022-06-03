@@ -5,18 +5,20 @@ use strict;
 use List::Util qw( max );
 use List::Util::XS; # ensure we use the ::XS version
 
-use Scalar::Util qw/ looks_like_number /;
+use Scalar::Util qw/ looks_like_number blessed /;
 use Clone qw/ clone /;
 use Carp qw/ confess /;
 
 use Python2::Type::List;
 use Python2::Type::Dict;
+use Python2::Type::PerlObject;
 
 use Exporter qw/ import /;
 our @EXPORT = qw/
     getvar              setvar          compare
     call                py2print        arithmetic
     register_function   create_class    $builtins
+    getopt
 /;
 
 use constant {
@@ -48,7 +50,8 @@ our $builtins = [
 
             'map' => sub {
                 # first argument is the function to call
-                my $function    = shift @_;
+                my $function        = shift @_;
+                my $named_arguments = pop @_; # unsed but still get's passed
 
                 # all remaining arguments are iterables that will be passed, in parallel, to the function
                 # if one iterable has fewer items than the others it will be passed with None (undef)
@@ -65,7 +68,7 @@ our $builtins = [
                     # iterables to be passed to $function. first one gets modified
                     my @iterables = map { ${$_[$_]->element($i)} } (0 .. $argument_count-1 );
 
-                    $result->__setitem__($i, ${ $function->(@iterables) });
+                    $result->__setitem__($i, ${ $function->(@iterables, {}) });
                 }
 
                 return \$result;
@@ -279,5 +282,38 @@ sub arithmetic {
     die("arithmetic_operations for $operator not yet implemented");
 }
 
+sub getopt {
+    my ($stack, $function_name, $argument_definition, @arguments) = @_;
+
+    # named arguments get passed as a hashref at the last position. be convention the hashref is
+    # always present so it's safe to pop() it here. this ensures the hashref does not conflict
+    # with any other arguments.
+    my $named_arguments = pop(@arguments);
+
+    confess unless ref($named_arguments) eq 'HASH';
+
+    foreach my $argument (@$argument_definition) {
+        my $name    = $argument->[0]; # name of this argument.
+        my $default = $argument->[1]; # default value of this argument. might be undef.
+
+        # we got a positional argument. check if it conflicts and use it otherwise.
+        if (exists $arguments[0]) {
+            die("$function_name(): conflict between named/positional argument '$name'")
+                if exists $named_arguments->{$name};
+
+            setvar($stack, $name, shift(@arguments));
+            next;
+        }
+
+        # we got a named argument
+        if (exists $named_arguments->{$name}) {
+            setvar($stack, $name, ${ $named_arguments->{$name} });
+            next;
+        }
+
+        # we got nothing, use the default.
+        setvar($stack, $name, ${ $default });
+    }
+}
 
 1;

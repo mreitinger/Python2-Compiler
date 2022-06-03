@@ -182,6 +182,11 @@ class Python2::AST {
         has Node    $.default-value is rw;
     }
 
+    class Node::Argument is Node {
+        has Node    $.value is required;
+        has Node    $.name; #optional: could be a named argument
+    }
+
     class Node::LambdaDefinition is Node::Expression {
         has Node    @.argument-list is required  is rw;
         has Node    $.block is required is rw;
