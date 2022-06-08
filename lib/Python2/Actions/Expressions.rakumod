@@ -138,8 +138,8 @@ class Python2::Actions::Expressions {
     # subscript
     method subscript ($/) {
         $/.make(Python2::AST::Node::Subscript.new(
-            value   => $/<literal>[0].made, #TODO we only support literals at this time
-            target  => $/<literal>[1]:exists ?? $/<literal>[1].made !! Nil,
+            value   => $/<test>[0].made,
+            target  => $/<test>[1]:exists ?? $/<test>[1].made !! Nil,
         ))
     }
 

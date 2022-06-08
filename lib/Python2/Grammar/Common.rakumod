@@ -20,10 +20,10 @@ role Python2::Grammar::Common {
     }
 
     token trailer {
-        | <argument-list>   # handles ('x')
-        | <subscript>       # handles ['x']
-        | '.' <name>        # handles .foo
+        || <argument-list>   # handles ('x')
+        || <subscript>       # handles ['x']
+        || '.' <name>        # handles .foo
     }
 
-    token subscript { '[' <literal> [':' <literal>]? ']' }
+    token subscript { '[' <test> [':' <test>]? ']' }
 }
