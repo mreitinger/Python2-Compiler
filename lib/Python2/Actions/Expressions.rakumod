@@ -66,6 +66,20 @@ class Python2::Actions::Expressions {
         ));
     }
 
+    multi method string ($/ where $/<triple-single-quoted-string>) {
+        $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            value => $/<triple-single-quoted-string>.<string-literal-triple-single-quoted>.Str,
+            raw   => False,
+        ));
+    }
+
+    multi method string ($/ where $/<triple-double-quoted-string>) {
+        $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            value => $/<triple-double-quoted-string>.<string-literal-triple-double-quoted>.Str,
+            raw   => False,
+        ));
+    }
+
     multi method number ($/ where $/<integer>) {
         $/.make(Python2::AST::Node::Expression::Literal::Integer.new(
             value => $/<integer>.Int,

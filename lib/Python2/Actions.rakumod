@@ -40,6 +40,8 @@ class Python2::Actions
             empty-lines
             double-quoted-string         single-quoted-string
             string-literal-double-quoted string-literal-single-quoted
+            triple-single-quoted-string
+            string-literal-triple-single-quoted
             list-delimiter
             dictionary-key dictionary-entry
             string-prefix string-prefix-raw

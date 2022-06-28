@@ -95,6 +95,7 @@ role Python2::Grammar::Expressions {
         | <string-prefix><double-quoted-string>
         | <single-quoted-string>
         | <double-quoted-string>
+        | <triple-single-quoted-string>
     }
 
     token string-prefix {
@@ -103,8 +104,30 @@ role Python2::Grammar::Expressions {
 
     token string-prefix-raw { 'r' }
 
-    token single-quoted-string { "'" <string-literal-single-quoted> "'" }
-    token double-quoted-string { '"' <string-literal-double-quoted> '"' }
+    token triple-single-quoted-string   { "'''" <string-literal-triple-single-quoted> "'''" }
+    token triple-double-quoted-string   { '"""' <string-literal-triple-double-quoted> '"""' }
+    token single-quoted-string          { "'" <string-literal-single-quoted> "'" }
+    token double-quoted-string          { '"' <string-literal-double-quoted> '"' }
+
+    token string-literal-triple-single-quoted {
+        (
+            [
+                | "\\'"         # escaped quote character
+                | '\\'          # escaped literal backslash
+                | <-['\\]>+   # everything except vertical whitespace, backslash and quote
+            ]*
+        )
+    }
+
+    token string-literal-triple-double-quoted {
+        (
+            [
+                | '\\"'         # escaped quote character
+                | '\\'          # escaped literal backslash
+                | <-["\\]>+   # everything except vertical whitespace, backslash and quote
+            ]*
+        )
+    }
 
     token string-literal-single-quoted {
         (
