@@ -8,6 +8,7 @@ use List::Util::XS; # ensure we use the ::XS version
 use Scalar::Util qw/ looks_like_number blessed /;
 use Clone qw/ clone /;
 use Carp qw/ confess /;
+use Carp::Always;
 
 use Python2::Type::List;
 use Python2::Type::Dict;
