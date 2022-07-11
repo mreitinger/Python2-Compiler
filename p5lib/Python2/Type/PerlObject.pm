@@ -44,6 +44,8 @@ sub __str__ {
     return sprintf('<PerlObject %s at %s>', ref($self->{object}), refaddr($self));
 }
 
+sub __tonative__ { return shift->{object}; }
+
 # called for every unknown method
 sub AUTOLOAD {
     my ($self, @argument_list) = @_;
