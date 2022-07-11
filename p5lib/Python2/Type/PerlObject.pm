@@ -8,7 +8,7 @@ use base qw/ Python2::Type /;
 use Python2;
 use Module::Load;
 
-use Scalar::Util qw/ blessed /;
+use Scalar::Util qw/ blessed refaddr /;
 
 sub new {
     my ($self, $class) = @_;
@@ -22,12 +22,26 @@ sub new {
     return $object;
 }
 
+sub new_from_object {
+    my ($self, $object) = @_;
+
+    return bless({
+        object => $object,
+    }, $self);
+}
+
 sub can {
     my ($self, $method_name) = @_;
 
     if (defined $self->{object}->can($method_name)) {
         return 1;
     }
+}
+
+sub __str__ {
+    my $self = shift;
+
+    return sprintf('<PerlObject %s at %s>', ref($self->{object}), refaddr($self));
 }
 
 # called for every unknown method
@@ -60,7 +74,13 @@ sub AUTOLOAD {
             if (blessed($argument) and $argument->isa('Python2::Type'));
     }
 
-    \$self->{object}->$requested_method(@argument_list);
+    # TODO: this needs to handle way more cases like a list getting returned
+    my @retval = $self->{object}->$requested_method(@argument_list);
+
+    die("Got invalid return value with multiple values when calling '$requested_method' on " . ref($self->{object}))
+        if scalar(@retval) > 1;
+
+    return Python2::convert_to_python_type($retval[0]);
 }
 
 1;

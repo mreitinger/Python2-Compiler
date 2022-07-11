@@ -4,6 +4,7 @@ use base qw/ Python2::Type /;
 use v5.26.0;
 use warnings;
 use strict;
+use Scalar::Util qw/ refaddr /;
 
 sub new {
     my ($self) = @_;
@@ -35,6 +36,11 @@ sub __getattr__ {
     my ($self, $attribute_name) = @_;
 
     return \$self->{stack}->[1]->{$attribute_name};
+}
+
+sub __str__ {
+    my $self = shift;
+    return sprintf('<PythonObject at %s>', refaddr($self));
 }
 
 sub AUTOLOAD {

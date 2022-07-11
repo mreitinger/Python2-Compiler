@@ -2,7 +2,16 @@
 # Python2::Type::*.
 
 package Python2::Type;
+
 use strict;
 use warnings;
+use Python2;
+use Data::Dumper;
+
+sub __print__   { return shift->__str__; }
+sub __str__     { ...; }
+sub __dump__    { warn Dumper(shift); }
+sub __type_     { return ref(shift); }
+sub __class__   { __PACKAGE__ }
 
 1;

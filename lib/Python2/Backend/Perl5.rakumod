@@ -123,15 +123,14 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::ArithmeticAssignment $node) {
-        given $node.operator {
-            when '//=' {
-                # //= is defined-or in perl so we need to map it to floordiv
-                return sprintf('${%s} = int(${%s} / ${%s})', $.e($node.target), $.e($node.target), $.e($node.value));
-            }
-            default {
-                return sprintf('${%s} %s ${%s}', $.e($node.target), $node.operator, $.e($node.value));
-            }
-        }
+        my $operator = $node.operator.chop; # grammar ensures only valid operators pass thru here
+
+        return sprintf(q|${%s} = ${ arithmetic(${ %s }, ${ %s }, '%s') }|,
+            $.e($node.target),
+            $.e($node.target),
+            $.e($node.value),
+            $operator
+        );
     }
 
     multi method e(Python2::AST::Node::Statement::Return $node) {
@@ -167,9 +166,9 @@ class Python2::Backend::Perl5 {
 
         if ($node.condition) {
             $p5 ~= sprintf(
-                '${ sub { my $p = %s; $$p // die("NameError" ); $p; }->() } ? ',
+                'sub { my $p = %s; $$p // die("NameError" ); ref($$p) eq "CODE" ? $p :$$p->__tonative__; }->() ? ',
                 $.e($node.condition)
-                                            );
+            );
         }
 
         $p5 ~= sprintf('sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.left));
@@ -182,7 +181,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::If $node) {
-        my $p5 = sprintf('if (${ %s }) { %s }', $.e($node.test), $.e($node.block));
+        my $p5 = sprintf('if ( ${ %s }->__tonative__ ) { %s }', $.e($node.test), $.e($node.block));
 
         for $node.elifs -> $elif {
             $p5 ~= $.e($elif);
@@ -194,7 +193,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::ElIf $node) {
-        return sprintf('elsif (${ %s }) { %s }', $.e($node.test), $.e($node.block));
+        return sprintf('elsif (${ %s }->__tonative__) { %s }', $.e($node.test), $.e($node.block));
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
@@ -214,10 +213,10 @@ class Python2::Backend::Perl5 {
         return $.e($node.left) unless $node.condition;
 
         if ($node.condition.condition eq 'not') {
-            return sprintf('\not ${%s}', $.e($node.left));
+            return sprintf('\Python2::Type::Bool->new(not ${%s}->__tonative__)', $.e($node.left));
         } else {
             return $node.condition
-                ?? sprintf('\(${%s} %s ${%s})', $.e($node.left), $.e($node.condition), $.e($node.right))
+                ?? sprintf('\Python2::Type::Bool->new(${%s}->__tonative__ %s ${%s}->__tonative__)', $.e($node.left), $.e($node.condition), $.e($node.right))
                 !! $.e($node.left);
         }
     }
@@ -372,7 +371,7 @@ class Python2::Backend::Perl5 {
                     # it's probably a string interpolation with multiple arguments like
                     #   '%s %s' (1, 2)
                     # since that gets parsed as a TestList we extract it here
-                    $right-element = sprintf('\[%s]',
+                    $right-element = sprintf('\Python2::Type::List->new(%s)',
                         $right-element.atom.expression.tests.values.map({ sprintf('${ %s }', $.e($_)) }).join(', ')
                     ),
                 }
@@ -414,17 +413,17 @@ class Python2::Backend::Perl5 {
 
         my $p5;
 
-        $p5 ~= "\n\\sub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
+        $p5 ~= "\nsub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
         $p5 ~= $string;
-        $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \$s; }->()";
+        $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\Python2::Type::Scalar->new(\$s); }->()";
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
-        return '\\' ~ $node.value;
+        return sprintf('convert_to_python_type(%s)', $node.value);
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
-        return '\\' ~ $node.value;
+        return sprintf('convert_to_python_type(%s)', $node.value)
     }
 
     multi method e(Python2::AST::Node::Subscript $node) {

@@ -4,22 +4,26 @@ use warnings;
 use strict;
 use List::Util qw( max );
 use List::Util::XS; # ensure we use the ::XS version
+use Data::Dumper;
 
 use Scalar::Util qw/ looks_like_number blessed /;
 use Clone qw/ clone /;
 use Carp qw/ confess /;
 use Carp::Always;
 
+use Python2::Type::None;
+use Python2::Type::Bool;
 use Python2::Type::List;
 use Python2::Type::Dict;
+use Python2::Type::Scalar;
 use Python2::Type::PerlObject;
 
 use Exporter qw/ import /;
 our @EXPORT = qw/
-    getvar              setvar          compare
-    call                py2print        arithmetic
-    register_function   create_class    $builtins
-    getopt
+    getvar              setvar                  compare
+    call                py2print                arithmetic
+    register_function   create_class            $builtins
+    getopt              convert_to_python_type
 /;
 
 use constant {
@@ -46,7 +50,7 @@ our $builtins = [
         undef,
         {
             'sorted' => sub {
-                return \Python2::Type::List->new( sort(@{ $_[0]->elements }) );
+                return \Python2::Type::List->new( sort { $a->__tonative__ cmp $b->__tonative__ } (@{ $_[0]->elements }) );
             },
 
             'map' => sub {
@@ -58,7 +62,7 @@ our $builtins = [
                 # if one iterable has fewer items than the others it will be passed with None (undef)
                 #
                 # figure out the largest argument and use that to iterate over
-                my $iterable_item_count = max( map { $_->__len__ } @_);
+                my $iterable_item_count = max( map { ${ $_->__len__ }->__tonative__ } @_);
 
                 # number of iterable arguments passed to map()
                 my $argument_count      = scalar @_;
@@ -67,7 +71,9 @@ our $builtins = [
 
                 for (my $i = 0; $i < $iterable_item_count; $i++) {
                     # iterables to be passed to $function. first one gets modified
-                    my @iterables = map { ${$_[$_]->element($i)} } (0 .. $argument_count-1 );
+                    my @iterables = map {
+                        ${$_[$_]->element( Python2::Type::Scalar->new($i)) }
+                    } (0 .. $argument_count-1 );
 
                     $result->__setitem__($i, ${ $function->(@iterables, {}) });
                 }
@@ -76,7 +82,11 @@ our $builtins = [
             },
 
             'int' => sub {
-                return \int($_[0]);
+                return \Python2::Type::Scalar->new(int($_[0]->__tonative__));
+            },
+
+            'range' => sub {
+                return \Python2::Type::List->new(1 .. shift->__tonative__);
             },
 
             'print' => sub {
@@ -87,7 +97,7 @@ our $builtins = [
                 Python2::py2print($arguments->[0]);
             },
 
-            'None' => sub { undef; }
+            'None' => Python2::Type::None->new(),
         }
     ]
 ];
@@ -111,10 +121,7 @@ sub py2print {
     my $var = shift;
 
     if (ref($var) =~ m/^Python2::Type::/) {
-        $var->print;
-    }
-    elsif (ref($var) eq '') {
-        say $var;
+        say $var->__print__;
     }
     else {
         confess("not implemented for " . ref($var));
@@ -125,8 +132,11 @@ my $comparisons = {
     '==' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left == $right);
+            return \Python2::Type::Bool->new($left == $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -135,8 +145,11 @@ my $comparisons = {
     '!=' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left != $right);
+            return \Python2::Type::Bool->new($left != $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -145,8 +158,11 @@ my $comparisons = {
     '>' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left > $right);
+            return \Python2::Type::Bool->new($left > $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -155,8 +171,11 @@ my $comparisons = {
     '<' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left < $right);
+            return \Python2::Type::Bool->new($left < $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -165,8 +184,11 @@ my $comparisons = {
     '>=' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left >= $right);
+            return \Python2::Type::Bool->new($left >= $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -175,8 +197,11 @@ my $comparisons = {
     '<=' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left <= $right);
+            return \Python2::Type::Bool->new($left <= $right);
         } else {
             die("comparison net yet implemented");
         }
@@ -185,11 +210,17 @@ my $comparisons = {
     'is' => sub {
         my ($left, $right) = @_;
 
+        return \Python2::Type::Bool->new(0)
+            unless $left->__class__ eq $right->__class__;
+
+        $left  = $left->__tonative__  if ref($left)  eq 'Python2::Type::Scalar';
+        $right = $right->__tonative__ if ref($right) eq 'Python2::Type::Scalar';
+
         if ($left == $right) {
-            return \1;
+            return \Python2::Type::Bool->new(1);
         }
         else {
-            return \0;
+            return \Python2::Type::Bool->new(0);
         }
     }
 };
@@ -208,14 +239,14 @@ my $arithmetic_operations = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left + $right);
+            return \Python2::Type::Scalar->new($left + $right);
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
         elsif (!looks_like_number($left) or !looks_like_number($right)) {
-            return \($left.$right);
+            return \Python2::Type::Scalar->new($left.$right);
         }
         else {
             die("unsupported operand type(s) for '+'.");
@@ -226,7 +257,7 @@ my $arithmetic_operations = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left - $right);
+            return \Python2::Type::Scalar->new($left - $right);
         } else {
             die("arithmetic op not yet implemented");
         }
@@ -236,7 +267,7 @@ my $arithmetic_operations = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left * $right);
+            return \Python2::Type::Scalar->new($left * $right);
         } else {
             die("arithmetic op not yet implemented");
         }
@@ -246,7 +277,77 @@ my $arithmetic_operations = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left / $right);
+            return \Python2::Type::Scalar->new($left / $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '//' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \Python2::Type::Scalar->new($left / $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '**' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \Python2::Type::Scalar->new($left ** $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '&' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \Python2::Type::Scalar->new($left & $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '|' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \Python2::Type::Scalar->new($left | $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '^' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \Python2::Type::Scalar->new($left ^ $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '>>' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \Python2::Type::Scalar->new($left >> $right);
+        } else {
+            die("arithmetic op not yet implemented");
+        }
+    },
+
+    '<<' => sub {
+        my ($left, $right) = @_;
+
+        if (looks_like_number($left) and looks_like_number($right)) {
+            return \Python2::Type::Scalar->new($left << $right);
         } else {
             die("arithmetic op not yet implemented");
         }
@@ -256,17 +357,17 @@ my $arithmetic_operations = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \($left % $right);
+            return \Python2::Type::Scalar->new($left % $right);
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
         elsif (!looks_like_number($left) or !looks_like_number($right)) {
-            return \sprintf(
+            return \Python2::Type::Scalar->new(sprintf(
                 $left,
                 ref($right) eq 'ARRAY' ? @$right : $right
-            );
+            ));
         }
         else {
             die("arithmetic op not yet implemented");
@@ -277,7 +378,9 @@ my $arithmetic_operations = {
 sub arithmetic {
     my ($left, $right, $operator) = @_;
 
-    return $arithmetic_operations->{$operator}->($left, $right)
+    # TODO - since introducing Python2::Type::Scalar we can probably handle all of this
+    # TODO - with just operator overloading.
+    return $arithmetic_operations->{$operator}->($left->__tonative__, $right->__tonative__)
         if defined $arithmetic_operations->{$operator};
 
     die("arithmetic_operations for $operator not yet implemented");
@@ -315,6 +418,48 @@ sub getopt {
         # we got nothing, use the default.
         setvar($stack, $name, ${ $default });
     }
+}
+
+# converts any data structure to our 'native' "reference to a Python2::Type::* object" representation
+sub convert_to_python_type {
+    my ($value) = @_;
+
+    # TODO - do introduce some kind of None type object?
+    # undef
+    return \Python2::Type::None->new() unless defined $value;
+
+    # if it's already a native type just return it
+    if (blessed($value) and (blessed($value) =~ m/^Python2::Type::/)) {
+        return \$value;
+    }
+
+    # some foreign perl object - wrap it in our PerlObject wrapper so it conforms to our
+    # calling conventions
+    if (blessed($value)) {
+        return \Python2::Type::PerlObject->new_from_object($value)
+    }
+
+    # perl5 hashref
+    if (ref($value) eq 'HASH') {
+        # TODO since perl does not support objects as hash keyes this can be optimized a lot by
+        # TODO creating a dedicated "PerlDict" class and skipping all of the object-as-dict-key
+        # implementation.
+        my $dict = Python2::Type::Dict->new();
+
+        while (my ($k, $v) = each(%$value)) {
+            $dict->set(Python2::Type::Scalar->new($k), ${ convert_to_python_type($v) });
+        }
+
+        return \$dict;
+    }
+
+    # perl5 array
+    if (ref($value) eq 'ARRAY') {
+        return \Python2::Type::List->new(@$value)
+    }
+
+    # anything else must be a plain scalar
+    return \Python2::Type::Scalar->new($value)
 }
 
 1;

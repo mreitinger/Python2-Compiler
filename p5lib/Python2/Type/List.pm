@@ -8,13 +8,14 @@ sub new {
     my ($self, @initial_elements) = @_;
 
     return bless({
-        elements => [ @initial_elements ],
+        elements => [ map { ${ Python2::convert_to_python_type($_) } } @initial_elements ],
     }, $self);
 }
 
-sub print {
-    my ($self) = @_;
-    say '[' . join(', ', map { $_ =~ m/^\d+$/ ? $_ : "'$_'" } @{ $self->{elements} }) . ']';
+sub __str__ {
+    my $self = shift;
+
+    return '[' . join(', ', map { $_->__str__ } @{ $self->{elements} }) . ']';
 }
 
 sub elements { shift->{elements} }
@@ -24,13 +25,19 @@ sub element {
 
     if ($target) {
         # array slice
-        if ($target > $self->__len__) { $target = $self->__len__; }
+        my $key     = $key->__tonative__;
+        my $target  = $target->__tonative__;
+
+        # if the target is longer than the list cap it
+        if ($target > ${ $self->__len__ }->__tonative__ ) {
+            $target = ${ $self->__len__}->__tonative__;
+        }
 
         return \Python2::Type::List->new( @{ $self->{elements} }[$key .. $target - 1] );
     }
     else {
         # single element
-        return \$self->{elements}->[$key];
+        return \$self->{elements}->[$key->__tonative__];
     }
 }
 
@@ -43,7 +50,7 @@ sub set {
 sub __len__ {
     my ($self) = @_;
 
-    return scalar@{ $self->{elements} };
+    return \Python2::Type::Scalar->new(scalar @{ $self->{elements} });
 }
 
 sub __setitem__ {
