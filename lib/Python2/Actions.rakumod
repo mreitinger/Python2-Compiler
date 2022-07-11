@@ -33,6 +33,7 @@ class Python2::Actions
 
     method FALLBACK($name, $args) {
         my @whitelist = <
+            ww
             before
             level ws scope-increase
             float integer digit
