@@ -119,7 +119,7 @@ class Python2::Backend::Perl5 {
         return sprintf('${%s} = ${%s}',
             $.e($node.target),
             $.e($node.expression)
-                       );
+        );
     }
 
     multi method e(Python2::AST::Node::Statement::ArithmeticAssignment $node) {
@@ -230,7 +230,7 @@ class Python2::Backend::Perl5 {
         my $p5 = sprintf(
             'setvar($stack, \'%s\', sub {',
             $node.name.name.subst("'", "\\'", :g)
-                                      );
+        );
 
         # local stack frame for this function
         $p5 ~= 'my $stack = [$builtins];' ~ "\n";
