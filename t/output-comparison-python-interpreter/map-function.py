@@ -9,4 +9,5 @@ def multiply2(a, b):
 x = [2, 3, 4]
 y = [5, 6, 7]
 
+print map(multiply1, x)
 print map(multiply2, x, y)
