@@ -337,11 +337,11 @@ class Python2::Backend::Perl5 {
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {
                 $p5 ~= $current-element.target
-                    ?? sprintf('$p = ${$p}->__getslice__(%s);', $.e($current-element)) # array slice
-                    !! sprintf('$p = ${$p}->__getitem__(%s);', $.e($current-element));
+                    ?? sprintf('$p = ${$p}->__getslice__(%s, {});', $.e($current-element)) # array slice
+                    !! sprintf('$p = ${$p}->__getitem__(%s, {});', $.e($current-element));
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
-                $p5 ~= sprintf('$p = ${$p}->__getattr__(%s);', $.e($current-element));
+                $p5 ~= sprintf('$p = ${$p}->__getattr__(%s, {});', $.e($current-element));
             }
             else {
                 $p5 ~= sprintf('$p = %s;', $.e($current-element));
