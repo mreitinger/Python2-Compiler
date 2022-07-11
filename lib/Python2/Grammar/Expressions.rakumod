@@ -60,7 +60,7 @@ role Python2::Grammar::Expressions {
     }
 
     token dictionary-entry {
-        <.ws> <dictionary-key> <.ws> ':' <.ws> <expression> <.ws>
+        <.ws> <test> <.ws> ':' <.ws> <expression> <.ws>
     }
 
 
@@ -155,8 +155,4 @@ role Python2::Grammar::Expressions {
     }
     token float             { \d+\.\d+ }
     token integer           { \d+ }
-    token dictionary-key    {
-        | <integer>+
-        | <string>
-    }
 }

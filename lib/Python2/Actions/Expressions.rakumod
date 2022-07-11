@@ -186,17 +186,17 @@ class Python2::Actions::Expressions {
     method dictionary-entry-list($/) {
         # get every dictionary entry in the list. we just bypass the intermediate
         # dictionary-entry-list that we just use for the grammar so far.
-        my %dictionary-entries;
+        my @dictionary-entries;
 
         for $/<dictionary-entry> -> $entry {
-            my $key = $entry<dictionary-key>.Str;
+            my $key = $entry<test>.made;
             my $expression = $entry<expression>.made;
 
-            %dictionary-entries{$key} = $expression;
+            @dictionary-entries.append(Pair.new($key, $expression));
         }
 
         $/.make(Python2::AST::Node::Expression::DictionaryDefinition.new(
-            entries => %dictionary-entries,
+            entries => @dictionary-entries,
         ));
     }
 

@@ -43,7 +43,7 @@ class Python2::Actions
             triple-single-quoted-string
             string-literal-triple-single-quoted
             list-delimiter
-            dictionary-key dictionary-entry
+            dictionary-entry
             string-prefix string-prefix-raw
             perl5-package-name
         >;

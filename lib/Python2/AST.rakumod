@@ -95,7 +95,7 @@ class Python2::AST {
     }
 
     class Node::Expression::DictionaryDefinition is Node::Expression {
-        has Node %.entries is required is rw;
+        has Pair @.entries is required is rw;
     }
 
     class Node::Expression::FunctionCall is Node::Expression {

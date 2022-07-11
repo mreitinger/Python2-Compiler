@@ -453,7 +453,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {
         return sprintf('\Python2::Type::Dict->new(%s)',
             $node.entries.map({
-                $_.key ~ '=> ${' ~ $.e($_.value) ~ '}'
+                '${' ~ $.e($_.key) ~ '} => ${' ~ $.e($_.value) ~ '}'
             }).join(', ')
        );
     }
