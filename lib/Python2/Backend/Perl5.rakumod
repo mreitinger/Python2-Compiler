@@ -276,7 +276,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
-        my Str $perl5_class_name = 'python_class_' ~ sha1-hex($node.name.name ~ $.e($node.block));
+        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.name.name ~ $.e($node.block));
         my Str $preamble = 'use Python2;';
 
         $!modules ~= sprintf(
