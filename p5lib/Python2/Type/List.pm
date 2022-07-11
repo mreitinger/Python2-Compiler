@@ -20,31 +20,24 @@ sub __str__ {
 
 sub elements { shift->{elements} }
 
-sub element {
-    my ($self, $key, $target) = @_;
+sub __getitem__ {
+    my ($self, $key) = @_;
 
-    if ($target) {
-        # array slice
-        my $key     = $key->__tonative__;
-        my $target  = $target->__tonative__;
-
-        # if the target is longer than the list cap it
-        if ($target > ${ $self->__len__ }->__tonative__ ) {
-            $target = ${ $self->__len__}->__tonative__;
-        }
-
-        return \Python2::Type::List->new( @{ $self->{elements} }[$key .. $target - 1] );
-    }
-    else {
-        # single element
-        return \$self->{elements}->[$key->__tonative__];
-    }
+    return \$self->{elements}->[$key->__tonative__];
 }
 
-sub set {
-    my ($self, $key, $value) = @_;
+sub __getslice__ {
+    my ($self, $key, $target) = @_;
 
-    $self->{elements}->[$key] = $value;
+    $key     = $key->__tonative__;
+    $target  = $target->__tonative__;
+
+    # if the target is longer than the list cap it
+    if ($target > ${ $self->__len__ }->__tonative__ ) {
+        $target = ${ $self->__len__}->__tonative__;
+    }
+
+    return \Python2::Type::List->new( @{ $self->{elements} }[$key .. $target - 1] );
 }
 
 sub __len__ {
@@ -56,7 +49,7 @@ sub __len__ {
 sub __setitem__ {
     my ($self, $key, $value) = @_;
 
-    $self->{elements}->[$key] = $value;
+    $self->{elements}->[$key->__tonative__] = $value;
 }
 
 # convert to a 'native' perl5 arrayref

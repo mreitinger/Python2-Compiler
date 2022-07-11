@@ -22,7 +22,7 @@ sub new {
     while (my $key = shift @initial_elements) {
         my $value = shift @initial_elements;
 
-        $self->set($key, $value);
+        $self->__setitem__($key, $value);
     }
 
     return $self;
@@ -55,7 +55,7 @@ sub __str__ {
     "}";
 }
 
-sub element {
+sub __getitem__ {
     my ($self, $key) = @_;
 
     die("Unhashable type: " . ref($key))
@@ -64,7 +64,7 @@ sub element {
     return \$self->{elements}->{$key};
 }
 
-sub set {
+sub __setitem__ {
     my ($self, $key, $value) = @_;
 
     # TODO support objects as keys

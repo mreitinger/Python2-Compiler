@@ -72,10 +72,10 @@ our $builtins = [
                 for (my $i = 0; $i < $iterable_item_count; $i++) {
                     # iterables to be passed to $function. first one gets modified
                     my @iterables = map {
-                        ${$_[$_]->element( Python2::Type::Scalar->new($i)) }
+                        ${$_[$_]->__getitem__( Python2::Type::Scalar->new($i)) }
                     } (0 .. $argument_count-1 );
 
-                    $result->__setitem__($i, ${ $function->(@iterables, {}) });
+                    $result->__setitem__(Python2::Type::Scalar->new($i), ${ $function->(@iterables, {}) });
                 }
 
                 return \$result;
@@ -447,7 +447,7 @@ sub convert_to_python_type {
         my $dict = Python2::Type::Dict->new();
 
         while (my ($k, $v) = each(%$value)) {
-            $dict->set(Python2::Type::Scalar->new($k), ${ convert_to_python_type($v) });
+            $dict->__setitem__(Python2::Type::Scalar->new($k), ${ convert_to_python_type($v) });
         }
 
         return \$dict;
