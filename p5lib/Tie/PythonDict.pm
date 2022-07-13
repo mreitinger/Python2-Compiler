@@ -33,7 +33,7 @@ sub FETCH {
 
     #warn "FETCHING: " . $key->__str__;
 
-    if (ref($key) eq 'Python2::Type::Scalar') {
+    if (ref($key) =~ m/^Python2::Type::Scalar/) {
         return $self->[1]{$key->__str__}->[1];
     }
     elsif (ref($key) =~ m/^Python2::Type::Class::class_/) {
@@ -58,7 +58,7 @@ sub STORE {
     # $self->[0] contains refaddr -> object mappings
     # $self->[1] contains string -> object mappings (only for Scalar types)
 
-    if (ref($key) eq 'Python2::Type::Scalar') {
+    if (ref($key) =~ m/Python2::Type::Scalar/) {
         # we got a scalar key so we store both the object refaddr and the scalar key's value
         # as key.
 
@@ -98,7 +98,7 @@ sub EXISTS {
         return $self->[0]{Scalar::Util::refaddr($key)};
     }
 
-    if ((ref($key) eq 'Python2::Type::Scalar') and (exists $self->[1]{$key->__str__})) {
+    if ((ref($key) =~ m/Python2::Type::Scalar/) and (exists $self->[1]{$key->__str__})) {
         return exists $self->[1]{$key->__str__};
     }
 }

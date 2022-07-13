@@ -58,4 +58,6 @@ sub AUTOLOAD {
     return $method_code_ref->($self, @argument_list);
 }
 
+sub __type__ { return 'pyobject'; }
+
 1;

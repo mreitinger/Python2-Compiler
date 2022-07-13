@@ -8,7 +8,7 @@ sub new {
     my ($self, @initial_elements) = @_;
 
     return bless({
-        elements => [ map { ${ Python2::convert_to_python_type($_) } } @initial_elements ],
+        elements => [@initial_elements],
     }, $self);
 }
 
@@ -43,7 +43,7 @@ sub __getslice__ {
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar->new(scalar @{ $self->{elements} });
+    return \Python2::Type::Scalar::Num->new(scalar @{ $self->{elements} });
 }
 
 sub __setitem__ {
@@ -58,5 +58,7 @@ sub __tonative__ {
         map { ref($_) ? $_->__tonative__ : $_ } @{ shift->elements }
     ];
 }
+
+sub __type__ { return 'list'; }
 
 1;

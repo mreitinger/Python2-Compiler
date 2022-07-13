@@ -12,11 +12,6 @@ sub new {
     }, $self);
 }
 
-sub __str__ {
-    my $value = shift->{value};
-    return ($value =~ m/^\d+$/ ? $value : "'$value'")
-}
-
 # value formatted for print()
 sub __print__ { return shift->{value}; }
 
@@ -26,5 +21,6 @@ sub __tonative__ {
     return shift->{value};
 }
 
+sub __type__ { return 'scalar'; }
 
 1;

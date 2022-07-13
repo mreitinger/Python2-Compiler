@@ -11,7 +11,7 @@ use Data::Dumper;
 sub __print__   { return shift->__str__; }
 sub __str__     { ...; }
 sub __dump__    { warn Dumper(shift); }
-sub __type_     { return ref(shift); }
 sub __class__   { __PACKAGE__ }
+sub __type__    { ...; }
 
 1;

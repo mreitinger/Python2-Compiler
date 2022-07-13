@@ -69,7 +69,7 @@ sub __setitem__ {
 
     # TODO support objects as keys
     die("Unhashable type '" . ref($key) . "' with value '$value'")
-        unless ref($key) eq 'Python2::Type::Scalar';
+        unless ref($key) =~ m/^Python2::Type::Scalar::/;
 
     die("PythonDict expects as Python2::Type as key gut got " . ref($key))
         unless (ref($key) =~ m/^Python2::Type::/);
@@ -92,6 +92,8 @@ sub __tonative__ {
 
     return $retvar;
 }
+
+sub __type__ { return 'dict'; }
 
 
 1;

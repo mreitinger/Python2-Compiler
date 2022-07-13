@@ -85,4 +85,6 @@ sub AUTOLOAD {
     return Python2::convert_to_python_type($retval[0]);
 }
 
+sub __type__ { return 'p5object'; }
+
 1;

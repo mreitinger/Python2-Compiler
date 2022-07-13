@@ -213,10 +213,10 @@ class Python2::Backend::Perl5 {
         return $.e($node.left) unless $node.condition;
 
         if ($node.condition.condition eq 'not') {
-            return sprintf('\Python2::Type::Bool->new(not ${%s}->__tonative__)', $.e($node.left));
+            return sprintf('\Python2::Type::Scalar::Bool->new(not ${%s}->__tonative__)', $.e($node.left));
         } else {
             return $node.condition
-                ?? sprintf('\Python2::Type::Bool->new(${%s}->__tonative__ %s ${%s}->__tonative__)', $.e($node.left), $.e($node.condition), $.e($node.right))
+                ?? sprintf('\Python2::Type::Scalar::Bool->new(${%s}->__tonative__ %s ${%s}->__tonative__)', $.e($node.left), $.e($node.condition), $.e($node.right))
                 !! $.e($node.left);
         }
     }
@@ -417,7 +417,7 @@ class Python2::Backend::Perl5 {
 
         $p5 ~= "\nsub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
         $p5 ~= $string;
-        $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\Python2::Type::Scalar->new(\$s); }->()";
+        $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\Python2::Type::Scalar::String->new(\$s); }->()";
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
