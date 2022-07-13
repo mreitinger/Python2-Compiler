@@ -26,6 +26,14 @@ def g():
 
     print 'did-not-return'
 
+def h():
+    return 1 == 2
+
+def i():
+    return 1 == 1
+
+
+
 
 print a()
 print b()
@@ -34,3 +42,6 @@ print d()
 print e()
 print f()
 g()
+print "A %s" % h()
+print "B %s" % i()
+print "C %s %s" % (h(), i())
