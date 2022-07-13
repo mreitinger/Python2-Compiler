@@ -117,18 +117,26 @@ class Python2::Actions::Statements {
     }
 
     method comparison ($/) {
+        my %operators =
+            '==' => '__eq__',
+            '!=' => '__ne__',
+            '<'  => '__lt__',
+            '>'  => '__gt__',
+            '<=' => '__le__',
+            '>=' => '__ge__',
+            'is' => '__is__';
+
         $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
             left                => $/<expression>[0].made,
-            comparison-operator => $/<comparison-operator> ?? $/<comparison-operator>.Str   !! Nil,
-            right               => $/<expression>[1]       ?? $/<expression>[1].made        !! Nil,
-        ));
-    }
 
-    method comparison-operator($/) {
-        $/.make(Python2::AST::Node::Statement::Test::ComparisonOperator.new(
-            comparison-operator => $/<comparison-operator>.Str
-        ));
+            right               => $/<expression>[1]
+                ?? $/<expression>[1].made
+                !! Nil,
 
+            comparison-operator => $/<comparison-operator>
+                ?? %operators{$/<comparison-operator>.Str}
+                !! Nil,
+        ));
     }
 
     method function-definition($/) {

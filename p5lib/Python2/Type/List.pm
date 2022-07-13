@@ -4,6 +4,9 @@ use base qw/ Python2::Type /;
 use warnings;
 use strict;
 
+use Scalar::Util qw/ refaddr /;
+use List::Util qw/ min max /;
+
 sub new {
     my ($self, @initial_elements) = @_;
 
@@ -60,5 +63,37 @@ sub __tonative__ {
 }
 
 sub __type__ { return 'list'; }
+
+sub __eq__      {
+    my ($self, $other) = @_;
+
+    # if it's the same element it must match
+    return \Python2::Type::Scalar::Bool->new(1)
+        if refaddr($self) == refaddr($other);
+
+    # if it's not a list just abort right here no need to compare
+    return \Python2::Type::Scalar::Bool->new(0)
+        unless $other->__class__ eq 'Python2::Type::List';
+
+    # if it's not at least the same size we don't need to compare any further
+    return \Python2::Type::Scalar::Bool->new(0)
+        unless ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__;
+
+    # we are comparing empty lists so they are identical
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ${ $self->__len__ }->__tonative__ == 0;
+
+    # compare all elements and return false if anything doesn't match
+    foreach (0 .. ${ $self->__len__ }->__tonative__ -1) {
+        return \Python2::Type::Scalar::Bool->new(0)
+            unless  ${
+                ${ $self->__getitem__( Python2::Type::Scalar::Num->new($_) ) }
+                    ->__eq__(${ $other->__getitem__(Python2::Type::Scalar::Num->new($_)) });
+            }->__tonative__;
+    }
+
+    # all matched - return true
+    return \Python2::Type::Scalar::Bool->new(1);
+}
 
 1;

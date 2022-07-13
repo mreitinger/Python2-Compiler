@@ -99,6 +99,9 @@ our $builtins = [
             },
 
             'None' => Python2::Type::Scalar::None->new(),
+
+            'True'  => Python2::Type::Scalar::Bool->new(1),
+            'False' => Python2::Type::Scalar::Bool->new(0),
         }
     ]
 ];
@@ -133,14 +136,7 @@ my $comparisons = {
     '==' => sub {
         my ($left, $right) = @_;
 
-        $left  = $left->__tonative__;
-        $right = $right->__tonative__;
-
-        if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Bool->new($left == $right);
-        } else {
-            die("comparison net yet implemented");
-        }
+        return \Python2::Type::Scalar::Bool->new($left->__tonative__ eq $right->__tonative__);
     },
 
     '!=' => sub {

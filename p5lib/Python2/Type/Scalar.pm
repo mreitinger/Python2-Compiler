@@ -21,6 +21,27 @@ sub __tonative__ {
     return shift->{value};
 }
 
-sub __type__ { return 'scalar'; }
+sub __eq__ {
+    my ($self, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new($self->__tonative__ eq $other->__tonative__);
+}
+
+# is - used for our X is Y implementation, python2 has no explicit __is__
+sub __is__  {
+    my ($self, $other) = @_;
+
+    # when compared to anything that's not our type it must be false
+    return \Python2::Type::Scalar::Bool->new(0)
+        unless $self->__class__ eq $other->__class__;
+
+    # if it's a scalar we compare values by default. ::Type::None overrides this.
+    if ($self->__tonative__ eq $other->__tonative__) {
+        return \Python2::Type::Scalar::Bool->new(1);
+    }
+    else {
+        return \Python2::Type::Scalar::Bool->new(0);
+    }
+}
 
 1;

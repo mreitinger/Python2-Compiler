@@ -4,7 +4,8 @@ use base qw/ Python2::Type::Scalar /;
 use warnings;
 use strict;
 
-sub __str__ { return "'" . shift->{value} . "'"; }
+sub __str__  { return "'" . shift->{value} . "'"; }
+sub __type__ { 'str'; }
 
 sub split {
     pop(@_); # default named arguments hash
@@ -13,9 +14,8 @@ sub split {
     my $joiner = $separator; # original separator - used to join in case we use maxsplit below
 
     if ($separator) {
-        # TODO this allowes a bit more than python
         die("Expected a scalar as seperator")
-            unless $separator->__type__ eq 'scalar';
+            unless $separator->__type__ eq 'str';
 
         $separator = $separator->__tonative__;
         $separator = "\Q$separator\E";
@@ -46,6 +46,42 @@ sub split {
     }
 
     return \Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } @result);
+}
+
+sub __gt__ {
+    my ($self, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new($self->__tonative__ gt $other->__tonative__)
+        if ($other->__type__ eq 'str');
+
+    ...;
+}
+
+sub __lt__ {
+    my ($self, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new($self->__tonative__ lt $other->__tonative__)
+        if ($other->__type__ eq 'str');
+
+    ...;
+}
+
+sub __ge__ {
+    my ($self, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new($self->__tonative__ ge $other->__tonative__)
+        if ($other->__type__ eq 'str');
+
+    ...;
+}
+
+sub __le__ {
+    my ($self, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new($self->__tonative__ le $other->__tonative__)
+        if ($other->__type__ eq 'str');
+
+    ...;
 }
 
 1;

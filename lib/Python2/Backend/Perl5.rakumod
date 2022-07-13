@@ -198,12 +198,11 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
         if ($node.right) {
-            #tmp hack until we get this right
-            return sprintf('compare(${%s}, ${%s}, \'%s\')',
+            return sprintf('${%s}->%s(${%s})',
                 $.e($node.left),
+                $node.comparison-operator,
                 $.e($node.right),
-                $node.comparison-operator
-                           );
+            );
         } else {
             return $.e($node.left);
         }

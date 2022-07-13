@@ -12,6 +12,27 @@ sub new {
 
 sub __str__         { 'None'; }
 sub __tonative__    { undef; }
-sub __type__        { return 'none'; }
+sub __type__        { 'none'; }
+
+sub __is__          {
+    my ($self, $other) = @_;
+
+    # special case: None is None
+    return \Python2::Type::Scalar::Bool->new(1)
+        if $self->__class__ eq $other->__class__;
+
+    # everything else is false when compared to None
+    return \Python2::Type::Scalar::Bool->new(0);
+}
+
+sub __eq__ {
+    my ($self, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ($other->__type__ eq 'none');
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ($other->__type__ eq 'none');
+}
 
 1;

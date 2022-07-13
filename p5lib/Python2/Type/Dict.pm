@@ -6,6 +6,7 @@ use base qw/ Python2::Type /;
 use warnings;
 use strict;
 
+use Python2;
 use Scalar::Util qw/ refaddr /;
 use Tie::PythonDict;
 
@@ -55,6 +56,12 @@ sub __str__ {
     "}";
 }
 
+sub __len__ {
+    my ($self) = @_;
+
+    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %{ $self->{elements} });
+}
+
 sub __getitem__ {
     my ($self, $key) = @_;
 
@@ -63,6 +70,16 @@ sub __getitem__ {
 
     return \$self->{elements}->{$key};
 }
+
+sub has_key {
+    my ($self, $key) = @_;
+
+    die("Unhashable type: " . ref($key))
+        unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
+
+    return \Python2::Type::Scalar::Bool->new(exists $self->{elements}->{$key});
+}
+
 
 sub __setitem__ {
     my ($self, $key, $value) = @_;
@@ -95,5 +112,38 @@ sub __tonative__ {
 
 sub __type__ { return 'dict'; }
 
+sub __eq__      {
+    my ($self, $other) = @_;
+
+    # if it's the same element it must match
+    return \Python2::Type::Scalar::Bool->new(1)
+        if refaddr($self) == refaddr($other);
+
+    # if it's not a dict just abort right here no need to compare
+    return \Python2::Type::Scalar::Bool->new(0)
+        unless $other->__class__ eq 'Python2::Type::Dict';
+
+    # if it's not at least the same size we don't need to compare any further
+    return \Python2::Type::Scalar::Bool->new(0)
+        unless ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__;
+
+    # we are comparing empty lists so they are identical
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ${ $self->__len__ }->__tonative__ == 0;
+
+    # compare all elements and return false if anything doesn't match
+    foreach (CORE::keys %{ $self->{elements} }) {
+        return \Python2::Type::Scalar::Bool->new(0)
+            unless ${ $other->has_key($_) }->__tonative__;
+
+        return \Python2::Type::Scalar::Bool->new(0)
+            unless ${
+                ${ $self->__getitem__($_) }->__eq__(${ $other->__getitem__($_) });
+            }->__tonative__;
+    }
+
+    # all matched - return true
+    return \Python2::Type::Scalar::Bool->new(1);
+}
 
 1;
