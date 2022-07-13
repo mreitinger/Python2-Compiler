@@ -253,7 +253,7 @@ my $arithmetic_operations = {
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
         elsif (!looks_like_number($left) or !looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left.$right);
+            return \Python2::Type::Scalar::String->new($left.$right);
         }
         else {
             die("unsupported operand type(s) for '+'.");
