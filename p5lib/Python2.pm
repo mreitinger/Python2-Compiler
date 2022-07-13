@@ -234,9 +234,15 @@ sub compare {
     die("comparison for $operator not yet implemented");
 }
 
+
+# TODO all of those should use the magic methods like python does.
+# TODO This way we could skip a lot of the type checks
 my $arithmetic_operations = {
     '+' => sub {
         my ($left, $right) = @_;
+
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left + $right);
@@ -256,6 +262,9 @@ my $arithmetic_operations = {
     '-' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left - $right);
         } else {
@@ -265,6 +274,9 @@ my $arithmetic_operations = {
 
     '*' => sub {
         my ($left, $right) = @_;
+
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left * $right);
@@ -276,6 +288,9 @@ my $arithmetic_operations = {
     '/' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left / $right);
         } else {
@@ -285,6 +300,9 @@ my $arithmetic_operations = {
 
     '//' => sub {
         my ($left, $right) = @_;
+
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left / $right);
@@ -296,6 +314,9 @@ my $arithmetic_operations = {
     '**' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left ** $right);
         } else {
@@ -305,6 +326,9 @@ my $arithmetic_operations = {
 
     '&' => sub {
         my ($left, $right) = @_;
+
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left & $right);
@@ -316,6 +340,9 @@ my $arithmetic_operations = {
     '|' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left | $right);
         } else {
@@ -325,6 +352,9 @@ my $arithmetic_operations = {
 
     '^' => sub {
         my ($left, $right) = @_;
+
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left ^ $right);
@@ -336,6 +366,9 @@ my $arithmetic_operations = {
     '>>' => sub {
         my ($left, $right) = @_;
 
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
+
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left >> $right);
         } else {
@@ -345,6 +378,9 @@ my $arithmetic_operations = {
 
     '<<' => sub {
         my ($left, $right) = @_;
+
+        $left  = $left->__tonative__;
+        $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar->new($left << $right);
@@ -356,17 +392,19 @@ my $arithmetic_operations = {
     '%' => sub {
         my ($left, $right) = @_;
 
-        if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar->new($left % $right);
+        if (looks_like_number($left->__tonative__) and looks_like_number($right->__tonative__)) {
+            return \Python2::Type::Scalar->new($left->__tonative__ % $right->__tonative__);
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
-        elsif (!looks_like_number($left) or !looks_like_number($right)) {
+        elsif (!looks_like_number($left->__tonative__) or !looks_like_number($right->__tonative__)) {
             return \Python2::Type::Scalar->new(sprintf(
-                $left,
-                ref($right) eq 'ARRAY' ? @$right : $right
+                $left->__tonative__,
+                ref($right) eq 'Python2::Type::List'
+                    ? map { $_->__print__ } @{ $right->elements }
+                    : $right->__print__
             ));
         }
         else {
@@ -380,7 +418,7 @@ sub arithmetic {
 
     # TODO - since introducing Python2::Type::Scalar we can probably handle all of this
     # TODO - with just operator overloading.
-    return $arithmetic_operations->{$operator}->($left->__tonative__, $right->__tonative__)
+    return $arithmetic_operations->{$operator}->($left, $right)
         if defined $arithmetic_operations->{$operator};
 
     die("arithmetic_operations for $operator not yet implemented");
