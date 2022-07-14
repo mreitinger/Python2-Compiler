@@ -112,7 +112,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
-        return sprintf('py2print(${ %s })', $.e($node.value));
+        return sprintf('py2print(${ %s }, {})', $.e($node.value));
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
@@ -443,11 +443,15 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::TestList $node) {
-        return $node.tests.map({
-            $.e($_)
-        }).join(' ');
-    }
+        # if a tuple would only contain a single element python disregards the parenthesis
+        # TODO python allowes the creation of single-element tuples by adding a comma "(1,)"
 
+        return  $node.tests.elems > 1
+                    ??  sprintf('\Python2::Type::Tuple->new(%s)',
+                            $node.tests.map({ '${' ~ self.e($_) ~ '}' }).join(', ')
+                        )
+                    !!  sprintf('%s', $.e($node.tests[0]));
+    }
 
     # dictionary handling
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {

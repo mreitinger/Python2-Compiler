@@ -32,6 +32,8 @@ def h():
 def i():
     return 1 == 1
 
+def j():
+    return (1, 2, 3)
 
 
 
@@ -45,3 +47,4 @@ g()
 print "A %s" % h()
 print "B %s" % i()
 print "C %s %s" % (h(), i())
+print j()

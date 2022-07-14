@@ -12,6 +12,7 @@ use Carp qw/ confess /;
 use Carp::Always;
 
 use Python2::Type::List;
+use Python2::Type::Tuple;
 use Python2::Type::Dict;
 use Python2::Type::Scalar::String;
 use Python2::Type::Scalar::Num;
@@ -90,14 +91,6 @@ our $builtins = [
                 return \Python2::Type::List->new(1 .. shift->__tonative__);
             },
 
-            'print' => sub {
-                my $arguments = shift // [];
-
-                die ("NYI: print called with multiple arguments") if (scalar(@$arguments) > 1);
-
-                Python2::py2print($arguments->[0]);
-            },
-
             'None' => Python2::Type::Scalar::None->new(),
 
             'True'  => Python2::Type::Scalar::Bool->new(1),
@@ -119,17 +112,10 @@ sub getvar {
     return $call_frame->[ITEMS]->{$name} ? \$call_frame->[ITEMS]->{$name} : \$stack->[ITEMS]->{$name};
 }
 
-# print like python does: attempt to produce output perfectly matching Python's
-# TODO use Ref::Util(::XS?)
 sub py2print {
-    my $var = shift;
-
-    if (ref($var) =~ m/^Python2::Type::/) {
-        say $var->__print__;
-    }
-    else {
-        confess("not implemented for " . ref($var));
-    }
+    pop(@_); # named arguments hash
+    print $_->__print__ foreach(@_);
+    print "\n";
 }
 
 my $comparisons = {

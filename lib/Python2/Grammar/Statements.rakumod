@@ -31,9 +31,8 @@ role Python2::Grammar::Statements {
         [<lower>|<upper>|<digit>|_|\:]+
     }
 
-    # TODO this should be test-list but that returns tuples which we don't support yet
     token statement-return {
-        | 'return' [\h+ <test>]?
+        | 'return' [\h+ <test-list>]?
     }
 
     token statement-loop-for {
