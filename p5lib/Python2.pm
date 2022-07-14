@@ -12,6 +12,7 @@ use Carp qw/ confess /;
 use Carp::Always;
 
 use Python2::Type::List;
+use Python2::Type::Enumerate;
 use Python2::Type::Tuple;
 use Python2::Type::Dict;
 use Python2::Type::Scalar::String;
@@ -93,6 +94,9 @@ our $builtins = [
 
             'iter'  => sub { shift->__iter__() },
             'next'  => sub { shift->__next__() },
+            'enumerate' => sub {
+                return \Python2::Type::Enumerate->new(shift),
+            },
 
             'None' => Python2::Type::Scalar::None->new(),
 
