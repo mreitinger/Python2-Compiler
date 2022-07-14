@@ -91,6 +91,9 @@ our $builtins = [
                 return \Python2::Type::List->new(1 .. shift->__tonative__);
             },
 
+            'iter'  => sub { shift->__iter__() },
+            'next'  => sub { shift->__next__() },
+
             'None' => Python2::Type::Scalar::None->new(),
 
             'True'  => Python2::Type::Scalar::Bool->new(1),

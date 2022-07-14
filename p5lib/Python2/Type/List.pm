@@ -29,6 +29,8 @@ sub __getitem__ {
     return \$self->{elements}->[$key->__tonative__];
 }
 
+sub __iter__ { \Python2::Type::List::Iterator->new(shift); }
+
 sub __getslice__ {
     my ($self, $key, $target) = @_;
 
