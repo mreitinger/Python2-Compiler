@@ -41,12 +41,6 @@ sub setvar {
     $stack->[ITEMS]->{$name} = $value;
 }
 
-sub setvar_e {
-    my ($stack, $name, $element, $value) = @_;
-
-    $stack->[ITEMS]->{$name}->set($element, $value);
-}
-
 # builtins is used as our top level stack so it must look like one
 our $builtins = [
     [
@@ -452,7 +446,6 @@ sub getopt {
 sub convert_to_python_type {
     my ($value) = @_;
 
-    # TODO - do introduce some kind of None type object?
     # undef
     return \Python2::Type::Scalar::None->new() unless defined $value;
 
