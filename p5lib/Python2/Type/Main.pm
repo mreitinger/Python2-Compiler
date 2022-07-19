@@ -50,7 +50,7 @@ sub __handle_python_exception__ {
 
     # unable to get a decent internal position - do the best we can and output a
     # perl stack trace
-    unless ($start_position and $end_position) {
+    unless (defined $start_position and defined $end_position) {
         die $error->__trace__->as_string;
     }
 
@@ -80,7 +80,7 @@ sub __handle_python_exception__ {
     $output .= sprintf("%5i | %s\n",
         $failed_at_line - 1,
         $input_as_lines[$failed_at_line - 2],
-    ) if defined $input_as_lines[$failed_at_line - 2];
+    ) if (($failed_at_line-2 > 0) and (defined $input_as_lines[$failed_at_line - 2]));
 
     # output line with syntax error
     $output .= sprintf("%5i | %s\n",
