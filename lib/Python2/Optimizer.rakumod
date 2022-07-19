@@ -74,6 +74,8 @@ class Python2::Optimizer {
             my $name = $attribute.name.subst(/^[\$|\@|\%]\!?/, '');
 
             if ($attribute.name ~~ /^^\$/) {
+                next if $name eq 'start-position';
+                next if $name eq 'end-position';
                 $.t( $node."$name"() );
             }
             elsif ($attribute.name ~~ /^^\@/) {

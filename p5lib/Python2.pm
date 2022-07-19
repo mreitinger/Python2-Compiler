@@ -9,7 +9,6 @@ use Data::Dumper;
 use Scalar::Util qw/ looks_like_number blessed /;
 use Clone qw/ clone /;
 use Carp qw/ confess /;
-use Carp::Always;
 
 use Python2::Type::List;
 use Python2::Type::Enumerate;
@@ -20,13 +19,14 @@ use Python2::Type::Scalar::Num;
 use Python2::Type::Scalar::Bool;
 use Python2::Type::Scalar::None;
 use Python2::Type::PerlObject;
+use Python2::Type::Exception;
 
 use Exporter qw/ import /;
 our @EXPORT = qw/
     getvar              setvar                  compare
     call                py2print                arithmetic
     register_function   create_class            $builtins
-    getopt              convert_to_python_type
+    getopt              convert_to_python_type  raise
 /;
 
 use constant {
@@ -86,6 +86,7 @@ our $builtins = [
                 return \Python2::Type::List->new(1 .. shift->__tonative__);
             },
 
+
             'iter'  => sub { shift->__iter__() },
             'next'  => sub { shift->__next__() },
             'enumerate' => sub {
@@ -96,6 +97,8 @@ our $builtins = [
 
             'True'  => Python2::Type::Scalar::Bool->new(1),
             'False' => Python2::Type::Scalar::Bool->new(0),
+
+            'Exception' => sub { \Python2::Type::Exception->new('Exception', shift); }
         }
     ]
 ];
@@ -111,6 +114,15 @@ sub getvar {
     }
 
     return $call_frame->[ITEMS]->{$name} ? \$call_frame->[ITEMS]->{$name} : \$stack->[ITEMS]->{$name};
+}
+
+sub raise {
+    my $exception = shift;
+
+    die("Expected a exception object")
+        unless $exception->__type__ eq 'exception';
+
+    die $exception;
 }
 
 sub py2print {
@@ -424,7 +436,8 @@ sub getopt {
 
         # we got a positional argument. check if it conflicts and use it otherwise.
         if (exists $arguments[0]) {
-            die("$function_name(): conflict between named/positional argument '$name'")
+            # TODO we should handle this at compile time
+            die Python2::Type::Exception->new('SyntaxError', "$function_name(): conflict between named/positional argument '$name'")
                 if exists $named_arguments->{$name};
 
             setvar($stack, $name, shift(@arguments));

@@ -5,7 +5,9 @@ class Python2::Actions::Expressions {
     # top level 'expression'
     method expression ($/) {
         $/.make(Python2::AST::Node::Expression::Container.new(
-            expression  => $/<arithmetic-expression-low-precedence>.made,
+            start-position  => $/.from,
+            end-position    => $/.to,
+            expression      => $/<arithmetic-expression-low-precedence>.made,
         ));
     }
 
@@ -15,12 +17,16 @@ class Python2::Actions::Expressions {
 
     method name ($/) {
         $/.make(Python2::AST::Node::Name.new(
-            name => $/.Str
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $/.Str,
         ))
     }
 
     method lambda-definition ($/) {
         $/.make(Python2::AST::Node::LambdaDefinition.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             argument-list   => $/<function-definition-argument-list>.made,
             block           => $/<test>.made,
         ));
@@ -30,19 +36,25 @@ class Python2::Actions::Expressions {
     # we need it to match atom/trailers.
     method power ($/) {
         $/.make(Python2::AST::Node::Power.new(
-            atom        => $/<atom>.made,
-            trailers    => $/<trailer>.map({ $_.made })
+            start-position  => $/.from,
+            end-position    => $/.to,
+            atom            => $/<atom>.made,
+            trailers        => $/<trailer>.map({ $_.made })
         ))
     }
 
     multi method atom ($/ where $/<dictionary-entry-list>) {
         $/.make(Python2::AST::Node::Atom.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             expression => $/<dictionary-entry-list>.made
         ))
     }
 
     multi method atom ($/) {
         $/.make(Python2::AST::Node::Atom.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             expression => $/.values[0].made
         ))
     }
@@ -52,6 +64,8 @@ class Python2::Actions::Expressions {
         my $string-prefix = $/<string-prefix>:exists ?? $/<string-prefix> !! '';
 
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             value => $/<single-quoted-string>.<string-literal-single-quoted>.Str,
             raw   => $string-prefix eq 'r',
         ));
@@ -61,6 +75,8 @@ class Python2::Actions::Expressions {
         my $string-prefix = $/<string-prefix>:exists ?? $/<string-prefix> !! '';
 
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             value => $/<double-quoted-string>.<string-literal-double-quoted>.Str,
             raw   => $string-prefix eq 'r'
         ));
@@ -68,6 +84,8 @@ class Python2::Actions::Expressions {
 
     multi method string ($/ where $/<triple-single-quoted-string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             value => $/<triple-single-quoted-string>.<string-literal-triple-single-quoted>.Str,
             raw   => False,
         ));
@@ -75,6 +93,8 @@ class Python2::Actions::Expressions {
 
     multi method string ($/ where $/<triple-double-quoted-string>) {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             value => $/<triple-double-quoted-string>.<string-literal-triple-double-quoted>.Str,
             raw   => False,
         ));
@@ -82,24 +102,32 @@ class Python2::Actions::Expressions {
 
     multi method number ($/ where $/<integer>) {
         $/.make(Python2::AST::Node::Expression::Literal::Integer.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             value => $/<integer>.Int,
         ));
     }
 
     multi method number ($/ where $/<float>) {
         $/.make(Python2::AST::Node::Expression::Literal::Float.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             value => $/<float>.Num,
         ))
     }
 
     method arithmetic-operator-high-precedence ($/) {
         $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             arithmetic-operator => $/.Str.trim, #TODO not sure why whitespace gets captured here?
         ));
     }
 
     method arithmetic-operator-low-precedence ($/) {
         $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             arithmetic-operator => $/.Str.trim, #TODO not sure why whitespace gets captured here?
         ));
     }
@@ -123,6 +151,8 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::ArithmeticExpression.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             operations => @operations,
         ));
     }
@@ -145,6 +175,8 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::ArithmeticExpression.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             operations => @operations,
         ));
     }
@@ -152,6 +184,8 @@ class Python2::Actions::Expressions {
     # subscript
     method subscript ($/) {
         $/.make(Python2::AST::Node::Subscript.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             value   => $/<test>[0].made,
             target  => $/<test>[1]:exists ?? $/<test>[1].made !! Nil,
         ))
@@ -196,6 +230,8 @@ class Python2::Actions::Expressions {
         }
 
         $/.make(Python2::AST::Node::Expression::DictionaryDefinition.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             entries => @dictionary-entries,
         ));
     }
@@ -207,18 +243,24 @@ class Python2::Actions::Expressions {
     # instance variable access
     method instance-variable-access ($/) {
         $/.make(Python2::AST::Node::Expression::InstanceVariableAccess.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             name => $/<name>.made,
         ))
     }
 
     method argument-list($/) {
         $/.make(Python2::AST::Node::ArgumentList.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             arguments => $/<argument>.map({ $_.made })
         ));
     }
 
     method argument($/) {
         $/.make(Python2::AST::Node::Argument.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             name    => $/<name> ?? $/<name>.made !! Nil,
             value   => $/<test>.made,
         ));

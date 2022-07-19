@@ -7,7 +7,9 @@ class Python2::Actions
     is Python2::Actions::Expressions
 {
     method TOP ($/) {
-        my $root = Python2::AST::Node::Root.new();
+        my $root = Python2::AST::Node::Root.new(
+            input => $/.orig,
+        );
 
         for $<statement> -> $statement {
             $root.nodes.push($statement.made)
@@ -27,7 +29,9 @@ class Python2::Actions
 
     method comment($/) {
         make Python2::AST::Node::Comment.new(
-            comment => $0.Str
+            start-position  => $/.from,
+            end-position    => $/.to,
+            comment         => $0.Str
         );
     }
 

@@ -6,6 +6,7 @@ role Python2::Grammar::Statements {
             | <variable-assignment>
             | <arithmetic-assignment>
             | <statement-print>
+            | <statement-raise>
             | <statement-return>
             | <expression>
             | <statement-loop-for>
@@ -20,6 +21,10 @@ role Python2::Grammar::Statements {
 
     token statement-print {
         'print' <.ws> <test>
+    }
+
+    token statement-raise {
+        'raise' <.ws> <test>
     }
 
     token statement-p5import {

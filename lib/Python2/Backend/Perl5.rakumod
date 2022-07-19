@@ -11,8 +11,6 @@ class Python2::Backend::Perl5 {
         use v5.26.0;
         use strict;
         use lib qw( p5lib );
-        use Carp;
-        $Carp::Verbose = 1;
 
         %s
 
@@ -24,15 +22,98 @@ class Python2::Backend::Perl5 {
             use constant { PARENT => 0, ITEMS => 1 };
 
             sub new {
+
                 return bless({ stack => [$builtins] }, 'python_class_main');
             }
 
             sub block { my $self = shift; my $stack = $self->{stack}; %s }
         }
 
+        my $input = <<'PythonInput';
+        %s
+        PythonInput
+
         my $p2 = python_class_main->new();
-        $p2->block();
-    END
+
+        eval { $p2->block(); };
+        if ($@) {
+            my $error = $@;
+
+            if (ref($error) eq 'Python2::Type::Exception') {
+                my $message        = $error->message;
+
+                my $start_position;
+                my $end_position;
+                while (my $frame = $error->__trace__->next_frame) {
+                    next unless $frame->package =~ m/^(Python2::Type::Class|python_class_main)/;
+
+                    if ($frame->filename =~ m/^___position_(\d+)_(\d+)___$/) {
+                        $start_position = $1;
+                        $end_position   = $2;
+                    }
+                }
+
+                # unable to get a decent internal position - do the best we can and output a
+                # perl stack trace
+                unless ($start_position and $end_position) {
+                    die $error->__trace__->as_string;
+                }
+
+                my @input_as_lines = split(/\n/, $input);
+
+                my $failed_at_line = () = substr($input, 0, $start_position) =~ /\n/g;
+                $failed_at_line++;
+
+                my $failed_position_in_line =
+                    $failed_at_line > 1
+                        ?
+                            ($start_position  # total position (in charaters) where the execution failed
+
+                            # ignore all characters from preceeding lines
+                            - length(join("\n", @input_as_lines[0 .. $failed_at_line - 2]))
+
+                            # ignore \n characters, except failing line
+                            - $failed_at_line + 1)
+                        :
+                            $start_position;
+
+                print STDERR "Execution failed at line $failed_at_line\n\n";
+
+                # output preceeding line, if present
+                say STDERR sprintf("%%5i | %%s",
+                    $failed_at_line - 1,
+                    $input_as_lines[$failed_at_line - 2],
+                ) if defined $input_as_lines[$failed_at_line - 2];
+
+                # output line with syntax error
+                say STDERR sprintf("%%5i | %%s",
+                    $failed_at_line,
+                    $input_as_lines[$failed_at_line - 1],
+                );
+
+                print STDERR '        ' . ' ' x $failed_position_in_line;
+                print '^' x ($end_position - $start_position - 1) . " - $message\n";
+
+                # output subsequent line, if present
+                say STDERR sprintf("%%5i | %%s",
+                    $failed_at_line + 1,
+                    $input_as_lines[$failed_at_line - 0],
+                ) if defined $input_as_lines[$failed_at_line - 0];
+
+                say STDERR;
+
+
+                say STDERR 'Internal stack trace:';
+
+                while (my $frame = $error->__trace__->next_frame) {
+                    say STDERR sprintf(' - %%s', $frame->subroutine, join(', ', $frame->args));
+                }
+
+                exit 1;
+            }
+            else { die; }
+        }
+        END
 
     # we use an array instead of a hash for faster lookups.
     # Layout:
@@ -50,7 +131,7 @@ class Python2::Backend::Perl5 {
             $!o ~= $.e($_);
         }
 
-        return sprintf($!wrapper, $!modules, $!o);
+        return sprintf($!wrapper, $!modules, $!o, $node.input);
     }
 
     multi method e(Python2::AST::Node::Atom $node) {
@@ -108,11 +189,16 @@ class Python2::Backend::Perl5 {
     # Statements
     # statement 'container': if it's a statement append ; to make the perl parser happy
     multi method e(Python2::AST::Node::Statement $node) {
-        return $.e($node.statement) ~ ";\n";
+        my Str $p5  = qq|\n# line 999 "___position_{$node.start-position}_{$node.end-position}___"\n|;
+               $p5 ~= $.e($node.statement) ~ ";\n";
     }
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
         return sprintf('py2print(${ %s }, {})', $.e($node.value));
+    }
+
+    multi method e(Python2::AST::Node::Statement::Raise $node) {
+        return sprintf('raise(${ %s }, {})', $.e($node.value));
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {

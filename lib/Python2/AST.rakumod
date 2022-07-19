@@ -1,8 +1,13 @@
 class Python2::AST {
-    class Node {}
+    class Node {
+        # position in the original python file
+        has $.start-position = Nil;       # TODO mark as required once we support it everywhere
+        has $.end-position   = Nil;       # TODO mark as required once we support it everywhere
+    }
 
     class Node::Root is Node {
         has Node @.nodes is rw;
+        has Str  $.input is required;
     }
 
     class Node::Expression is Node {}
@@ -118,6 +123,10 @@ class Python2::AST {
     }
 
     class Node::Statement::Print is Node::Expression {
+        has $.value is required is rw;
+    }
+
+    class Node::Statement::Raise is Node::Expression {
         has $.value is required is rw;
     }
 
