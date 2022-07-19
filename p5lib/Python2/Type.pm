@@ -9,6 +9,8 @@ use Python2;
 use Data::Dumper;
 use Scalar::Util qw/ refaddr /;
 
+use constant { PARENT => 0, ITEMS => 1 };
+
 sub __print__   { return shift->__str__; }
 sub __str__     { ...; }
 sub __dump__    { warn Dumper(shift); }

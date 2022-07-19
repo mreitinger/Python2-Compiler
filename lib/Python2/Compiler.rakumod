@@ -7,8 +7,10 @@ use Data::Dump;
 class Python2::Compiler {
     has Bool $.optimize = True;
     has Bool $.dumpast  = False;
+    has Str  $.embedded;
+
+    has $!backend = Python2::Backend::Perl5.new(:$!embedded);
     has $!parser        = Python2::Grammar.new();
-    has $!backend       = Python2::Backend::Perl5.new();
     has $!optimizer     = Python2::Optimizer.new();
     has $!actions       = Python2::Actions.new();
 

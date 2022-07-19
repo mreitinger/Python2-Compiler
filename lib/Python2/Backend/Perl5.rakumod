@@ -5,6 +5,11 @@ use Data::Dump;
 class Python2::Backend::Perl5 {
     has Str $!o = '';
     has Str $!modules = '';
+    has Str $.embedded; # class name to use as 'main' class.
+                        # used when embedding the code in some other environment where the caller
+                        # needs to know the main class name
+                        # if this is set the call to main->block() is not included in the output
+                        # and is left for the caller to execute so parameters can be passed.
 
 
     has Str $!wrapper = q:to/END/;
@@ -14,105 +19,25 @@ class Python2::Backend::Perl5 {
 
         %s
 
-        package python_class_main {
-            use Data::Dumper;
-            use Ref::Util::XS qw/ is_arrayref is_hashref is_coderef /;
+        package Python2::Type::Class::main_%s {
             use Python2;
+            use base 'Python2::Type::Main';
 
-            use constant { PARENT => 0, ITEMS => 1 };
-
-            sub new {
-
-                return bless({ stack => [$builtins] }, 'python_class_main');
-            }
-
-            sub block { my $self = shift; my $stack = $self->{stack}; %s }
-        }
-
-        my $input = <<'PythonInput';
+            # return the source of the original python file
+            sub __source__ {
+        return <<'PythonInput%s';
         %s
-        PythonInput
-
-        my $p2 = python_class_main->new();
-
-        eval { $p2->block(); };
-        if ($@) {
-            my $error = $@;
-
-            if (ref($error) eq 'Python2::Type::Exception') {
-                my $message        = $error->message;
-
-                my $start_position;
-                my $end_position;
-                while (my $frame = $error->__trace__->next_frame) {
-                    next unless $frame->package =~ m/^(Python2::Type::Class|python_class_main)/;
-
-                    if ($frame->filename =~ m/^___position_(\d+)_(\d+)___$/) {
-                        $start_position = $1;
-                        $end_position   = $2;
-                    }
-                }
-
-                # unable to get a decent internal position - do the best we can and output a
-                # perl stack trace
-                unless ($start_position and $end_position) {
-                    die $error->__trace__->as_string;
-                }
-
-                my @input_as_lines = split(/\n/, $input);
-
-                my $failed_at_line = () = substr($input, 0, $start_position) =~ /\n/g;
-                $failed_at_line++;
-
-                my $failed_position_in_line =
-                    $failed_at_line > 1
-                        ?
-                            ($start_position  # total position (in charaters) where the execution failed
-
-                            # ignore all characters from preceeding lines
-                            - length(join("\n", @input_as_lines[0 .. $failed_at_line - 2]))
-
-                            # ignore \n characters, except failing line
-                            - $failed_at_line + 1)
-                        :
-                            $start_position;
-
-                print STDERR "Execution failed at line $failed_at_line\n\n";
-
-                # output preceeding line, if present
-                say STDERR sprintf("%%5i | %%s",
-                    $failed_at_line - 1,
-                    $input_as_lines[$failed_at_line - 2],
-                ) if defined $input_as_lines[$failed_at_line - 2];
-
-                # output line with syntax error
-                say STDERR sprintf("%%5i | %%s",
-                    $failed_at_line,
-                    $input_as_lines[$failed_at_line - 1],
-                );
-
-                print STDERR '        ' . ' ' x $failed_position_in_line;
-                print '^' x ($end_position - $start_position - 1) . " - $message\n";
-
-                # output subsequent line, if present
-                say STDERR sprintf("%%5i | %%s",
-                    $failed_at_line + 1,
-                    $input_as_lines[$failed_at_line - 0],
-                ) if defined $input_as_lines[$failed_at_line - 0];
-
-                say STDERR;
-
-
-                say STDERR 'Internal stack trace:';
-
-                while (my $frame = $error->__trace__->next_frame) {
-                    say STDERR sprintf(' - %%s', $frame->subroutine, join(', ', $frame->args));
-                }
-
-                exit 1;
+        PythonInput%s
             }
-            else { die; }
+
+            sub __block__ { my $self = shift; my $stack = $self->{stack}; %s }
         }
+        END
+
+    # code to auto-execute our main block. used for script execution and skipped when embedding
+    has Str $!autoexec = q:to/END/;
+        my $py2main = Python2::Type::Class::main_%s->new();
+        $py2main->__run__();
         END
 
     # we use an array instead of a hash for faster lookups.
@@ -131,7 +56,27 @@ class Python2::Backend::Perl5 {
             $!o ~= $.e($_);
         }
 
-        return sprintf($!wrapper, $!modules, $!o, $node.input);
+        # sha1 hash of our input - used to identify the main clas
+        my Str $class_sha1_hash = sha1-hex($node.input);
+
+        my Str $output = sprintf(
+            $!wrapper,          # wrapper / sprintf definition
+            $!modules,          # python class definitions
+
+            # name of the main package. provided when we get embedded or auto generated from sha1 hash
+            $.embedded ?? $.embedded !! $class_sha1_hash,
+
+            $class_sha1_hash,   # sha1 hash for source heredoc start
+            $node.input,        # python2 source code for exception handling
+            $class_sha1_hash,   # sha1 hash for source heredoc end
+            $!o,                # block of main body
+        );
+
+        unless ($.embedded) {
+            $output ~= sprintf($!autoexec, $class_sha1_hash);
+        }
+
+        return $output;
     }
 
     multi method e(Python2::AST::Node::Atom $node) {
