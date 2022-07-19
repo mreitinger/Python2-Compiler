@@ -21,7 +21,12 @@ sub __str__ {
     return '[' . join(', ', map { $_->__str__ } @{ $self->{elements} }) . ']';
 }
 
+sub __iadd__ { push(@{ shift->{elements} }, shift); }
+sub append   { shift->__iadd__(shift); }
+
 sub elements { shift->{elements} }
+
+
 
 sub __getitem__ {
     my ($self, $key) = @_;
