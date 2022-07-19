@@ -206,15 +206,15 @@ class Python2::Backend::Perl5 {
 
         if ($node.condition) {
             $p5 ~= sprintf(
-                'sub { my $p = %s; $$p // die("NameError" ); ref($$p) eq "CODE" ? $p :$$p->__tonative__; }->() ? ',
+                'sub { my $p = %s; $$p // die Python2::Type::Exception->new("NameError", "TODO - varname"); ref($$p) eq "CODE" ? $p :$$p->__tonative__; }->() ? ',
                 $.e($node.condition)
             );
         }
 
-        $p5 ~= sprintf('sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.left));
+        $p5 ~= sprintf('sub { my $p = %s; $$p // die Python2::Type::Exception->new("NameError", "TODO - varname"); $p; }->()', $.e($node.left));
 
         if ($node.condition) {
-            $p5 ~= sprintf(': sub { my $p = %s; $$p // die("NameError" ); $p; }->()', $.e($node.right));
+            $p5 ~= sprintf(': sub { my $p = %s; $$p // die Python2::Type::Exception->new("NameError", "TODO - varname"); $p; }->()', $.e($node.right));
         }
 
         return $p5;
