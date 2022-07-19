@@ -47,4 +47,19 @@ sub __is__  {
     }
 }
 
+sub AUTOLOAD {
+    my $self = shift;
+
+    our $AUTOLOAD;
+    my $requested_method = $AUTOLOAD;
+    $requested_method =~ s/.*:://;
+
+    return if ($requested_method eq 'DESTROY');
+
+    die Python2::Type::Exception->new(
+        'AttributeError',
+        sprintf("%s instance has no attribute '%s'", 'TODO', $requested_method)
+    );
+}
+
 1;
