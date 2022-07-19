@@ -30,7 +30,16 @@ class Python2::Backend::Perl5 {
         PythonInput%s
             }
 
-            sub __block__ { my $self = shift; my $stack = $self->{stack}; %s }
+            sub __block__ {
+                my ($self, $args) = @_;
+                my $stack = $self->{stack};
+
+                while(my ($key, $value) = each(%%$args)) {
+                    setvar($stack, $key, ${ convert_to_python_type($value) });
+                }
+
+                %s
+            }
         }
         END
 

@@ -17,9 +17,9 @@ sub new {
 
 # execute our main block with error handler
 sub __run__ {
-    my $self = shift;
+    my ($self, $args) = @_;
 
-    my $retval = eval { $self->__block__(); };
+    my $retval = eval { $self->__block__($args); };
 
     return $retval unless $@;
 

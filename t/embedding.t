@@ -5,7 +5,9 @@ use Python2::Compiler;
 
 subtest "embedding" => sub {
     my Str $input = q:to/END/;
-    print 'test'
+    print a
+    print b
+    print c
     END
 
     my $compiler = Python2::Compiler.new(
@@ -16,7 +18,7 @@ subtest "embedding" => sub {
 
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
-        $p5->__run__();
+        $p5->__run__({ a => 'b', b => ['1', '2', '3'], c => { 4 => 5 } });
     END
 
     my $perl5;
@@ -31,7 +33,7 @@ subtest "embedding" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    is $perl5_output, "test\n", 'output matches';
+    is $perl5_output, "b\n[1, 2, 3]\n\{4: 5\}\n", 'output matches';
 
 };
 
