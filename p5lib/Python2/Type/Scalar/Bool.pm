@@ -12,7 +12,7 @@ sub new {
     }, $self);
 }
 
-sub __str__         { return shift->{value} ? "'True'" : "'False'"; }
+sub __str__         { return shift->{value} ? 'True' : 'False'; }
 sub __print__       { return shift->{value} ? 'True' : 'False' }
 sub __tonative__    { return shift->{value}; }
 sub __type__        { return 'bool'; }
