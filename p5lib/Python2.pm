@@ -93,6 +93,21 @@ our $builtins = [
                 return \Python2::Type::Enumerate->new(shift),
             },
 
+            'filter' => sub {
+                my ($filter, $list) = @_;
+
+                my $result = Python2::Type::List->new();
+
+                if ($filter->__type__ eq 'none') {
+                    foreach(@{ $list->elements }) {
+                        $result->__iadd__($_) if $_->__tonative__;
+                    }
+                }
+                else { ...; }
+
+                return \$result;
+            },
+
             'None' => Python2::Type::Scalar::None->new(),
 
             'True'  => Python2::Type::Scalar::Bool->new(1),
