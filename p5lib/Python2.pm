@@ -252,18 +252,18 @@ my $arithmetic_operations = {
     '+' => sub {
         my ($left, $right) = @_;
 
-        $left  = $left->__tonative__;
-        $right = $right->__tonative__;
-
-        if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left + $right);
+        if ((ref($left) =~ m/^Python2::Type::Scalar::Num/) and (ref($right) =~ m/^Python2::Type::Scalar::Num/)) {
+            return \Python2::Type::Scalar::Num->new($left->__tonative__ + $right->__tonative__);
+        }
+        elsif (($left->__type__ eq 'list') and ($right->__type__ eq 'list')) {
+            return \Python2::Type::List->new(@{ $left->elements }, @{ $right->elements })
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
-        elsif (!looks_like_number($left) or !looks_like_number($right)) {
-            return \Python2::Type::Scalar::String->new($left.$right);
+        elsif ((ref($left) =~ m/^Python2::Type::Scalar/) and (ref($right) =~ m/^Python2::Type::Scalar/)) {
+            return \Python2::Type::Scalar::String->new($left->__tonative__ . $right->__tonative__);
         }
         else {
             die("unsupported operand type(s) for '+'.");
