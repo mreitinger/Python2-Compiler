@@ -160,6 +160,9 @@ class Python2::Backend::Perl5 {
         Python2::ParseFail.new(:pos($node.start-position), :what("Expected name")).throw()
             unless ($node.target.atom.expression ~~ Python2::AST::Node::Name);
 
+        # see AST::Node::Power
+        $node.target.must-resolve = False;
+
         return sprintf('${%s} = ${%s}',
             $.e($node.target),
             $.e($node.expression)
@@ -357,22 +360,40 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Power $node) {
         my @elements = ($node.atom, $node.trailers).flat;
 
-        # simple function-call. we handle this first so we produce simpler code and don't conflict with method calls
-        # down below
-        # TODO handle elemns == 1 up here and skip the sub{}
+        my Str $p5 = 'my $p;';
+
+        # simple function-call. we handle this first so we produce simpler code and
+        # don't conflict with method calls down below
         if @elements.elems == 2 and @elements[1] ~~ Python2::AST::Node::ArgumentList {
-            return sprintf('${ %s }->(%s)', $.e(@elements[0]), $.e(@elements[1]));
+            $p5 ~= sprintf('$p = %s;', $.e(@elements[0]));
+
+            $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
+                if $node.must-resolve;
+
+            $p5 ~= sprintf('$$p->(%s);', $.e(@elements[1]));
+
+            return sprintf('sub{ %s }->()', $p5);
+        }
+
+        # single atom
+        if (@elements.elems == 1) {
+            $p5 ~= sprintf('$p = %s;', $.e(@elements[0]));
+
+            $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
+                if ($node.must-resolve and @elements[0].expression ~~ Python2::AST::Node::Name);
+
+            return sprintf('sub{ %s; return $p; }->()', $p5);
         }
 
 
-        # chained expressions get wrapped in a sub{}
-        my Str $p5 = '';
+        # chained expressions
         while @elements.elems > 0 {
             my $current-element = @elements.shift;
             my $next-element = @elements.first;
 
             if $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
+
                 $p5 ~= sprintf('$p = ${$p}->%s(%s);',
                     $current-element.name,
                     $.e($argument-list)
@@ -385,13 +406,17 @@ class Python2::Backend::Perl5 {
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
                 $p5 ~= sprintf('$p = ${$p}->__getattr__(%s, {});', $.e($current-element));
+                $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
+                    if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
             }
             else {
                 $p5 ~= sprintf('$p = %s;', $.e($current-element));
+                $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
+                    if ($node.must-resolve or @elements.elems > 0) and ($current-element.expression ~~ Python2::AST::Node::Name);
             }
         }
 
-        return sprintf('sub{my $p = undef; %s}->()', $p5);
+        return sprintf('sub{my $p = undef; %s; return $p; }->()', $p5);
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {

@@ -22,6 +22,11 @@ class Python2::AST {
     }
 
     class Node::Power is Node {
+        # unless this is False we check if it
+        # resolves at runtime. this is overridden only by VariableAssignment.
+        # even if false everything but the last element (atom and/or trailers) must resolve.
+        has Bool $.must-resolve is rw = True;
+
         has Node $.atom     is required is rw;
         has Node @.trailers is required is rw;
     }
