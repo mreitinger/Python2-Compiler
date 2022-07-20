@@ -48,6 +48,20 @@ sub split {
     return \Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } @result);
 }
 
+sub join {
+    my ($self, $iterable) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("join() expects a iterable but got '%s'", $iterable->__type__))
+        unless ($iterable->__type__ eq 'list');
+
+    return \Python2::Type::Scalar::String->new(join($self->__tonative__, map {
+        die Python2::Type::Exception->new('TypeError', sprintf("expected string but found '%s' in iterable", $_->__type__))
+            unless $_->__type__ eq 'str';
+
+        $_->__tonative__;
+    } @{ $iterable->elements }));
+}
+
 sub __gt__ {
     my ($self, $other) = @_;
 
