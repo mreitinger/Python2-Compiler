@@ -2,6 +2,7 @@ use Python2::Grammar;
 use Python2::Actions;
 use Python2::Backend::Perl5;
 use Python2::Optimizer;
+use Python2::ParseFail;
 use Data::Dump;
 
 class Python2::Compiler {
@@ -20,12 +21,12 @@ class Python2::Compiler {
         CATCH {
             # generic parser error
             when X::Syntax::Confused {
-                self.parse-fail(:$input, :pos($_.pos));
+                self.handle-parse-fail(:$input, :pos($_.pos));
             }
 
             # our custom exceptions
-            when Python2::Grammar::ParseFail {
-                self.parse-fail(:$input, :pos($_.pos), :what($_.what));
+            when Python2::ParseFail {
+                self.handle-parse-fail(:$input, :pos($_.pos), :what($_.what));
             }
         }
 
@@ -41,7 +42,9 @@ class Python2::Compiler {
         return $!backend.e($root);
     }
 
-    method parse-fail(Str :$input, Int :$pos, Str :$what?) {
+    method handle-parse-fail(Str :$input, Int :$pos is copy, Str :$what?) {
+        $pos++; # TODO maybe ranges would work better (highlight from-to if appropriate)
+
         my @input-as-lines          = $input.lines;
         my $failed-at-line          = $input.substr(0, $pos).lines.elems;
 
@@ -75,8 +78,8 @@ class Python2::Compiler {
 
         # output position of the parser failure and what we expected (if we know).
         note $what.defined
-            ?? '        ' ~ ' ' x $failed-position-in-line ~ "^ -- expected '$what'"
-            !! '        ' ~ ' ' x $failed-position-in-line ~ '^ -- here';
+            ?? '       ' ~ ' ' x $failed-position-in-line ~ "^ -- $what"
+            !! '       ' ~ ' ' x $failed-position-in-line ~ '^ -- here';
 
         # output subsequent line, if present
         note sprintf("%5i | %s",

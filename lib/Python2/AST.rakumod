@@ -131,8 +131,8 @@ class Python2::AST {
     }
 
     class Node::Statement::VariableAssignment is Node::Expression {
-        has Node    $.target        is required is rw;
-        has Node    $.expression    is required is rw;
+        has Python2::AST::Node::Power   $.target        is required is rw;
+        has Node                        $.expression    is required is rw;
     }
 
     class Node::Statement::ArithmeticAssignment is Node::Expression {

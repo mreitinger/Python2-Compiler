@@ -1,6 +1,7 @@
 use Python2::AST;
 use Digest::SHA1::Native;
 use Data::Dump;
+use Python2::ParseFail;
 
 class Python2::Backend::Perl5 {
     has Str $!o = '';
@@ -156,6 +157,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
+        Python2::ParseFail.new(:pos($node.start-position), :what("Expected name")).throw()
+            unless ($node.target.atom.expression ~~ Python2::AST::Node::Name);
+
         return sprintf('${%s} = ${%s}',
             $.e($node.target),
             $.e($node.expression)

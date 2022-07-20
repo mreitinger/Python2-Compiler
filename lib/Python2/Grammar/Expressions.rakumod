@@ -13,7 +13,7 @@ role Python2::Grammar::Expressions {
     token argument-list {
         '('
             <argument>* %% <list-delimiter>
-        [ ')' || <parse-fail(:input(self.target), :pos(self.pos), :what(')'))> ]
+        [ ')' || <parse-fail(:pos(self.pos), :what('expected )'))> ]
     }
 
     token argument {
