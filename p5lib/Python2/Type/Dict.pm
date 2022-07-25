@@ -35,6 +35,10 @@ sub keys {
     );
 }
 
+sub clear {
+    shift->{elements} = {};
+}
+
 sub values {
     my $self = shift;
     return \Python2::Type::List->new(
