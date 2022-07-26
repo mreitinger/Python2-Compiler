@@ -2,7 +2,7 @@ package Python2;
 use v5.26.0;
 use warnings;
 use strict;
-use List::Util qw( max );
+use List::Util qw( max sum);
 use List::Util::XS; # ensure we use the ::XS version
 use Data::Dumper;
 
@@ -113,7 +113,32 @@ our $builtins = [
             'True'  => Python2::Type::Scalar::Bool->new(1),
             'False' => Python2::Type::Scalar::Bool->new(0),
 
-            'Exception' => sub { \Python2::Type::Exception->new('Exception', shift); }
+            'Exception' => sub { \Python2::Type::Exception->new('Exception', shift); },
+
+            'sum' => sub {
+                pop(@_); # default named arguments hash
+
+                my ($list, $start_value) = @_;
+
+                $start_value ||= Python2::Type::Scalar::Num->new(0);
+
+                die Python2::Type::Exception->new('TypeError', 'sum() expects a list')
+                    unless ($list->__class__ eq 'Python2::Type::List');
+
+                die Python2::Type::Exception->new('TypeError', 'sum() expects a number as start_value, got ' . $start_value->__type__)
+                    unless ($start_value->__class__ eq 'Python2::Type::Scalar::Num');
+
+                my @plist = map {
+                    die Python2::Type::Exception->new('TypeError', 'sum() found invalid list element: ' . $_->__type__)
+                        unless ($_->__class__ eq 'Python2::Type::Scalar::Num');
+
+                    $_->__tonative__;
+                } @{$list->elements};
+
+                my $retval = sum(@plist) + $start_value->__tonative__;
+
+                return \Python2::Type::Scalar::Num->new($retval);
+            }
         }
     ]
 ];
