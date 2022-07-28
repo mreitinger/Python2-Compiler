@@ -223,8 +223,8 @@ class Python2::Actions::Expressions {
         my @dictionary-entries;
 
         for $/<dictionary-entry> -> $entry {
-            my $key = $entry<test>.made;
-            my $expression = $entry<expression>.made;
+            my $key         = $entry<test>[0].made;
+            my $expression  = $entry<test>[1].made;
 
             @dictionary-entries.append(Pair.new($key, $expression));
         }
