@@ -4,6 +4,15 @@ use warnings;
 use strict;
 use Devel::StackTrace;
 
+use overload
+    '""' => '__str__',
+
+    # used so we can do "cheap" runtime checks
+    'eq' => sub {
+        my ($self, $expected) = @_;
+        return 1 if ($self->[0] eq $expected);
+    };
+
 my $valid_exceptions = {
     Exception => 1,
     StandardError => 1,
@@ -49,7 +58,7 @@ sub message { shift->[1] }
 
 sub __str__  {
     my $self = shift;
-    return sprintf("%s: %s", $self->[0]);
+    return sprintf("%s: %s", $self->[0], $self->[1]);
 };
 
 sub __trace__ { shift->[2] }

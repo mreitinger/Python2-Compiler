@@ -190,11 +190,51 @@ class Python2::Backend::Perl5 {
 
     # loops
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
-        return sprintf('foreach my $var (@{ ${%s} }) { setvar($stack, %s, $var); %s }',
-            $.e($node.iterable),
-            $.e($node.name),
-            $.e($node.block),
-        );
+        my Str $p5;
+
+        $p5 ~= sprintf('my $i = ${ %s };', $.e($node.iterable));
+
+        if ($node.names.elems > 1) {
+            # TODO should support all iterables
+            $p5 ~= 'die Python2::Type::Exception->new("TypeError", "expected enumerate but got " . $i->__type__) unless ($i->__type__ eq "enumerate");';
+
+            $p5 ~= q:to/END/;
+                while(1) {
+                    my $var;
+                    eval {
+                        $var = ${ $i->next() };
+
+                        die Python2::Type::Exception->new('TypeError', 'tuple expected but got ' . $var->__type__)
+                            unless $var->__type__ eq 'tuple';
+                END
+
+            $p5 ~= sprintf('die Python2::Type::Exception->new("ValueError", "size of tuple does not match loop declaration") unless scalar(@$i) == %i;', $node.names.elems);
+
+            my Int $index = 0;
+            for $node.names -> $name {
+                $p5 ~= sprintf('setvar($stack, %s, $var->[%i]);', $.e($name), $index++);
+            }
+
+            $p5 ~= sprintf('%s', $.e($node.block));
+
+            $p5 ~= q:to/END/;
+                    }
+                    or do {
+                        if ($@ eq 'StopIteration') { last } else { die; }
+                    }
+                }
+                END
+        }
+        else {
+            # single name, raw values from a list/tuple
+            $p5 ~= 'foreach my $var (@{$i}) {';
+            $p5 ~= sprintf('setvar($stack, %s, $var);', $.e($node.names[0]));
+            $p5 ~= sprintf('%s }', $.e($node.block));
+        }
+
+
+
+        return $p5;
     }
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {

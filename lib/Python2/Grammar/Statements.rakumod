@@ -41,7 +41,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-loop-for {
-        'for' <.ws> <name> <.ws> 'in' <.ws> <expression> ':' <block>
+        'for' <.ws> <name> [<.ws> ',' <.ws> <name>]* <.ws> 'in' <.ws> <expression> ':' <block>
     }
 
     token statement-if {

@@ -147,7 +147,7 @@ class Python2::AST {
     }
 
     class Node::Statement::LoopFor is Node::Expression {
-        has Node    $.name          is required is rw;
+        has Node    @.names         is required is rw;
         has Node    $.iterable      is required is rw;
         has Node    $.block         is required is rw;
     }

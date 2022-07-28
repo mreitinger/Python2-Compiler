@@ -60,9 +60,9 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::LoopFor.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            name        => $/<name>.made,
-            iterable    => $/<expression>.made,
-            block       => $/<block>.made,
+            names           => $/<name>.List.map({ $_.made }),
+            iterable        => $/<expression>.made,
+            block           => $/<block>.made,
         ));
     }
 
@@ -70,10 +70,10 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::If.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            test    => $/<test>.made,
-            block   => $/<block>[0].made,
-            elifs   => $/<statement-elif>.List.map({ $_.made }),
-            else    => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
+            test            => $/<test>.made,
+            block           => $/<block>[0].made,
+            elifs           => $/<statement-elif>.List.map({ $_.made }),
+            else            => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
         ));
     }
 

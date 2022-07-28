@@ -26,4 +26,6 @@ sub next {
     );
 }
 
+sub __type__ { 'enumerate' }
+
 1;
