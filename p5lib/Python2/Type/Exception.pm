@@ -26,6 +26,7 @@ my $valid_exceptions = {
     OverflowError => 1,
     ReferenceError => 1,
     RuntimeError => 1,
+    StopIteration => 1,
     SyntaxError => 1,
     SystemError => 1,
     SystemExit => 1,
