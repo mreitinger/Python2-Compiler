@@ -51,6 +51,18 @@ our $builtins = [
                 return \Python2::Type::List->new( sort { $a->__tonative__ cmp $b->__tonative__ } (@$iterable) );
             },
 
+            'hasattr' => sub {
+                my ($object, $key) = @_;
+
+                die Python2::Type::Exception->new('TypeError', 'hasattr() expects a Python2 object, got ' . $object->__type__)
+                    unless ($object->__class__ =~ m/^Python2::Type::/);
+
+                die Python2::Type::Exception->new('TypeError', 'hasattr() expects a string as key, got ' . $key->__type__)
+                    unless ($key->__type__ eq 'str');
+
+                return $object->__hasattr__($key);
+            },
+
             'map' => sub {
                 # first argument is the function to call
                 my $function        = shift @_;

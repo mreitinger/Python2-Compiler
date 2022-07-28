@@ -20,6 +20,14 @@ sub __type__    { ...; }
 sub __cmp__     { ...; }
 sub __eq__      { ...; } # ==
 
+# we implement this using __hasattr__ instead of (ab)using __getattr__ in case we need more
+# fine control when interfacing with perl 5 objects.
+sub __hasattr__ {
+    my ($self, $key) = @_;
+
+    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+}
+
 # !=
 sub __ne__      {
     my ($self, $other) = @_;
