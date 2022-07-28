@@ -216,6 +216,18 @@ class Python2::Actions::Expressions {
     }
 
 
+    method list-comprehension($/) {
+        $/.make(Python2::AST::Node::ListComprehension.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $/<name>.made,
+            iterable        => $/<test>[0].made,
+            expression      => $/<expression>.made,
+            test            => $/<test>[1] ?? $/<test>[1].made !! Nil,
+        ));
+    }
+
+
     # dictionary handling
     method dictionary-entry-list($/) {
         # get every dictionary entry in the list. we just bypass the intermediate

@@ -237,6 +237,24 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
+    multi method e(Python2::AST::Node::ListComprehension $node) {
+        my Str $p5;
+
+        $p5 ~= sprintf('do { my $i = ${ %s };', $.e($node.iterable));
+        $p5 ~= 'my $r = Python2::Type::List->new();';
+
+        $p5 ~= 'foreach my $var (@{$i}) {';
+        $p5 ~= sprintf('setvar($stack, %s, $var);', $.e($node.name));
+
+        $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.test))
+            if ($node.test);
+
+        $p5 ~= sprintf('$r->__iadd__(${ %s });', $.e($node.expression));
+        $p5 ~= '}';
+
+        return $p5 ~ 'return \$r; }';
+    }
+
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {
         my $p5 = sprintf('eval { %s } or do { %s };',
             $.e($node.try-block),

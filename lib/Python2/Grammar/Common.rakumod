@@ -9,6 +9,7 @@ role Python2::Grammar::Common {
     token atom {
         | '(' <.ws> <test-list> <.ws> ')'
         | '[' <.ws> <expression-list> <.ws> ']'
+        | '[' <.ws> <list-comprehension> <.ws> ']'
         | '{' <.ws> <dictionary-entry-list> <.ws> '}'
         | <name>
         | <number>

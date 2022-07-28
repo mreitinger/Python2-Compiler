@@ -152,6 +152,13 @@ class Python2::AST {
         has Node    $.block         is required is rw;
     }
 
+    class Node::ListComprehension is Node::Expression {
+        has Node    $.name          is required is rw;
+        has Node    $.iterable      is required is rw;
+        has Node    $.expression    is required is rw;
+        has Node    $.test          is rw;
+    }
+
     class Node::Statement::If is Node::Expression {
         has Node    $.test  is required is rw;
         has Node    $.block is required is rw;

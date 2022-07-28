@@ -53,6 +53,10 @@ role Python2::Grammar::Expressions {
         <expression>* %% <list-delimiter>
     }
 
+    token list-comprehension {
+        <expression> <.ws> 'for' <.ws> <name> <.ws> 'in' <.ws> <test> [<.ws> 'if' <.ws> <test>]?
+    }
+
 
     # dictionary handling
     token dictionary-entry-list {
