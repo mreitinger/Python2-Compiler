@@ -223,7 +223,10 @@ class Python2::Actions::Statements {
     }
 
     multi method block($/ where $<statement>) {
-        my $block = Python2::AST::Node::Block.new();
+        my $block = Python2::AST::Node::Block.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+        );
 
         for $/<statement> -> $statement {
             $block.statements.push($statement.made);

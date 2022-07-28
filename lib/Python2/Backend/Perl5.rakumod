@@ -268,7 +268,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::If $node) {
-        my $p5 = sprintf('if ( ${ %s }->__tonative__ ) { %s }', $.e($node.test), $.e($node.block));
+        my Str $p5 = qq|\n# line 999 "___position_{$node.start-position}_{$node.block.start-position}___"\n|;
+
+        $p5 ~= sprintf('if ( ${ %s }->__tonative__ ) { %s }', $.e($node.test), $.e($node.block));
 
         for $node.elifs -> $elif {
             $p5 ~= $.e($elif);
