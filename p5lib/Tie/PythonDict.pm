@@ -31,8 +31,6 @@ sub FETCH {
 
     die("PythonDict expects as Python2::Type as key") unless (ref($key) =~ m/^Python2::Type::/);
 
-    #warn "FETCHING: " . $key->__str__;
-
     if (ref($key) =~ m/^Python2::Type::Scalar/) {
         return $self->[1]{$key->__str__}->[1];
     }
@@ -52,8 +50,6 @@ sub STORE {
 
     die("PythonDict expects as Python2::Type as key") unless (ref($key) =~ m/^Python2::Type::/);
     die("PythonDict expects as Python2::Type as value") unless (ref($value) =~ m/^Python2::Type::/);
-
-    #warn "Storing keytype " . ref($key) . " for valuetype " . ref($value);
 
     # $self->[0] contains refaddr -> object mappings
     # $self->[1] contains string -> object mappings (only for Scalar types)
@@ -106,8 +102,6 @@ sub EXISTS {
 sub FIRSTKEY {
     my $s = shift;
 
-    #warn "FIRSTKEY";
-
     keys %{$s->[0]};  # reset iterator
     #$s->[2] = 0;      # flag for iteration, see NEXTKEY
 
@@ -117,28 +111,12 @@ sub FIRSTKEY {
 sub NEXTKEY {
     my $self = shift;
 
-    #warn "NEXTKEY";
-
-    # my ($key, $value);
-
-    # # if not set by FIRSTKEY
-    # if (!$self->[2]) {
-    #     if (($key, $value) = each %{$self->[0]}) {
-    #         return $value->[0];
-    #     }
-    #     else {
-    #         $self->[2] = 1;
-    #     }
-    # }
-
     my ($key, $value) = each %{$self->[0]};
 
     unless ($value) {
-        #warn "NEXTKEY got undef";
         return undef;
     }
 
-    #warn "NEXTKEY got " . $value->[1]->__str__;
     return $value->[0]; # the original key
 }
 
