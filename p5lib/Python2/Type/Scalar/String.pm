@@ -59,7 +59,7 @@ sub join {
             unless $_->__type__ eq 'str';
 
         $_->__tonative__;
-    } @{ $iterable->elements }));
+    } @$iterable ));
 }
 
 sub __gt__ {

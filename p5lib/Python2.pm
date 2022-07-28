@@ -47,7 +47,8 @@ our $builtins = [
         undef,
         {
             'sorted' => sub {
-                return \Python2::Type::List->new( sort { $a->__tonative__ cmp $b->__tonative__ } (@{ $_[0]->elements }) );
+                my $iterable = shift;
+                return \Python2::Type::List->new( sort { $a->__tonative__ cmp $b->__tonative__ } (@$iterable) );
             },
 
             'map' => sub {
@@ -99,7 +100,7 @@ our $builtins = [
                 my $result = Python2::Type::List->new();
 
                 if ($filter->__type__ eq 'none') {
-                    foreach(@{ $list->elements }) {
+                    foreach(@$list) {
                         $result->__iadd__($_) if $_->__tonative__;
                     }
                 }
@@ -133,7 +134,7 @@ our $builtins = [
                         unless ($_->__class__ eq 'Python2::Type::Scalar::Num');
 
                     $_->__tonative__;
-                } @{$list->elements};
+                } @$list;
 
                 my $retval = sum(@plist) + $start_value->__tonative__;
 
@@ -305,7 +306,7 @@ my $arithmetic_operations = {
             return \Python2::Type::Scalar::Num->new($left->__tonative__ + $right->__tonative__);
         }
         elsif (($left->__type__ eq 'list') and ($right->__type__ eq 'list')) {
-            return \Python2::Type::List->new(@{ $left->elements }, @{ $right->elements })
+            return \Python2::Type::List->new(@$left, @$right)
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
@@ -463,7 +464,7 @@ my $arithmetic_operations = {
             return \Python2::Type::Scalar::String->new(sprintf(
                 $left->__tonative__,
                 ref($right) eq 'Python2::Type::List'
-                    ? map { $_->__print__ } @{ $right->elements }
+                    ? map { $_->__print__ } @$right
                     : $right->__print__
             ));
         }

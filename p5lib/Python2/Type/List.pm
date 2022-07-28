@@ -22,8 +22,6 @@ sub __str__ {
 sub __iadd__ { my $self = shift; push(@$self, shift); }
 sub append   { shift->__iadd__(shift); }
 
-sub elements { shift }
-
 sub __getitem__ {
     my ($self, $key) = @_;
 

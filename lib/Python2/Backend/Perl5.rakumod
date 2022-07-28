@@ -190,7 +190,7 @@ class Python2::Backend::Perl5 {
 
     # loops
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
-        return sprintf('foreach my $var (@{ ${%s}->elements }) { setvar($stack, %s, $var); %s }',
+        return sprintf('foreach my $var (@{ ${%s} }) { setvar($stack, %s, $var); %s }',
             $.e($node.iterable),
             $.e($node.name),
             $.e($node.block),
