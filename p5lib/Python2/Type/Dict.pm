@@ -16,9 +16,7 @@ sub new {
 
     tie my %elements, 'Tie::PythonDict';
 
-    my $self = bless({
-        elements => \%elements
-    }, $class);
+    my $self = bless(\%elements, $class);
 
     while (my $key = shift @initial_elements) {
         my $value = shift @initial_elements;
@@ -30,20 +28,18 @@ sub new {
 }
 
 sub keys {
-    return \Python2::Type::List->new(
-        keys %{ shift->{elements} }
-    );
+    my $self = shift;
+    return \Python2::Type::List->new(keys %$self);
 }
 
 sub clear {
-    shift->{elements} = {};
+    my $self = shift;
+    %$self = ();
 }
 
 sub values {
     my $self = shift;
-    return \Python2::Type::List->new(
-        values %{ $self->{elements} }
-    );
+    return \Python2::Type::List->new(values %$self);
 }
 
 sub __str__ {
@@ -54,8 +50,8 @@ sub __str__ {
             map {
                 $_->__str__ .
                 ': ' .
-                $self->{elements}->{$_}->__str__
-            } sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %{ $self->{elements} }
+                $self->{$_}->__str__
+            } sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %$self
         ) .
     "}";
 }
@@ -63,7 +59,7 @@ sub __str__ {
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %{ $self->{elements} });
+    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %$self);
 }
 
 sub __getitem__ {
@@ -72,7 +68,7 @@ sub __getitem__ {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return \$self->{elements}->{$key};
+    return \$self->{$key};
 }
 
 sub has_key {
@@ -81,7 +77,7 @@ sub has_key {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return \Python2::Type::Scalar::Bool->new(exists $self->{elements}->{$key});
+    return \Python2::Type::Scalar::Bool->new(exists $self->{$key});
 }
 
 
@@ -98,7 +94,7 @@ sub __setitem__ {
     die("PythonDict expects as Python2::Type as value but got " . ref($value))
         unless (ref($value) =~ m/^Python2::Type::/);
 
-    $self->{elements}->{$key} = $value;
+    $self->{$key} = $value;
 }
 
 # convert to a 'native' perl5 hashref
@@ -107,7 +103,7 @@ sub __tonative__ {
 
     my $retvar = {};
 
-    while (my ($key, $value) = each(%{ $self->{elements} })) {
+    while (my ($key, $value) = each(%$self)) {
         $retvar->{$key->__tonative__} = ref($value) ? $value->__tonative__ : $value;
     }
 
@@ -136,7 +132,7 @@ sub __eq__      {
         if ${ $self->__len__ }->__tonative__ == 0;
 
     # compare all elements and return false if anything doesn't match
-    foreach (CORE::keys %{ $self->{elements} }) {
+    foreach (CORE::keys %$self) {
         return \Python2::Type::Scalar::Bool->new(0)
             unless ${ $other->has_key($_) }->__tonative__;
 

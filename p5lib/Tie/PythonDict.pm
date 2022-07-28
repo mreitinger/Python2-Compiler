@@ -120,10 +120,16 @@ sub NEXTKEY {
     return $value->[0]; # the original key
 }
 
+sub CLEAR           {
+    my $self = shift;
+    $self->[2] = 0;
+
+    %{$self->[0]} = ();
+    %{$self->[1]} = ();
+}
+
 sub STORABLE_freeze { ...; }
 sub STORABLE_thaw   { ...; }
 sub CLONE           { ...; }
-
-sub CLEAR           { ...; }
 
 1;
