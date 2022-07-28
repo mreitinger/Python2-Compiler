@@ -300,7 +300,11 @@ class Python2::Backend::Perl5 {
 
         if ($node.condition.condition eq 'not') {
             return sprintf('\Python2::Type::Scalar::Bool->new(not ${%s}->__tonative__)', $.e($node.left));
-        } else {
+        }
+        elsif ($node.condition.condition eq 'or') {
+            sprintf('do { my $l = %s; my $r = %s; $$l->__tonative__ ? $l : $r; }', $.e($node.left), $.e($node.right))
+        }
+        else {
             return $node.condition
                 ?? sprintf('\Python2::Type::Scalar::Bool->new(${%s}->__tonative__ %s ${%s}->__tonative__)', $.e($node.left), $.e($node.condition), $.e($node.right))
                 !! $.e($node.left);

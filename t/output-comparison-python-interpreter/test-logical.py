@@ -10,6 +10,12 @@ print(13 if 0 or 1 and 2 else 14)
 print(15 if 0 or 1 and not 2 else 16)
 print(17 if 0 or 1 and not 0 else 18)
 
+print None or 19
+print False or 20
+print True or 21
+print None or False
+print False or True
+print True or False
 
 def a():
     return 'a'
