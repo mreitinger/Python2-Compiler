@@ -10,28 +10,24 @@ use List::Util qw/ min max /;
 sub new {
     my ($self, @initial_elements) = @_;
 
-    return bless({
-        elements => [@initial_elements],
-    }, $self);
+    return bless([@initial_elements], $self);
 }
 
 sub __str__ {
     my $self = shift;
 
-    return '[' . join(', ', map { $_->__str__ } @{ $self->{elements} }) . ']';
+    return '[' . join(', ', map { $_->__str__ } @{ $self }) . ']';
 }
 
-sub __iadd__ { push(@{ shift->{elements} }, shift); }
+sub __iadd__ { my $self = shift; push(@$self, shift); }
 sub append   { shift->__iadd__(shift); }
 
-sub elements { shift->{elements} }
-
-
+sub elements { shift }
 
 sub __getitem__ {
     my ($self, $key) = @_;
 
-    return \$self->{elements}->[$key->__tonative__];
+    return \$self->[$key->__tonative__];
 }
 
 sub __iter__ { \Python2::Type::List::Iterator->new(shift); }
@@ -47,25 +43,27 @@ sub __getslice__ {
         $target = ${ $self->__len__}->__tonative__;
     }
 
-    return \Python2::Type::List->new( @{ $self->{elements} }[$key .. $target - 1] );
+    return \Python2::Type::List->new( @$self[$key .. $target - 1] );
 }
 
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar @{ $self->{elements} });
+    return \Python2::Type::Scalar::Num->new(scalar @$self);
 }
 
 sub __setitem__ {
     my ($self, $key, $value) = @_;
 
-    $self->{elements}->[$key->__tonative__] = $value;
+    $self->[$key->__tonative__] = $value;
 }
 
 # convert to a 'native' perl5 arrayref
 sub __tonative__ {
+    my $self = shift;
+
     return [
-        map { ref($_) ? $_->__tonative__ : $_ } @{ shift->elements }
+        map { $_->__tonative__ } @$self
     ];
 }
 

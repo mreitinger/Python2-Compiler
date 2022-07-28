@@ -12,15 +12,7 @@ use Python2::Type::Tuple::Iterator;
 sub __str__ {
     my $self = shift;
 
-    return '(' . join(', ', map { $_->__str__ } @{ $self->{elements} }) . ')';
-}
-
-sub elements { shift->{elements} }
-
-sub __getitem__ {
-    my ($self, $key) = @_;
-
-    return \$self->{elements}->[$key->__tonative__];
+    return '(' . join(', ', map { $_->__str__ } @$self) . ')';
 }
 
 sub __getslice__ {
@@ -34,24 +26,16 @@ sub __getslice__ {
         $target = ${ $self->__len__}->__tonative__;
     }
 
-    return \Python2::Type::Tuple->new( @{ $self->{elements} }[$key .. $target - 1] );
+    return \Python2::Type::Tuple->new( @$self[$key .. $target - 1] );
 }
 
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar @{ $self->{elements} });
+    return \Python2::Type::Scalar::Num->new(scalar @$self);
 }
 
 # convert to a 'native' perl5 arrayref
-sub __tonative__ {
-    return [
-        map { ref($_) ? $_->__tonative__ : $_ } @{ shift->elements }
-    ];
-}
-
-sub __iter__ { \Python2::Type::Tuple::Iterator->new(shift); }
-
 sub __type__ { return 'tuple'; }
 
 sub __eq__      {
