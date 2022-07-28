@@ -12,6 +12,8 @@ unless $testcase_directory.e {
     die("Testcase directory not found, are you running tests from the wrong directory?");
 }
 
+%*ENV<PYTHONIOENCODING> = 'utf8';
+
 for $testcase_directory.dir -> $testcase {
     # really ugly hack: empty line test has nothing to be optimized and would fail the 'optimized code is smaller' test
     next if ($testcase ~~ m/\/empty\-line\.py$/);

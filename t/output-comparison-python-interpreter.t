@@ -12,6 +12,8 @@ unless $testcase_directory.e {
     die("Testcase directory not found, are you running tests from the wrong directory?");
 }
 
+%*ENV<PYTHONIOENCODING> = 'utf8';
+
 for $testcase_directory.dir -> $testcase {
     subtest "Test for $testcase" => sub {
         my $ast = Nil;

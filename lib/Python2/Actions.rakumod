@@ -49,7 +49,7 @@ class Python2::Actions
             string-literal-triple-single-quoted
             list-delimiter
             dictionary-entry
-            string-prefix string-prefix-raw
+            string-prefix string-prefix-raw string-prefix-unicode
             perl5-package-name
         >;
 

@@ -104,9 +104,11 @@ role Python2::Grammar::Expressions {
 
     token string-prefix {
         | <string-prefix-raw>
+        | <string-prefix-unicode>
     }
 
     token string-prefix-raw { 'r' }
+    token string-prefix-unicode { 'u' }
 
     token triple-single-quoted-string   { "'''" <string-literal-triple-single-quoted> "'''" }
     token triple-double-quoted-string   { '"""' <string-literal-triple-double-quoted> '"""' }
