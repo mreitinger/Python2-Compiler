@@ -157,7 +157,8 @@ class Python2::Actions::Statements {
             '>'  => '__gt__',
             '<=' => '__le__',
             '>=' => '__ge__',
-            'is' => '__is__';
+            'is' => '__is__',
+            'in' => '__contains__';
 
         $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
             start-position  	=> $/.from,

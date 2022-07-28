@@ -99,4 +99,15 @@ sub __eq__      {
     return \Python2::Type::Scalar::Bool->new(1);
 }
 
+sub __contains__ {
+    my ($self, $other) = @_;
+
+    foreach my $item (@$self) {
+        return \Python2::Type::Scalar::Bool->new(1)
+            if ${ $item->__eq__($other) }->__tonative__;
+    }
+
+    return \Python2::Type::Scalar::Bool->new(0);
+}
+
 1;

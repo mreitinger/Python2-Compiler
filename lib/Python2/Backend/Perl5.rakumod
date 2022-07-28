@@ -305,11 +305,17 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
         if ($node.right) {
-            return sprintf('${%s}->%s(${%s})',
-                $.e($node.left),
-                $node.comparison-operator,
-                $.e($node.right),
-            );
+            return $node.comparison-operator eq '__contains__'
+                ??  sprintf('${%s}->%s(${%s})',
+                        $.e($node.right),
+                        $node.comparison-operator,
+                        $.e($node.left),
+                    )
+                !!  sprintf('${%s}->%s(${%s})',
+                        $.e($node.left),
+                        $node.comparison-operator,
+                        $.e($node.right),
+                    );
         } else {
             return $.e($node.left);
         }
