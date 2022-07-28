@@ -139,6 +139,6 @@ role Python2::Grammar::Statements {
     }
 
     token function-definition-argument {
-        <name> ['=' <test>]?
+        <name> [<.ws> '=' <.ws> <test>]?
     }
 }
