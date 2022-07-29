@@ -299,6 +299,22 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
+    # TODO we don't implement all of with yet, no calls to __exit__
+    # TODO this is 'good enough' for our fileIO use case since we close the FH on scope
+    # TODO exit anyway.
+    multi method e(Python2::AST::Node::Statement::With $node) {
+        my Str $p5 = qq|\n# line 999 "___position_{$node.start-position}_{$node.block.start-position}___"\n|;
+
+        $p5 ~= sprintf('{ my $p = %s; setvar($stack, %s, $$p); %s; setvar($stack, %s, undef); }',
+            $.e($node.test),
+            $.e($node.name),
+            $.e($node.block),
+            $.e($node.name),
+        );
+
+        return $p5;
+    }
+
     multi method e(Python2::AST::Node::Statement::ElIf $node) {
         return sprintf('elsif (${ %s }->__tonative__) { %s }', $.e($node.test), $.e($node.block));
     }

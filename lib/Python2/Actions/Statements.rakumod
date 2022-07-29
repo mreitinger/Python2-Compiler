@@ -22,7 +22,6 @@ class Python2::Actions::Statements {
         ));
     }
 
-
     method statement-print($/) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             start-position  => $/.from,
@@ -74,6 +73,16 @@ class Python2::Actions::Statements {
             block           => $/<block>[0].made,
             elifs           => $/<statement-elif>.List.map({ $_.made }),
             else            => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
+        ));
+    }
+
+    method statement-with($/) {
+        $/.make(Python2::AST::Node::Statement::With.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            test            => $/<test>.made,
+            block           => $/<block>.made,
+            name            => $/<name>.made
         ));
     }
 

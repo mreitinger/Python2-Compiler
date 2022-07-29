@@ -11,6 +11,7 @@ role Python2::Grammar::Statements {
             | <expression>
             | <statement-loop-for>
             | <statement-if>
+            | <statement-with>
             | <class-definition>
             | <statement-p5import>
         ]
@@ -48,6 +49,10 @@ role Python2::Grammar::Statements {
         'if' <.ws> <test> ':' <block>
         <statement-elif>*
         [<level> 'else' ':' <block>]?
+    }
+
+    token statement-with {
+        'with' <.ws> <test> <.ws> 'as' <.ws> <name> <.ws> ':' <block>
     }
 
     token statement-elif {

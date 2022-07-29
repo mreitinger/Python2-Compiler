@@ -166,6 +166,12 @@ class Python2::AST {
         has Node    $.else  is rw;
     }
 
+    class Node::Statement::With is Node::Expression {
+        has Node    $.test  is required is rw;
+        has Node    $.block is required is rw;
+        has Node    $.name  is required is rw;
+    }
+
     class Node::Statement::ElIf is Node::Expression {
         has Node    $.test  is required is rw;
         has Node    $.block is required is rw;
