@@ -14,6 +14,7 @@ use Python2::Type::List;
 use Python2::Type::Enumerate;
 use Python2::Type::Tuple;
 use Python2::Type::Dict;
+use Python2::Type::File;
 use Python2::Type::Scalar::String;
 use Python2::Type::Scalar::Num;
 use Python2::Type::Scalar::Bool;
@@ -99,6 +100,9 @@ our $builtins = [
                 return \Python2::Type::List->new(1 .. shift->__tonative__);
             },
 
+            'open' => sub {
+                return \Python2::Type::File->new(shift);
+            },
 
             'iter'  => sub { shift->__iter__() },
             'next'  => sub { shift->__next__() },
