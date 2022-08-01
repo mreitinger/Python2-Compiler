@@ -491,7 +491,7 @@ class Python2::Backend::Perl5 {
                     !! sprintf('$p = ${$p}->__getitem__(%s, {});', $.e($current-element));
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
-                $p5 ~= sprintf('$p = ${$p}->__getattr__(%s, {});', $.e($current-element));
+                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
                 $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
             }

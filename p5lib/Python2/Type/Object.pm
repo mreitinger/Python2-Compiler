@@ -35,7 +35,10 @@ sub can {
 sub __getattr__ {
     my ($self, $attribute_name) = @_;
 
-    return \$self->{stack}->[1]->{$attribute_name};
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    return \$self->{stack}->[1]->{$attribute_name->__tonative__};
 }
 
 sub __str__ {

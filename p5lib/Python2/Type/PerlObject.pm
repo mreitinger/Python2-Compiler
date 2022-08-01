@@ -78,11 +78,9 @@ sub AUTOLOAD {
     die("named arguments not supported when calling perl5 methods")
         if scalar(%$named_arguments);
 
-
     # convert all 'Python' objects to native representations
     foreach my $argument (@argument_list) {
-        $argument = $argument->__tonative__
-            if (blessed($argument) and $argument->isa('Python2::Type'));
+        $argument = $argument->__tonative__;
     }
 
     # TODO: this needs to handle way more cases like a list getting returned
