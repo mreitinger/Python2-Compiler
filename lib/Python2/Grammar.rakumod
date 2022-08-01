@@ -32,6 +32,10 @@ grammar Python2::Grammar
 
     regex ws { <!ww> \s* "\\\n"? \s* }
 
+    # 'extended' whitespace - allow line continuation even without explicit \ at the end of line
+    # used within argument lists etc.
+    regex ews { <!ww> \s* "\\?\n"? \s* }
+
     # a list of statements at the next indentation level
     token block {
         <scope-increase>

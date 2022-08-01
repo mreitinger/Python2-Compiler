@@ -1,4 +1,10 @@
-def foo(x):
-    print x
+def foo(x, y):
+    print "%s - %s" % (x, y)
 
-foo(x = 1)
+foo(1, y = 2)
+
+foo(3,
+        4
+)
+
+

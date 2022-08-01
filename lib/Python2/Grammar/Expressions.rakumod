@@ -11,9 +11,9 @@ role Python2::Grammar::Expressions {
     }
 
     token argument-list {
-        '('
-            <argument>* %% <list-delimiter>
-        [ ')' || <parse-fail(:pos(self.pos), :what('expected )'))> ]
+        '('<.ews>
+            <argument>* %% <extended-list-delimiter>
+        [ <.ews> ')' || <parse-fail(:pos(self.pos), :what('expected )'))> ]
     }
 
     token argument {

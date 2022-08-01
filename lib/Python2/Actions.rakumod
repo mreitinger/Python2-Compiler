@@ -37,7 +37,7 @@ class Python2::Actions
 
     method FALLBACK($name, $args) {
         my @whitelist = <
-            ww
+            ww ews
             before
             level ws scope-increase
             float integer digit
@@ -50,7 +50,7 @@ class Python2::Actions
             list-delimiter
             dictionary-entry
             string-prefix string-prefix-raw string-prefix-unicode
-            perl5-package-name
+            perl5-package-name extended-list-delimiter
         >;
 
         return if @whitelist.first($name);

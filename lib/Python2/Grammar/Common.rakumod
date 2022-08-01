@@ -6,6 +6,9 @@ role Python2::Grammar::Common {
     # optional whitespace around it.
     token list-delimiter { <.ws> ',' <.ws> }
 
+    # 'extended' list delimiter - allow line continuation even without explicit \ at the end of line
+    token extended-list-delimiter { <.ews> ',' <.ews> }
+
     token atom {
         | '(' <.ws> <test-list> <.ws> ')'
         | '[' <.ws> <expression-list> <.ws> ']'
