@@ -4,6 +4,11 @@ use base qw/ Python2::Type /;
 use warnings;
 use strict;
 
+use overload
+    bool     => sub { return 1; },
+    '""'     => sub { return shift->{value}; },
+    fallback => 0;
+
 sub new {
     my ($self, $value) = @_;
 

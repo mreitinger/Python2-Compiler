@@ -9,6 +9,7 @@ use strict;
 use Python2;
 use Scalar::Util qw/ refaddr /;
 use Tie::PythonDict;
+use overload;
 
 sub new {
     # initial arugments must be a array so we don't loose objects once they become hash keys
@@ -84,7 +85,6 @@ sub has_key {
 sub __setitem__ {
     my ($self, $key, $value) = @_;
 
-    # TODO support objects as keys
     die("Unhashable type '" . ref($key) . "' with value '$value'")
         unless ref($key) =~ m/^Python2::Type::Scalar::/;
 
