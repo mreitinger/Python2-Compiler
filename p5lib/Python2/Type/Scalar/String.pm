@@ -64,7 +64,7 @@ sub join {
 
 sub replace {
     pop(@_); # default named arguments hash
-    my ($self, $old, $new, $count) = @_;
+    my ($self, $pstack, $old, $new, $count) = @_;
 
     die Python2::Type::Exception->new('TypeError',
         sprintf(
@@ -92,7 +92,9 @@ sub replace {
 
 sub splitlines {
     pop(@_); # default named arguments hash
-    my ($self, $keepends) = @_;
+    my ($self, $pstack, $keepends) = @_;
+
+    $keepends //= Python2::Type::Scalar::Bool->new(0);
 
     # TODO: to be perfectly compatible we should also support windows line endings
     # \r\n as python does, as well as some corner cases e.g. '\n\n'.splitlines()
@@ -116,6 +118,26 @@ sub lower {
 
 sub upper {
     return \Python2::Type::Scalar::String->new(uc shift->__tonative__);
+}
+
+sub count {
+    pop(@_); # default named arguments hash
+    my ($self, $pstack, $sub, $start, $end) = @_;
+
+    $sub = $sub->__tonative__;
+
+    $start ||= Python2::Type::Scalar::Num->new(0);
+    $end ||= Python2::Type::Scalar::Num->new(length($self->__tonative__));
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf("count() expects integers as slice parameters, got %s and %s", $start->__type__, $end->__type__))
+        unless ($start->__type__ eq 'int' and $end->__type__ eq 'int');
+
+    my $offset = $end->__tonative__ - $start->__tonative__;
+    my $s = substr $self->__tonative__, $start->__tonative__, $offset;
+    my $c =()= $s=~ m/$sub/g;
+
+    return \Python2::Type::Scalar::Num->new($c);
 }
 
 sub __gt__ {
