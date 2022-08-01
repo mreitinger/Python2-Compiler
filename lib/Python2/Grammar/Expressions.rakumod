@@ -17,7 +17,7 @@ role Python2::Grammar::Expressions {
     }
 
     token argument {
-        || <name> '=' <test>
+        || <name> <.ws> '=' <.ws> <test>
         || <test>
     }
 
