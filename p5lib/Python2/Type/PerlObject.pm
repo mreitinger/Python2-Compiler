@@ -46,6 +46,15 @@ sub __str__ {
 
 sub __tonative__ { return shift->{object}; }
 
+sub __eq__ {
+    my ($self, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if (refaddr($other) eq refaddr($self));
+
+    return \Python2::Type::Scalar::Bool->new(0)
+}
+
 # called for every unknown method
 sub AUTOLOAD {
     my ($self, @argument_list) = @_;
