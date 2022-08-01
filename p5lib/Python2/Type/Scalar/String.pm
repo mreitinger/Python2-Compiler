@@ -62,6 +62,35 @@ sub join {
     } @$iterable ));
 }
 
+sub replace {
+    pop(@_); # default named arguments hash
+    my ($self, $old, $new, $count) = @_;
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf(
+            "replace() expects old and new to be strings, got %s and %s instead",
+            $old->__type__, $new->__type__)
+        )
+        unless ($old->__type__ eq 'str' and $new->__type__ eq 'str');
+
+    my $s = $self->__tonative__;
+    my $o = $old->__tonative__;
+    my $n = $new->__tonative__;
+
+    if ($count) {
+        die Python2::Type::Exception->new('TypeError',
+            sprintf("replace() expects count to be an integer, got %s instead", $count->__type__, ))
+            unless ($count->__type__ eq 'int');
+        for (1.. $count->__tonative__) {
+            $s =~ s/$o/$n/;
+        }
+    } else {
+        $s =~ s/$o/$n/g;
+    }
+    return \Python2::Type::Scalar::String->new($s);
+
+}
+
 sub __gt__ {
     my ($self, $pstack, $other) = @_;
 
