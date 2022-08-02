@@ -5,18 +5,12 @@ use v5.26.0;
 use warnings;
 use strict;
 use Scalar::Util qw/ refaddr /;
+use Clone 'clone';
 
 sub new {
     my ($self) = @_;
 
     my $object = bless({ stack => [$builtins] }, $self);
-
-    die if $object->can('__init__');
-
-    $object->__build__; #TODO wrong: this should be run on class creation
-
-    # {} for unused named variables
-    $object->__init__({}) if $object->can('__init__');
 
     return $object;
 }
@@ -46,6 +40,18 @@ sub __str__ {
     return sprintf('<PythonObject at %s>', refaddr($self));
 }
 
+# creates a new object instance from this class
+# TODO handle __build__/__init__ here, see new()
+sub __call__ {
+    my $object = clone(shift);
+
+    $object->__build__;
+    # {} for unused named variables
+    $object->__init__({}) if $object->can('__init__');
+
+    return \$object;
+}
+
 sub AUTOLOAD {
     my $self = shift;
     my @argument_list = @_;
@@ -57,8 +63,8 @@ sub AUTOLOAD {
     # TODO should call the equivalent python method if this object has one
     return if ($requested_method eq 'DESTROY');
 
-    my $method_code_ref = $self->{stack}->[1]->{$requested_method} // die("Unknown method $requested_method");
-    return $method_code_ref->($self, @argument_list);
+    my $method_ref = $self->{stack}->[1]->{$requested_method} // die("Unknown method $requested_method");
+    return $method_ref->__call__($self, @argument_list);
 }
 
 sub __type__ { return 'pyobject'; }

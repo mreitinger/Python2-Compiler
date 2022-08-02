@@ -8,6 +8,7 @@ use base qw/ Python2::Type /;
 use Module::Load;
 
 use Scalar::Util qw/ blessed refaddr /;
+use Clone qw/ clone /;
 
 sub new {
     my ($self, $class) = @_;
@@ -52,6 +53,11 @@ sub __eq__ {
         if (refaddr($other) eq refaddr($self));
 
     return \Python2::Type::Scalar::Bool->new(0)
+}
+
+# TODO this should init the perl object at this point not when calling new()
+sub __call__ {
+    return \clone(shift);
 }
 
 # called for every unknown method

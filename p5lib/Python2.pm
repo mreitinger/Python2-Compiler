@@ -2,7 +2,6 @@ package Python2;
 use v5.26.0;
 use warnings;
 use strict;
-use List::Util qw( max sum);
 use List::Util::XS; # ensure we use the ::XS version
 use Data::Dumper;
 
@@ -10,6 +9,7 @@ use Scalar::Util qw/ looks_like_number blessed /;
 use Clone qw/ clone /;
 use Carp qw/ confess /;
 
+use Python2::Builtin;
 use Python2::Type::List;
 use Python2::Type::Enumerate;
 use Python2::Type::Tuple;
@@ -21,6 +21,7 @@ use Python2::Type::Scalar::Bool;
 use Python2::Type::Scalar::None;
 use Python2::Type::PerlObject;
 use Python2::Type::Exception;
+use Python2::Type::Function;
 
 use Exporter qw/ import /;
 our @EXPORT = qw/
@@ -47,139 +48,24 @@ our $builtins = [
     [
         undef,
         {
-            'sorted' => sub {
-                my $iterable = shift;
-                return \Python2::Type::List->new( sort { $a->__tonative__ cmp $b->__tonative__ } (@$iterable) );
-            },
+            'sorted'    => Python2::Builtin::Sorted->new(),
+            'int'       => Python2::Builtin::Int->new(),
+            'hasattr'   => Python2::Builtin::Hasattr->new(),
+            'map'       => Python2::Builtin::Map->new(),
+            'range'     => Python2::Builtin::Range->new(),
+            'open'      => Python2::Builtin::Open->new(),
+            'iter'      => Python2::Builtin::Iter->new(),
+            'next'      => Python2::Builtin::Next->new(),
+            'enumerate' => Python2::Builtin::Enumerate->new(),
+            'filter'    => Python2::Builtin::Filter->new(),
+            'sum'       => Python2::Builtin::Sum->new(),
+            'round'     => Python2::Builtin::Round->new(),
 
-            'hasattr' => sub {
-                my ($object, $key) = @_;
-
-                die Python2::Type::Exception->new('TypeError', 'hasattr() expects a Python2 object, got ' . $object->__type__)
-                    unless ($object->__class__ =~ m/^Python2::Type::/);
-
-                die Python2::Type::Exception->new('TypeError', 'hasattr() expects a string as key, got ' . $key->__type__)
-                    unless ($key->__type__ eq 'str');
-
-                return $object->__hasattr__($key);
-            },
-
-            'map' => sub {
-                # first argument is the function to call
-                my $function        = shift @_;
-                my $named_arguments = pop @_; # unsed but still get's passed
-
-                # all remaining arguments are iterables that will be passed, in parallel, to the function
-                # if one iterable has fewer items than the others it will be passed with None (undef)
-                #
-                # figure out the largest argument and use that to iterate over
-                my $iterable_item_count = max( map { ${ $_->__len__ }->__tonative__ } @_);
-
-                # number of iterable arguments passed to map()
-                my $argument_count      = scalar @_;
-
-                my $result = Python2::Type::List->new();
-
-                for (my $i = 0; $i < $iterable_item_count; $i++) {
-                    # iterables to be passed to $function. first one gets modified
-                    my @iterables = map {
-                        ${$_[$_]->__getitem__(Python2::Type::Scalar::Num->new($i), {}) }
-                    } (0 .. $argument_count-1 );
-
-                    $result->__setitem__(Python2::Type::Scalar::Num->new($i), ${ $function->(@iterables, {}) });
-                }
-
-                return \$result;
-            },
-
-            'int' => sub {
-                return \Python2::Type::Scalar::Num->new(int($_[0]->__tonative__));
-            },
-
-            'range' => sub {
-                return \Python2::Type::List->new(1 .. shift->__tonative__);
-            },
-
-            'open' => sub {
-                return \Python2::Type::File->new(shift);
-            },
-
-            'iter'  => sub { shift->__iter__() },
-            'next'  => sub { shift->__next__() },
-            'enumerate' => sub {
-                return \Python2::Type::Enumerate->new(shift),
-            },
-
-            'filter' => sub {
-                my ($filter, $list) = @_;
-
-                my $result = Python2::Type::List->new();
-
-                if ($filter->__type__ eq 'none') {
-                    foreach(@$list) {
-                        $result->__iadd__($_) if $_->__tonative__;
-                    }
-                }
-                else { ...; }
-
-                return \$result;
-            },
-
-            'None' => Python2::Type::Scalar::None->new(),
-
-            'True'  => Python2::Type::Scalar::Bool->new(1),
-            'False' => Python2::Type::Scalar::Bool->new(0),
-
-            'Exception' => sub { \Python2::Type::Exception->new('Exception', shift); },
-
-            'sum' => sub {
-                pop(@_); # default named arguments hash
-
-                my ($list, $start_value) = @_;
-
-                $start_value ||= Python2::Type::Scalar::Num->new(0);
-
-                die Python2::Type::Exception->new('TypeError', 'sum() expects a list')
-                    unless ($list->__class__ eq 'Python2::Type::List');
-
-                die Python2::Type::Exception->new('TypeError', 'sum() expects a number as start_value, got ' . $start_value->__type__)
-                    unless ($start_value->__class__ eq 'Python2::Type::Scalar::Num');
-
-                my @plist = map {
-                    die Python2::Type::Exception->new('TypeError', 'sum() found invalid list element: ' . $_->__type__)
-                        unless ($_->__class__ eq 'Python2::Type::Scalar::Num');
-
-                    $_->__tonative__;
-                } @$list;
-
-                my $retval = sum(@plist) + $start_value->__tonative__;
-
-                return \Python2::Type::Scalar::Num->new($retval);
-            },
-
-            'round' => sub {
-                pop(@_); # default named arguments hash
-
-                my ($value, $precision) = @_;
-
-                $precision ||= Python2::Type::Scalar::Num->new(0);
-
-                die Python2::Type::Exception->new('TypeError', 'a number is required as value')
-                    unless ($value->__class__ eq 'Python2::Type::Scalar::Num');
-
-                die Python2::Type::Exception->new('TypeError', 'a number is required as precision')
-                    unless ($precision->__type__ eq 'int');
-
-                my $retval = sprintf(
-                    sprintf('%%.%if', $precision->__tonative__),
-                    $value->__tonative__
-                );
-
-                $retval = "$retval.0" if $retval =~ m/^\d+$/;
-                $retval =~ s/([1-9])0+$/$1/;
-
-                return \Python2::Type::Scalar::Num->new($retval);
-            },
+            'None'      => Python2::Type::Scalar::None->new(),
+            'True'      => Python2::Type::Scalar::Bool->new(1),
+            'False'     => Python2::Type::Scalar::Bool->new(0),
+            'Exception' => Python2::Builtin::Exception->new(), # Exception gets a message passed so
+                                                               # it is implemented as a function
         }
     ]
 ];

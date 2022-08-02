@@ -98,7 +98,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::P5Import $node) {
-        return sprintf('setvar($stack, \'%s\', sub { my $object = Python2::Type::PerlObject->new(\'%s\'); return \$object; });',
+        return sprintf('setvar($stack, \'%s\', Python2::Type::PerlObject->new(\'%s\'));',
             $node.name,
             $node.perl5-package-name.subst("'", "\\'", :g),
         );
@@ -358,13 +358,12 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
-        my $p5 = sprintf(
-            'setvar($stack, \'%s\', sub {',
-            $node.name.name.subst("'", "\\'", :g)
-        );
+        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
+
+        my Str $block;
 
         # local stack frame for this function
-        $p5 ~= 'my $stack = [$builtins];' ~ "\n";
+        $block ~= 'my $stack = [$builtins];';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
@@ -376,38 +375,59 @@ class Python2::Backend::Perl5 {
         }
 
         # call Python2::getopt() to parse our arguments
-        $p5 ~= sprintf('getopt($stack, \'%s\', [%s], @_);',
+        $block ~= sprintf('getopt($stack, \'%s\', [%s], @_);',
             $node.name.name.subst("'", "\\'", :g),
             $argument-definition
         );
 
-        # the code block (body) of the function
-        $p5   ~= $.e($node.block);
+        # the actual function body
+        $block ~= $.e($node.block);
 
-        $p5   ~= 'return \""';     # if $node.block contains a return statement it will execute before this
-                                   # TODO this should return some Nonetype object?
-                                   # TODO on python this returns None but if we return undef this would hit the NameError
-                                   # TODO check further down. this is still wrong but at least it returns 'false'
+        # if the function body contains a return statement it will execute before this
+        $block   ~= 'return \Python2::Type::Scalar::None->new();';
 
-        $p5   ~= "})";
+        # the call to shift to get rid of $self which we don't need in this case.
+        $!modules ~= sprintf(
+            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { %s }; sub __call__ { shift; %s } }',
+            $perl5_class_name,
+            $.e($node.name),
+            $block,
+        );
+
+        return sprintf('setvar($stack, %s, %s->new());',
+            $.e($node.name),
+            $perl5_class_name,
+        );
     }
 
     multi method e(Python2::AST::Node::LambdaDefinition $node) {
-        my $p5 = '\sub {${ ';
+        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
 
-        $p5 ~= 'my $stack = [$stack];' ~ "\n";
-        #TODO check this
+        my Str $block;
 
+        # local stack frame for this function
+        $block ~= 'my $stack = [$builtins];';
+
+        # get arguments
         for $node.argument-list -> $argument {
-            $p5 ~= sprintf('setvar($stack, \'%s\', shift @_);',$argument.name.name);
+            $block ~= sprintf('setvar($stack, \'%s\', shift);', $argument.name.name);
         }
 
-        $p5   ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
-        $p5   ~= "}}"
+        # the actual function body
+        $block ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
+
+        # the call to shift get rid of $self which we don't need in this case.
+        $!modules ~= sprintf(
+            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { shift; %s } }',
+            $perl5_class_name,
+            $block,
+        );
+
+        return sprintf('\%s->new()', $perl5_class_name);
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
-        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.name.name ~ $.e($node.block));
+        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
         my Str $preamble = 'use Python2;';
 
         $!modules ~= sprintf(
@@ -415,9 +435,9 @@ class Python2::Backend::Perl5 {
             $perl5_class_name,
             $preamble,
             $.e($node.block)
-                                      );
+        );
 
-        return sprintf('setvar($stack, \'%s\', sub { my $object = %s->new(); return \$object; });',
+        return sprintf('setvar($stack, \'%s\', %s->new());',
             $node.name.name.subst("'", "\\'", :g),
             $perl5_class_name,
         );
@@ -456,7 +476,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
                 if $node.must-resolve;
 
-            $p5 ~= sprintf('$$p->(%s);', $.e(@elements[1]));
+            $p5 ~= sprintf('$$p->__call__(%s);', $.e(@elements[1]));
 
             return sprintf('sub{ %s }->()', $p5);
         }
