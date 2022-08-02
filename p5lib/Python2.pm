@@ -80,7 +80,7 @@ sub getvar {
         $call_frame = $call_frame->[PARENT];
     }
 
-    return $call_frame->[ITEMS]->{$name} ? \$call_frame->[ITEMS]->{$name} : \$stack->[ITEMS]->{$name};
+    return exists $call_frame->[ITEMS]->{$name} ? \$call_frame->[ITEMS]->{$name} : \$stack->[ITEMS]->{$name};
 }
 
 sub raise {
