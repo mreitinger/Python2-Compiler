@@ -140,6 +140,29 @@ sub count {
     return \Python2::Type::Scalar::Num->new($c);
 }
 
+sub find {
+    pop(@_); # default named arguments hash
+    my($self, $pstack, $sub, $start, $end) = @_;
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf("find() expects a string as substring, got %s", $sub->__type__))
+        unless ($sub->__type__ eq 'str');
+
+    $sub = $sub->__tonative__;
+    $start ||= Python2::Type::Scalar::Num->new(0);
+    $end ||= Python2::Type::Scalar::Num->new(length($self->__tonative__));
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf("find() expects integers as slice parameters, got %s and %s", $start->__type__, $end->__type__))
+        unless ($start->__type__ eq 'int' and $end->__type__ eq 'int');
+
+    my $offset = $end->__tonative__ - $start->__tonative__;
+    my $s = substr $self->__tonative__, $start->__tonative__, $offset;
+
+    my $i = index($s, $sub);
+    return \Python2::Type::Scalar::Num->new($i gt -1 and $i + $start->__tonative__ or -1);
+}
+
 sub __gt__ {
     my ($self, $pstack, $other) = @_;
 
