@@ -35,10 +35,6 @@ class Python2::Backend::Perl5 {
                 my ($self, $args) = @_;
                 my $stack = $self->{stack};
 
-                while(my ($key, $value) = each(%%$args)) {
-                    setvar($stack, $key, ${ convert_to_python_type($value) });
-                }
-
                 %s
             }
         }

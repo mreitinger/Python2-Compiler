@@ -23,35 +23,68 @@ sub __run__ {
 
     return $retval unless $@;
 
-    $self->__handle_python_exception__($@)
+    $self->__handle_exception__($@)
         if (ref($@) eq 'Python2::Type::Exception');
 
     # some other exception - rethrow
     die;
 }
 
-sub __handle_python_exception__ {
+# execute our main block with error handler
+sub __run_function__ {
+    my ($self, $name, $args) = @_;
+
+    # exec the main block so we get all function definitions
+    eval { $self->__block__($args); };
+    $self->__handle_exception__($@) if $@;
+
+    # get our function from the stack
+    my $coderef = getvar($self->{stack}, $name);
+
+    my $retval = eval {
+        die("Function $name not found") unless defined $$coderef;
+        $$coderef->__call__(( map { ${ convert_to_python_type($_) } } @{ $args } ), {});
+    };
+
+    $self->__handle_exception__($@) if $@;
+
+    return $retval;
+}
+
+
+
+sub __handle_exception__ {
     my ($self, $error) = @_;
 
     my $output;
-
-    my $message        = $error->message;
-
+    my $message;
     my $start_position;
     my $end_position;
-    while (my $frame = $error->__trace__->next_frame) {
-        next unless $frame->package =~ m/^(Python2::Type|python_class_main)/;
 
-        if ($frame->filename =~ m/^___position_(\d+)_(\d+)___$/) {
-            $start_position = $1;
-            $end_position   = $2;
+    # some non-internal exception - just rethrow
+    # TOD actual line numbers and original filename
+    if (ref($error) eq 'Python2::Type::Exception') {
+        $message = $error->message;
+
+        while (my $frame = $error->__trace__->next_frame) {
+            next unless $frame->package =~ m/^(Python2::Type|python_class_main)/;
+
+            if ($frame->filename =~ m/^___position_(\d+)_(\d+)___$/) {
+                $start_position = $1;
+                $end_position   = $2;
+            }
         }
+    }
+    elsif ($error =~ m/___position_(\d+)_(\d+)___/) {
+        $message = $error;
+        $start_position = $1;
+        $end_position   = $2;
     }
 
     # unable to get a decent internal position - do the best we can and output a
     # perl stack trace
     unless (defined $start_position and defined $end_position) {
-        die $error->__trace__->as_string;
+        die $error;
     }
 
     my @input_as_lines = split(/\n/, $self->__source__);
