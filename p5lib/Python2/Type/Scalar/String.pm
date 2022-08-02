@@ -92,7 +92,6 @@ sub replace {
 
 sub splitlines {
     pop(@_); # default named arguments hash
-
     my ($self, $keepends) = @_;
 
     # TODO: to be perfectly compatible we should also support windows line endings
@@ -108,11 +107,11 @@ sub splitlines {
 }
 
 sub capitalize {
-    pop(@_); # default named arguments hash
+    return \Python2::Type::Scalar::String->new(ucfirst lc shift->__tonative__);
+}
 
-    my ($self) = @_;
-
-    return \Python2::Type::Scalar::String->new(ucfirst lc $self->__tonative__)
+sub lower {
+    return \Python2::Type::Scalar::String->new(lc shift->__tonative__);
 }
 
 sub __gt__ {
