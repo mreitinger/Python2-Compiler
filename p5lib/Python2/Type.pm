@@ -66,7 +66,7 @@ sub AUTOLOAD {
 
     die Python2::Type::Exception->new(
         'AttributeError',
-        sprintf("%s instance has no attribute '%s'", 'TODO', $requested_method)
+        sprintf("%s instance has no attribute '%s'", ref($self), $requested_method)
     );
 }
 
