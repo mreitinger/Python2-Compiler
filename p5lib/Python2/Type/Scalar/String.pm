@@ -107,6 +107,14 @@ sub splitlines {
     );
 }
 
+sub capitalize {
+    pop(@_); # default named arguments hash
+
+    my ($self) = @_;
+
+    return \Python2::Type::Scalar::String->new(ucfirst lc $self->__tonative__)
+}
+
 sub __gt__ {
     my ($self, $pstack, $other) = @_;
 
