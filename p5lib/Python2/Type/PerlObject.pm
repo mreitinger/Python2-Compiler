@@ -5,7 +5,6 @@ use strict;
 
 use base qw/ Python2::Type /;
 
-use Python2;
 use Module::Load;
 
 use Scalar::Util qw/ blessed refaddr /;

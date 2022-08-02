@@ -6,7 +6,6 @@ use base qw/ Python2::Type /;
 use warnings;
 use strict;
 
-use Python2;
 use Scalar::Util qw/ refaddr /;
 use Tie::PythonDict;
 use overload;

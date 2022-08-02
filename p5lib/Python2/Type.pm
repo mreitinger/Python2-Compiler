@@ -5,7 +5,6 @@ package Python2::Type;
 
 use strict;
 use warnings;
-use Python2;
 use Data::Dumper;
 use Scalar::Util qw/ refaddr /;
 
