@@ -8,7 +8,6 @@ use strict;
 
 use Scalar::Util qw/ refaddr /;
 use Tie::PythonDict;
-use overload;
 
 sub new {
     # initial arugments must be a array so we don't loose objects once they become hash keys
