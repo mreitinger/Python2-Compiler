@@ -54,7 +54,10 @@ sub new {
     return bless([$type, $message,  Devel::StackTrace->new()], $self);
 }
 
-sub message { shift->[1] }
+sub message {
+    my $self = shift;
+    return sprintf('%s: %s', $self->[0], $self->[1]);
+}
 
 sub __str__  {
     my $self = shift;
