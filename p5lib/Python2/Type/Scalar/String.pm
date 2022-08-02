@@ -88,7 +88,23 @@ sub replace {
         $s =~ s/$o/$n/g;
     }
     return \Python2::Type::Scalar::String->new($s);
+}
 
+sub splitlines {
+    pop(@_); # default named arguments hash
+
+    my ($self, $keepends) = @_;
+
+    # TODO: to be perfectly compatible we should also support windows line endings
+    # \r\n as python does, as well as some corner cases e.g. '\n\n'.splitlines()
+    # but as long no issues arise this should do it
+
+    my $regex = $keepends->__tonative__ ? '(?<=\n)' : '\n';
+
+    return \Python2::Type::List->new(
+        map { Python2::Type::Scalar::String->new($_) }
+        split /$regex/, $self->__tonative__
+    );
 }
 
 sub __gt__ {
