@@ -114,6 +114,10 @@ sub lower {
     return \Python2::Type::Scalar::String->new(lc shift->__tonative__);
 }
 
+sub upper {
+    return \Python2::Type::Scalar::String->new(uc shift->__tonative__);
+}
+
 sub __gt__ {
     my ($self, $pstack, $other) = @_;
 
