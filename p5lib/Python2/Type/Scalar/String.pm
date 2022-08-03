@@ -158,9 +158,8 @@ sub find {
 
     my $offset = $end->__tonative__ - $start->__tonative__;
     my $s = substr $self->__tonative__, $start->__tonative__, $offset;
-
     my $i = index($s, $sub);
-    return \Python2::Type::Scalar::Num->new($i gt -1 and $i + $start->__tonative__ or -1);
+    return \Python2::Type::Scalar::Num->new($i gt -1 ? $i + $start->__tonative__ : -1);
 }
 
 sub rfind {
@@ -176,14 +175,49 @@ sub rfind {
     $end ||= Python2::Type::Scalar::Num->new(length($self->__tonative__));
 
     die Python2::Type::Exception->new('TypeError',
-        sprintf("find() expects integers as slice parameters, got %s and %s", $start->__type__, $end->__type__))
+        sprintf("rfind() expects integers as slice parameters, got %s and %s", $start->__type__, $end->__type__))
         unless ($start->__type__ eq 'int' and $end->__type__ eq 'int');
 
     my $offset = $end->__tonative__ - $start->__tonative__;
     my $s = substr $self->__tonative__, $start->__tonative__, $offset;
-
     my $i = rindex($s, $sub);
-    return \Python2::Type::Scalar::Num->new($i gt -1 and $i + $start->__tonative__ or -1);
+    return \Python2::Type::Scalar::Num->new($i gt -1 ? $i + $start->__tonative__ : -1);
+}
+
+sub startswith {
+    pop(@_); # default named arguments hash
+    my($self, $pstack, $sub, $start, $end) = @_;
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf("startswith() expects a string or tuple of strings as substring(s), got %s", $sub->__type__))
+        unless ($sub->__type__ eq 'str' or $sub->__type__ eq 'tuple');
+
+    my @subs;
+    if ($sub->__type__ eq 'tuple') {
+        @subs = map {
+            die Python2::Type::Exception->new('TypeError', 'startswith() found invalid list element: ' . $_->__type__)
+                unless ($_->__class__ eq 'Python2::Type::Scalar::String');
+
+            $_->__tonative__;
+        } @$sub;
+    } else {
+        @subs = ($sub->__tonative__);
+    }
+
+    $start ||= Python2::Type::Scalar::Num->new(0);
+    $end ||= Python2::Type::Scalar::Num->new(length($self->__tonative__));
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf("startswith() expects integers as slice parameters, got %s and %s", $start->__type__, $end->__type__))
+        unless ($start->__type__ eq 'int' and $end->__type__ eq 'int');
+
+    my $offset = $end->__tonative__ - $start->__tonative__;
+    my $s = substr $self->__tonative__, $start->__tonative__, $offset;
+    for $sub (@subs) {
+        my $i = index($s, $sub);
+        return \Python2::Type::Scalar::Bool->new(1) if $i eq 0;
+    }
+    return \Python2::Type::Scalar::Bool->new(0);
 }
 
 sub __gt__ {
