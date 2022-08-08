@@ -5,9 +5,9 @@ use warnings;
 use strict;
 
 use overload
-    bool     => sub { return 1; },
+    bool     => sub { return 'true-from-python'; },
     '""'     => sub { return shift->{value}; },
-    fallback => 0;
+    fallback => 1; # Required for older Perl's - fixed with (at latest) 5.36.
 
 sub new {
     my ($self, $value) = @_;
