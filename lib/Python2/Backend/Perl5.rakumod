@@ -235,6 +235,14 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
+
+    multi method e(Python2::AST::Node::Statement::LoopWhile $node) {
+        my Str $p5 = sprintf('while (1) { last unless ${ %s }->__tonative__; %s; }', $.e($node.test), $.e($node.block));
+
+        return $p5;
+    }
+
+
     multi method e(Python2::AST::Node::ListComprehension $node) {
         my Str $p5;
 

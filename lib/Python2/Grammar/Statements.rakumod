@@ -10,6 +10,7 @@ role Python2::Grammar::Statements {
             | <statement-return>
             | <expression>
             | <statement-loop-for>
+            | <statement-loop-while>
             | <statement-if>
             | <statement-with>
             | <class-definition>
@@ -43,6 +44,10 @@ role Python2::Grammar::Statements {
 
     token statement-loop-for {
         'for' <.ws> <name> [<.ws> ',' <.ws> <name>]* <.ws> 'in' <.ws> <expression> ':' <block>
+    }
+
+    token statement-loop-while {
+        'while' <.ws> <test> <.ws> ':' <block>
     }
 
     token statement-if {

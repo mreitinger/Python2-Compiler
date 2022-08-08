@@ -65,6 +65,15 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-loop-while($/) {
+        $/.make(Python2::AST::Node::Statement::LoopWhile.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            test            => $/<test>.made,
+            block           => $/<block>.made,
+        ));
+    }
+
     method statement-if($/) {
         $/.make(Python2::AST::Node::Statement::If.new(
             start-position  => $/.from,
