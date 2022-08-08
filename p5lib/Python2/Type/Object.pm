@@ -1,5 +1,8 @@
 package Python2::Type::Object;
+
 use Python2;
+use Python2::Internals;
+
 use base qw/ Python2::Type /;
 use v5.26.0;
 use warnings;
@@ -10,7 +13,7 @@ use Clone 'clone';
 sub new {
     my ($self) = @_;
 
-    my $object = bless({ stack => [$builtins] }, $self);
+    my $object = bless({ stack => [$Python2::builtins] }, $self);
 
     return $object;
 }

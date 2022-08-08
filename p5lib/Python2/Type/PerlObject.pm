@@ -94,7 +94,7 @@ sub AUTOLOAD {
     die("Got invalid return value with multiple values when calling '$requested_method' on " . ref($self->{object}))
         if scalar(@retval) > 1;
 
-    return Python2::convert_to_python_type($retval[0]);
+    return Python2::Internals::convert_to_python_type($retval[0]);
 }
 
 sub __type__ { return 'p5object'; }

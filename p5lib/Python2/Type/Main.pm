@@ -10,9 +10,10 @@ use Scalar::Util qw/ refaddr /;
 use Data::Dumper;
 use Ref::Util::XS qw/ is_arrayref is_hashref is_coderef /;
 use Python2;
+use Python2::Internals;
 
 sub new {
-    return bless({ stack => [$builtins] }, shift);
+    return bless({ stack => [$Python2::builtins] }, shift);
 }
 
 # execute our main block with error handler
@@ -39,11 +40,11 @@ sub __run_function__ {
     $self->__handle_exception__($@) if $@;
 
     # get our function from the stack
-    my $coderef = getvar($self->{stack}, $name);
+    my $coderef = Python2::Internals::getvar($self->{stack}, $name);
 
     my $retval = eval {
         die("Function $name not found") unless defined $$coderef;
-        $$coderef->__call__(( map { ${ convert_to_python_type($_) } } @{ $args } ), {});
+        $$coderef->__call__(( map { ${ Python2::Internals::convert_to_python_type($_) } } @{ $args } ), {});
     };
 
     $self->__handle_exception__($@) if $@;

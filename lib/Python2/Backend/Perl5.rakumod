@@ -22,6 +22,8 @@ class Python2::Backend::Perl5 {
 
         package Python2::Type::Class::main_%s {
             use Python2;
+            use Python2::Internals;
+
             use base 'Python2::Type::Main';
 
             # return the source of the original python file
@@ -87,14 +89,14 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Atom $node) {
         if ($node.expression ~~ Python2::AST::Node::Name) {
-            return sprintf('getvar($stack, %s)', $.e($node.expression));
+            return sprintf('Python2::Internals::getvar($stack, %s)', $.e($node.expression));
         } else {
             return sprintf('%s', $.e($node.expression));
         }
     }
 
     multi method e(Python2::AST::Node::Statement::P5Import $node) {
-        return sprintf('setvar($stack, \'%s\', Python2::Type::PerlObject->new(\'%s\'));',
+        return sprintf('Python2::Internals::setvar($stack, \'%s\', Python2::Type::PerlObject->new(\'%s\'));',
             $node.name,
             $node.perl5-package-name.subst("'", "\\'", :g),
         );
@@ -145,7 +147,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
-        return sprintf('py2print(${ %s }, {})', $.e($node.value));
+        return sprintf('Python2::Internals::py2print(${ %s }, {})', $.e($node.value));
     }
 
     multi method e(Python2::AST::Node::Statement::Raise $node) {
@@ -168,7 +170,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::ArithmeticAssignment $node) {
         my $operator = $node.operator.chop; # grammar ensures only valid operators pass thru here
 
-        return sprintf(q|${%s} = ${ arithmetic(${ %s }, ${ %s }, '%s') }|,
+        return sprintf(q|${%s} = ${ Python2::Internals::arithmetic(${ %s }, ${ %s }, '%s') }|,
             $.e($node.target),
             $.e($node.target),
             $.e($node.value),
@@ -208,7 +210,7 @@ class Python2::Backend::Perl5 {
 
             my Int $index = 0;
             for $node.names -> $name {
-                $p5 ~= sprintf('setvar($stack, %s, $var->[%i]);', $.e($name), $index++);
+                $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var->[%i]);', $.e($name), $index++);
             }
 
             $p5 ~= sprintf('%s', $.e($node.block));
@@ -224,7 +226,7 @@ class Python2::Backend::Perl5 {
         else {
             # single name, raw values from a list/tuple
             $p5 ~= 'foreach my $var (@{$i}) {';
-            $p5 ~= sprintf('setvar($stack, %s, $var);', $.e($node.names[0]));
+            $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.names[0]));
             $p5 ~= sprintf('%s }', $.e($node.block));
         }
 
@@ -240,7 +242,7 @@ class Python2::Backend::Perl5 {
         $p5 ~= 'my $r = Python2::Type::List->new();';
 
         $p5 ~= 'foreach my $var (@{$i}) {';
-        $p5 ~= sprintf('setvar($stack, %s, $var);', $.e($node.name));
+        $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.name));
 
         $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.test))
             if ($node.test);
@@ -301,7 +303,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::With $node) {
         my Str $p5 = qq|\n# line 999 "___position_{$node.start-position}_{$node.block.start-position}___"\n|;
 
-        $p5 ~= sprintf('{ my $p = %s; setvar($stack, %s, $$p); %s; setvar($stack, %s, undef); }',
+        $p5 ~= sprintf('{ my $p = %s; Python2::Internals::setvar($stack, %s, $$p); %s; Python2::Internals::setvar($stack, %s, undef); }',
             $.e($node.test),
             $.e($node.name),
             $.e($node.block),
@@ -359,7 +361,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $stack = [$builtins];';
+        $block ~= 'my $stack = [$Python2::builtins];';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
@@ -370,8 +372,8 @@ class Python2::Backend::Perl5 {
             );
         }
 
-        # call Python2::getopt() to parse our arguments
-        $block ~= sprintf('getopt($stack, \'%s\', [%s], @_);',
+        # call Python2::Python2::Internals::getopt() to parse our arguments
+        $block ~= sprintf('Python2::Internals::getopt($stack, \'%s\', [%s], @_);',
             $node.name.name.subst("'", "\\'", :g),
             $argument-definition
         );
@@ -390,7 +392,7 @@ class Python2::Backend::Perl5 {
             $block,
         );
 
-        return sprintf('setvar($stack, %s, %s->new());',
+        return sprintf('Python2::Internals::setvar($stack, %s, %s->new());',
             $.e($node.name),
             $perl5_class_name,
         );
@@ -402,11 +404,11 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $stack = [$builtins];';
+        $block ~= 'my $stack = [$Python2::builtins];';
 
         # get arguments
         for $node.argument-list -> $argument {
-            $block ~= sprintf('setvar($stack, \'%s\', shift);', $argument.name.name);
+            $block ~= sprintf('Python2::Internals::setvar($stack, \'%s\', shift);', $argument.name.name);
         }
 
         # the actual function body
@@ -433,7 +435,7 @@ class Python2::Backend::Perl5 {
             $.e($node.block)
         );
 
-        return sprintf('setvar($stack, \'%s\', %s->new());',
+        return sprintf('Python2::Internals::setvar($stack, \'%s\', %s->new());',
             $node.name.name.subst("'", "\\'", :g),
             $perl5_class_name,
         );
@@ -553,7 +555,7 @@ class Python2::Backend::Perl5 {
             }
 
             $p5 ~= sprintf(
-                q|$left = arithmetic(${ $left }, ${ %s }, '%s');|,
+                q|$left = Python2::Internals::arithmetic(${ $left }, ${ %s }, '%s');|,
                 $right-element,
                 $.e($operation)
             );
@@ -591,11 +593,11 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
-        return sprintf('convert_to_python_type(%s)', $node.value);
+        return sprintf('Python2::Internals::convert_to_python_type(%s)', $node.value);
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
-        return sprintf('convert_to_python_type(%s)', $node.value)
+        return sprintf('Python2::Internals::convert_to_python_type(%s)', $node.value)
     }
 
     multi method e(Python2::AST::Node::Subscript $node) {

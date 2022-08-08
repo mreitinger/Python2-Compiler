@@ -35,7 +35,7 @@ sub read {
     my $res;
     read($self->[0], $res, $bytes->__tonative__);
 
-    return Python2::convert_to_python_type($res);
+    return Python2::Internals::convert_to_python_type($res);
 }
 
 sub close {
