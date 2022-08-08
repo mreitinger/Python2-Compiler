@@ -135,7 +135,7 @@ sub count {
 
     my $offset = $end->__tonative__ - $start->__tonative__;
     my $s = substr $self->__tonative__, $start->__tonative__, $offset;
-    my $c =()= $s=~ m/$sub/g;
+    my $c =()= $s=~ m/\Q$sub\E/g;
 
     return \Python2::Type::Scalar::Num->new($c);
 }
