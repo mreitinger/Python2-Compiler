@@ -82,10 +82,10 @@ sub replace {
             sprintf("replace() expects count to be an integer, got %s instead", $count->__type__, ))
             unless ($count->__type__ eq 'int');
         for (1.. $count->__tonative__) {
-            $s =~ s/$o/$n/;
+            $s =~ s/\Q$o\E/$n/;
         }
     } else {
-        $s =~ s/$o/$n/g;
+        $s =~ s/\Q$o\E/$n/g;
     }
     return \Python2::Type::Scalar::String->new($s);
 }
