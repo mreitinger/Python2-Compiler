@@ -73,6 +73,7 @@ sub __handle_exception__ {
             if ($frame->filename =~ m/^___position_(\d+)_(\d+)___$/) {
                 $start_position = $1;
                 $end_position   = $2;
+                last;
             }
         }
     }
