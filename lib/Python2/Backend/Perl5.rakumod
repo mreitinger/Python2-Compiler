@@ -89,7 +89,12 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Atom $node) {
         if ($node.expression ~~ Python2::AST::Node::Name) {
-            return sprintf('Python2::Internals::getvar($stack, %s)', $.e($node.expression));
+            return sprintf('Python2::Internals::getvar($stack, %i, %s)',
+                $node.recurse
+                    ?? 1
+                    !! 0,
+                $.e($node.expression)
+            );
         } else {
             return sprintf('%s', $.e($node.expression));
         }
@@ -160,6 +165,8 @@ class Python2::Backend::Perl5 {
 
         # see AST::Node::Power
         $node.target.must-resolve = False;
+        $node.target.atom.recurse = False; # if it's a variable assignment we
+                                           # don't recurse upwards on the stack
 
         return sprintf('${%s} = ${%s}',
             $.e($node.target),
@@ -255,7 +262,7 @@ class Python2::Backend::Perl5 {
         $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.test))
             if ($node.test);
 
-        $p5 ~= sprintf('$r->__iadd__(${ %s });', $.e($node.expression));
+        $p5 ~= sprintf('$r->__iadd__(undef, ${ %s });', $.e($node.expression));
         $p5 ~= '}';
 
         return $p5 ~ 'return \$r; }';
@@ -328,12 +335,12 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
         if ($node.right) {
             return $node.comparison-operator eq '__contains__'
-                ??  sprintf('${%s}->%s(${%s})',
+                ??  sprintf('${%s}->%s(undef, ${%s})',
                         $.e($node.right),
                         $node.comparison-operator,
                         $.e($node.left),
                     )
-                !!  sprintf('${%s}->%s(${%s})',
+                !!  sprintf('${%s}->%s(undef, ${%s})',
                         $.e($node.left),
                         $node.comparison-operator,
                         $.e($node.right),
@@ -390,7 +397,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $stack = [$Python2::builtins];';
+        $block ~= 'my $pstack = shift; my $stack  = [defined $pstack ? $pstack : $Python2::builtins];';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
@@ -443,9 +450,9 @@ class Python2::Backend::Perl5 {
         # the actual function body
         $block ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
 
-        # the call to shift get rid of $self which we don't need in this case.
+        # the call to shift get rid of $self and $pstack which we don't need in this case.
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { shift; %s } }',
+            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { shift; shift; %s } }',
             $perl5_class_name,
             $block,
         );
@@ -503,7 +510,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
                 if $node.must-resolve;
 
-            $p5 ~= sprintf('$$p->__call__(%s);', $.e(@elements[1]));
+            $p5 ~= sprintf('$$p->__call__($stack, %s);', $.e(@elements[1]));
 
             return sprintf('sub{ %s }->()', $p5);
         }
@@ -527,18 +534,18 @@ class Python2::Backend::Perl5 {
             if $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
 
-                $p5 ~= sprintf('$p = ${$p}->%s(%s);',
+                $p5 ~= sprintf('$p = ${$p}->%s($stack, %s);',
                     $current-element.name,
                     $.e($argument-list)
                 );
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {
                 $p5 ~= $current-element.target
-                    ?? sprintf('$p = ${$p}->__getslice__(%s, {});', $.e($current-element)) # array slice
-                    !! sprintf('$p = ${$p}->__getitem__(%s, {});', $.e($current-element));
+                    ?? sprintf('$p = ${$p}->__getslice__(undef, %s, {});', $.e($current-element)) # array slice
+                    !! sprintf('$p = ${$p}->__getitem__(undef, %s, {});', $.e($current-element));
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
-                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
+                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
                 $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
             }

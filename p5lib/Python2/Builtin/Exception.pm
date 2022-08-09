@@ -5,6 +5,11 @@ use warnings;
 use strict;
 
 sub __name__ { 'exception' }
-sub __call__ { \Python2::Type::Exception->new('Exception', $_[1]); };
+sub __call__ {
+    shift @_; # $self - unused
+    shift @_; # parent stack - unused
+
+    \Python2::Type::Exception->new('Exception', $_[0]);
+};
 
 1;

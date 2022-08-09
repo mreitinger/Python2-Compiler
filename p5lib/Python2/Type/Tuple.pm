@@ -16,7 +16,7 @@ sub __str__ {
 }
 
 sub __getslice__ {
-    my ($self, $key, $target) = @_;
+    my ($self, $pstack, $key, $target) = @_;
 
     $key     = $key->__tonative__;
     $target  = $target->__tonative__;
@@ -39,7 +39,7 @@ sub __len__ {
 sub __type__ { return 'tuple'; }
 
 sub __eq__      {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     # if it's the same element it must match
     return \Python2::Type::Scalar::Bool->new(1)

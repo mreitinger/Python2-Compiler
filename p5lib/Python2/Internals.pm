@@ -23,8 +23,14 @@ sub setvar {
 
 # return a reference to a variable name on our stack
 sub getvar {
-    my ($stack, $name) = @_;
+    my ($stack, $recurse, $name) = @_;
 
+    # if recursion is disabled (for variable assignment) don't travel upwards on the stack
+    return \$stack->[ITEMS]->{$name}
+        unless $recurse;
+
+
+    # recursion enabled - look upwards to find the variable
     my $call_frame = $stack;
 
     until (exists $call_frame->[ITEMS]->{$name} or not defined $call_frame->[PARENT]) {
@@ -300,7 +306,7 @@ sub convert_to_python_type {
                 ? Python2::Type::Scalar::Num->new($v)
                 : Python2::Type::Scalar::String->new($v);
 
-            $dict->__setitem__($k, $v);
+            $dict->__setitem__(undef, $k, $v);
         }
 
         return \$dict;

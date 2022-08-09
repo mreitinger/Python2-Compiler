@@ -6,7 +6,10 @@ use strict;
 
 sub __name__ { 'range' }
 sub __call__ {
-    return \Python2::Type::List->new(1 .. $_[1]->__tonative__);
+    shift @_; # $self - unused
+    shift @_; # parent stack - unused
+
+    \Python2::Type::List->new(1 .. $_[0]->__tonative__);
 };
 
 1;

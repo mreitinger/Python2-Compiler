@@ -47,7 +47,7 @@ sub __str__ {
 sub __tonative__ { return shift->{object}; }
 
 sub __eq__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new(1)
         if (refaddr($other) eq refaddr($self));
@@ -62,7 +62,8 @@ sub __call__ {
 
 # called for every unknown method
 sub AUTOLOAD {
-    my ($self, @argument_list) = @_;
+    # we get the parent stack as $pstack but we don't pass it on
+    my ($self, $pstack, @argument_list) = @_;
 
     # figure out the requested method
     our $AUTOLOAD;

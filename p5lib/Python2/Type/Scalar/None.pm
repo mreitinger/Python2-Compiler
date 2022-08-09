@@ -15,7 +15,7 @@ sub __tonative__    { undef; }
 sub __type__        { 'none'; }
 
 sub __is__          {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     # special case: None is None
     return \Python2::Type::Scalar::Bool->new(1)
@@ -26,7 +26,7 @@ sub __is__          {
 }
 
 sub __eq__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'none');

@@ -11,13 +11,13 @@ sub __str__ {return shift->{value}; }
 sub __type__ { shift->{value} =~ m/^\d+$/ ? 'int' : 'float'; }
 
 sub __ne__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ ne $other->__tonative__);
 }
 
 sub __gt__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ > $other->__tonative__)
         if ($other->__class__ eq 'Python2::Type::Scalar::Num');
@@ -26,7 +26,7 @@ sub __gt__ {
 }
 
 sub __lt__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ < $other->__tonative__)
         if ($other->__class__ eq 'Python2::Type::Scalar::Num');
@@ -35,7 +35,7 @@ sub __lt__ {
 }
 
 sub __ge__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ >= $other->__tonative__)
         if ($other->__class__ eq 'Python2::Type::Scalar::Num');
@@ -44,7 +44,7 @@ sub __ge__ {
 }
 
 sub __le__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ <= $other->__tonative__)
         if ($other->__class__ eq 'Python2::Type::Scalar::Num');

@@ -25,16 +25,16 @@ sub __eq__      { die Python2::Type::Exception->new('NotImplementedError', '__eq
 # we implement this using __hasattr__ instead of (ab)using __getattr__ in case we need more
 # fine control when interfacing with perl 5 objects.
 sub __hasattr__ {
-    my ($self, $key) = @_;
+    my ($self, $pstack, $key) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 
 # !=
 sub __ne__      {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
-    return ${ $self->__eq__($other) }->__tonative__
+    return ${ $self->__eq__(undef, $other) }->__tonative__
         ? \Python2::Type::Scalar::Bool->new(0)
         : \Python2::Type::Scalar::Bool->new(1);
 }
@@ -48,7 +48,7 @@ sub __contains__    { die Python2::Type::Exception->new('NotImplementedError', '
 
 # is - used for our X is Y implementation, python2 has no explicit __is__
 sub __is__  {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     if (refaddr($self) == refaddr($other)) {
         return \Python2::Type::Scalar::Bool->new(1);

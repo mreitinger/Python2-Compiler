@@ -1,12 +1,17 @@
 x = 1
+y = 2
 
 print x
 
 def func():
-    try:
-        print x
-    except:
-        print 'access to undefined x failed'
+    # TODO python fails with UnboundLocalError if the variable is present somewhere in the block
+
+    #try:
+    #    print x
+    #except:
+    #    print 'access to undefined x failed'
+
+    print y
 
     print 'func() body executed'
     x = 2

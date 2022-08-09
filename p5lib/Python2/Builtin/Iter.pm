@@ -5,6 +5,11 @@ use warnings;
 use strict;
 
 sub __name__ { 'iter' }
-sub __call__ { $_[1]->__iter__(); };
+sub __call__ {
+    shift @_; # $self - unused
+    shift @_; # parent stack - unused
+
+    $_[0]->__iter__();
+};
 
 1;

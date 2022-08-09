@@ -39,12 +39,12 @@ sub __run_function__ {
     eval { $self->__block__($args); };
     $self->__handle_exception__($@) if $@;
 
-    # get our function from the stack
-    my $coderef = Python2::Internals::getvar($self->{stack}, $name);
+    # get our function from the stack and disable recursion
+    my $coderef = Python2::Internals::getvar($self->{stack}, 0, $name);
 
     my $retval = eval {
         die("Function $name not found") unless defined $$coderef;
-        $$coderef->__call__(( map { ${ Python2::Internals::convert_to_python_type($_) } } @{ $args } ), {});
+        $$coderef->__call__(undef, ( map { ${ Python2::Internals::convert_to_python_type($_) } } @{ $args } ), {});
     };
 
     $self->__handle_exception__($@) if $@;

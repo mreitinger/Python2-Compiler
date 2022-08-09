@@ -9,7 +9,7 @@ sub __type__ { 'str'; }
 
 sub split {
     pop(@_); # default named arguments hash
-    my ($self, $separator, $maxsplit) = @_;
+    my ($self, $pstack, $separator, $maxsplit) = @_;
 
     my $joiner = $separator; # original separator - used to join in case we use maxsplit below
 
@@ -49,7 +49,7 @@ sub split {
 }
 
 sub join {
-    my ($self, $iterable) = @_;
+    my ($self, $pstack, $iterable) = @_;
 
     die Python2::Type::Exception->new('TypeError', sprintf("join() expects a iterable but got '%s'", $iterable->__type__))
         unless ($iterable->__type__ eq 'list');
@@ -63,7 +63,7 @@ sub join {
 }
 
 sub __gt__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ gt $other->__tonative__)
         if ($other->__type__ eq 'str');
@@ -72,7 +72,7 @@ sub __gt__ {
 }
 
 sub __lt__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ lt $other->__tonative__)
         if ($other->__type__ eq 'str');
@@ -81,7 +81,7 @@ sub __lt__ {
 }
 
 sub __ge__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ ge $other->__tonative__)
         if ($other->__type__ eq 'str');
@@ -90,7 +90,7 @@ sub __ge__ {
 }
 
 sub __le__ {
-    my ($self, $other) = @_;
+    my ($self, $pstack, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ le $other->__tonative__)
         if ($other->__type__ eq 'str');

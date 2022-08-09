@@ -34,7 +34,7 @@ sub __tonative__ {
             $argument = ${ Python2::Internals::convert_to_python_type($argument) };
         }
 
-        my $retval = $self->__call__(@argument_list);
+        my $retval = $self->__call__(undef, @argument_list);
         return ${ $retval }->__tonative__;
     };
 

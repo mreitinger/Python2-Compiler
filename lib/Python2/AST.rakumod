@@ -32,6 +32,11 @@ class Python2::AST {
     }
 
     class Node::Atom is Node {
+        # if this is false we don't recurse upwards on the stack
+        # this is overridden only by VariableAssignment otherwise we would overwrite variables
+        # outside of our scope
+        has Bool $.recurse      is rw = True;
+
         has Node $.expression is required is rw;
     }
 

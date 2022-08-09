@@ -22,7 +22,7 @@ sub next {
 
     return \Python2::Type::Tuple->new(
         Python2::Type::Scalar::Num->new($self->[0]),
-        ${ $self->[1]->__getitem__( Python2::Type::Scalar::Num->new($self->[0]++) ) }
+        ${ $self->[1]->__getitem__(undef, Python2::Type::Scalar::Num->new($self->[0]++) ) }
     );
 }
 

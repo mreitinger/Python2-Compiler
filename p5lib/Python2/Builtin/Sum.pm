@@ -8,8 +8,9 @@ use List::Util qw(sum);
 
 sub __name__ { 'sum' }
 sub __call__ {
-        shift(@_);  # $self - unused
-        pop(@_);    # default named arguments hash
+    shift @_; # $self - unused
+    shift @_; # parent stack - unused
+    pop   @_; # default named arguments hash - unused
 
         my ($list, $start_value) = @_;
 

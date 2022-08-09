@@ -22,7 +22,7 @@ sub new {
 sub read {
     pop(@_); #default named args hash
 
-    my ($self, $bytes) = @_;
+    my ($self, $pstack, $bytes) = @_;
 
     die Python2::Type::Exception->new('ValueError', "I/O operation on closed file")
         unless defined openhandle($self->[0]);
