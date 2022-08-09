@@ -43,8 +43,7 @@ class Python2::AST {
 
     class Node::Test::Logical is Node {
         has Node $.condition    is required is rw;
-        has Node $.left         is rw is required;
-        has Node $.right        is rw; # not provides not 'right'
+        has Node @.values       is rw is required;
     }
 
     class Node::Test::LogicalCondition is Node {

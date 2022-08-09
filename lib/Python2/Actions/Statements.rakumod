@@ -138,9 +138,13 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Test::Logical.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            left      => $<and_test>[0].made,
-            right     => $<and_test>[1]   ?? $<and_test>[1].made    !! Nil,
-            condition => $<and_test>[1]   ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'or')                   !! Nil,
+            values          => $<and_test>.map({ $_.made }),
+
+            # if we have more than one value set the condition - otherwise set it to Nil
+            # so we can optimize it out later
+            condition       => $<and_test>[1]
+                ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'or')
+                !! Nil,
         ));
     }
 
@@ -148,9 +152,13 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Test::Logical.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            left            => $<not_test>[0].made,
-            right           => $<not_test>[1]   ?? $<not_test>[1].made   !! Nil,
-            condition       => $<not_test>[1]   ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'and')          !! Nil,
+            values          => $<not_test>.map({ $_.made }),
+
+            # if we have more than one value set the condition - otherwise set it to Nil
+            # so we can optimize it out later
+            condition       => $<not_test>[1]
+                ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'and')
+                !! Nil,
         ));
     }
 
@@ -162,8 +170,8 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Test::Logical.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            left      => $<not_test>.made,
-            condition => Python2::AST::Node::Test::LogicalCondition.new(condition => 'not'),
+            values          => ( $<not_test>.made ),
+            condition       => Python2::AST::Node::Test::LogicalCondition.new(condition => 'not'),
         ));
     }
 

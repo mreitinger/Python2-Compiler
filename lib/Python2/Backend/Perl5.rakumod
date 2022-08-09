@@ -344,23 +344,44 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Test::Logical $node) {
-        return $.e($node.left) unless $node.condition;
+        return $.e($node.values[0]) unless $node.condition;
 
         if ($node.condition.condition eq 'not') {
-            return sprintf('\Python2::Type::Scalar::Bool->new(not ${%s}->__tonative__)', $.e($node.left));
+            # not always returns a bool
+            return sprintf('\Python2::Type::Scalar::Bool->new(not ${%s}->__tonative__)', $.e($node.values[0]));
         }
         elsif ($node.condition.condition eq 'or') {
-            sprintf('do { my $l = %s; my $r = %s; $$l->__tonative__ ? $l : $r; }', $.e($node.left), $.e($node.right))
+            # or returns the first true value or, if all are false, the last value
+            my Str $p5;
+            $p5 ~= 'sub { my $t;';
+
+            for $node.values -> $value {
+                $p5 ~= sprintf('$t = %s; return $t if $$t->__tonative__;', $.e($value));
+            }
+
+            # if we didn't return before the all values are false - return the last one
+            $p5 ~= 'return $t;';
+
+            $p5 ~= '}->()';
+
+            return $p5;
         }
         else {
-            return $node.condition
-                ?? sprintf('\Python2::Type::Scalar::Bool->new(${%s}->__tonative__ %s ${%s}->__tonative__)', $.e($node.left), $.e($node.condition), $.e($node.right))
-                !! $.e($node.left);
-        }
-    }
+            # and returns the first false value or, of all are true, the last value
+            my Str $p5;
+            $p5 ~= 'sub { my $t;';
 
-    multi method e(Python2::AST::Node::Test::LogicalCondition $node) {
-        return sprintf('%s', $node.condition);
+            for $node.values -> $value {
+                $p5 ~= sprintf('$t = %s; return $t unless $$t->__tonative__;', $.e($value));
+            }
+
+            # if we didn't return before the all values are true - return the last one
+            $p5 ~= 'return $t;';
+
+            $p5 ~= '}->()';
+
+            return $p5;
+        }
     }
 
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
