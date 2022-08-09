@@ -136,7 +136,7 @@ sub __handle_exception__ {
     $output .= "Internal stack trace:\n";
 
     while (my $frame = $error->__trace__->next_frame) {
-        $output .= sprintf(" - %s(%s)\n", $frame->subroutine, join(', ', map { substr( $_, 0, 20 ) } $frame->args));
+        $output .= sprintf(" - %s(%s)\n", $frame->subroutine, join(', ', map { substr( defined $_ ? $_ : 'undef', 0, 20 ) } $frame->args));
     }
 
     die $output;
