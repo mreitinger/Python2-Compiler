@@ -32,6 +32,10 @@ sub __eq__ {
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ eq $other->__tonative__);
 }
 
+sub __len__ {
+    return \Python2::Type::Scalar::Num->new(length(shift->{value}));
+}
+
 # is - used for our X is Y implementation, python2 has no explicit __is__
 sub __is__  {
     my ($self, $pstack, $other) = @_;

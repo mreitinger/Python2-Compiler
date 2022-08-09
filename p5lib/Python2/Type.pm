@@ -45,6 +45,8 @@ sub __gt__          { die Python2::Type::Exception->new('NotImplementedError', '
 sub __le__          { die Python2::Type::Exception->new('NotImplementedError', '__le__ between ' . shift->__type__ . ' and ' . shift->__type__);; } # <=
 sub __ge__          { die Python2::Type::Exception->new('NotImplementedError', '__ge__ between ' . shift->__type__ . ' and ' . shift->__type__);; } # >=
 sub __contains__    { die Python2::Type::Exception->new('NotImplementedError', '__contains__ between ' . shift->__type__ . ' and ' . shift->__type__);; } # in
+sub __len__         { die Python2::Type::Exception->new('NotImplementedError', '__len__ for ' . shift->__type__) };
+
 
 # is - used for our X is Y implementation, python2 has no explicit __is__
 sub __is__  {

@@ -40,6 +40,7 @@ our $builtins = [
             'filter'    => Python2::Builtin::Filter->new(),
             'sum'       => Python2::Builtin::Sum->new(),
             'round'     => Python2::Builtin::Round->new(),
+            'len'       => Python2::Builtin::Len->new(),
 
             'None'      => Python2::Type::Scalar::None->new(),
             'True'      => Python2::Type::Scalar::Bool->new(1),
