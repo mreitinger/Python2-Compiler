@@ -5,7 +5,7 @@ use Python2::ParseFail;
 
 class Python2::Backend::Perl5 {
     has Str $!o = '';
-    has Str $!modules = '';
+    has Str %!modules;
     has Str $.embedded; # class name to use as 'main' class.
                         # used when embedding the code in some other environment where the caller
                         # needs to know the main class name
@@ -68,8 +68,8 @@ class Python2::Backend::Perl5 {
         my Str $class_sha1_hash = sha1-hex($node.input);
 
         my Str $output = sprintf(
-            $!wrapper,          # wrapper / sprintf definition
-            $!modules,          # python class definitions
+            $!wrapper,                      # wrapper / sprintf definition
+            %!modules.values.join("\n"),    # python class definitions
 
             # name of the main package. provided when we get embedded or auto generated from sha1 hash
             $.embedded ?? $.embedded !! $class_sha1_hash,
@@ -414,7 +414,7 @@ class Python2::Backend::Perl5 {
         $block   ~= 'return \Python2::Type::Scalar::None->new();';
 
         # the call to shift to get rid of $self which we don't need in this case.
-        $!modules ~= sprintf(
+        %!modules{$perl5_class_name} = sprintf(
             'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { %s }; sub __call__ { shift; %s } }',
             $perl5_class_name,
             $.e($node.name),
@@ -444,7 +444,7 @@ class Python2::Backend::Perl5 {
         $block ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
 
         # the call to shift get rid of $self which we don't need in this case.
-        $!modules ~= sprintf(
+        %!modules{$perl5_class_name} = sprintf(
             'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { shift; %s } }',
             $perl5_class_name,
             $block,
@@ -457,7 +457,7 @@ class Python2::Backend::Perl5 {
         my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
         my Str $preamble = 'use Python2;';
 
-        $!modules ~= sprintf(
+        %!modules{$perl5_class_name} = sprintf(
             'package %s { use base qw/ Python2::Type::Object /; %s sub __build__ { my $self = shift; my $stack = $self->{stack}; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
