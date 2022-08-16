@@ -8,3 +8,9 @@ for value in sorted(dict.values()):
 
 dict.clear()
 print dict
+
+x = {'a': 'b'}
+
+print x.get('a')
+print x.get('b')
+

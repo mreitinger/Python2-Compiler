@@ -70,6 +70,15 @@ sub __getitem__ {
     return \$self->{$key};
 }
 
+sub get {
+    my ($self, $pstack, $key) = @_;
+
+    die("Unhashable type: " . ref($key))
+        unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
+
+    return exists $self->{$key} ? \$self->{$key} : \Python2::Type::Scalar::None->new(0);
+}
+
 sub has_key {
     my ($self, $pstack, $key) = @_;
 
