@@ -234,10 +234,9 @@ class Python2::Backend::Perl5 {
             $p5 ~= sprintf('%s', $.e($node.block));
 
             $p5 ~= q:to/END/;
-                    }
-                    or do {
-                        if ($@ eq 'StopIteration') { last } else { die; }
-                    }
+                    };
+
+                    if (($@) and ($@ eq 'StopIteration')) { last; } elsif ($@) { die $@; }
                 }
                 END
         }
