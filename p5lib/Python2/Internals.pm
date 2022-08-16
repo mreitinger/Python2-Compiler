@@ -306,13 +306,8 @@ sub convert_to_python_type {
         my $dict = Python2::Type::Dict->new();
 
         while (my ($k, $v) = each(%$value)) {
-            $k = looks_like_number($k)
-                ? Python2::Type::Scalar::Num->new($k)
-                : Python2::Type::Scalar::String->new($k);
-
-            $v = looks_like_number($v)
-                ? Python2::Type::Scalar::Num->new($v)
-                : Python2::Type::Scalar::String->new($v);
+            $k = ${ convert_to_python_type($k) };
+            $v = ${ convert_to_python_type($v) };
 
             $dict->__setitem__(undef, $k, $v);
         }
