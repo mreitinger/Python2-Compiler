@@ -715,7 +715,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Block $node) {
-        return sprintf('{ %s }', $node.statements.map({
+        return sprintf('%s', $node.statements.map({
             self.e($_)
         }).join(''));
     }
