@@ -33,7 +33,39 @@ sub __eq__ {
         if ($other->__type__ eq 'none');
 
     return \Python2::Type::Scalar::Bool->new(0)
-        if ($other->__type__ eq 'none');
+        if ($other->__type__ ne 'none');
 }
+
+sub __ne__ {
+    my ($self, $pstack, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ($other->__type__ eq 'none');
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ($other->__type__ ne 'none');
+}
+
+sub __gt__ { \Python2::Type::Scalar::Bool->new(0) }
+
+sub __lt__ {
+    my ($self, $pstack, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ($other->__type__ eq 'none');
+
+    return \Python2::Type::Scalar::Bool->new(1);
+}
+
+sub __ge__ {
+    my ($self, $pstack, $other) = @_;
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ($other->__type__ eq 'none');
+
+    return \Python2::Type::Scalar::Bool->new(0);
+}
+
+sub __le__ { \Python2::Type::Scalar::Bool->new(1); }
 
 1;
