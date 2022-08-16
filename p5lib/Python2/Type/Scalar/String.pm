@@ -256,4 +256,13 @@ sub __le__ {
     ...;
 }
 
+sub __contains__ {
+    my ($self, $pstack, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("in <string> requires string as left operand, got %s", $other->__type__))
+        unless ($other->__type__ eq 'str');
+
+    return \Python2::Type::Scalar::Bool->new( index($self->__tonative__, $other->__tonative__) >= 0 );
+}
+
 1;
