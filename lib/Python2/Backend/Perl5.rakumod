@@ -547,7 +547,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Power $node) {
         my @elements = ($node.atom, $node.trailers).flat;
 
-        my Str $p5 = 'my $p;';
+        my Str $p5 = 'my $p = undef;';
 
         # simple function-call. we handle this first so we produce simpler code and
         # don't conflict with method calls down below
@@ -603,7 +603,7 @@ class Python2::Backend::Perl5 {
             }
         }
 
-        return sprintf('sub{my $p = undef; %s; return $p; }->()', $p5);
+        return sprintf('sub{%s; return $p; }->()', $p5);
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {
