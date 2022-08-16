@@ -31,6 +31,15 @@ sub sub {
     return \Python2::Type::Scalar::String->new($value);
 }
 
+sub __getattr__ {
+    my ($self, $pstack, $attribute_name) = @_;
+
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    return \$self->{stack}->[1]->{$attribute_name->__tonative__};
+}
+
 sub AUTOLOAD {
     our $AUTOLOAD;
     my $requested_method = $AUTOLOAD;
