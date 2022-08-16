@@ -29,6 +29,9 @@ sub __tonative__ {
 sub __eq__ {
     my ($self, $pstack, $other) = @_;
 
+    return \Python2::Type::Scalar::Bool->new(0)
+        if $other->__type__ eq 'none';
+
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ eq $other->__tonative__);
 }
 
