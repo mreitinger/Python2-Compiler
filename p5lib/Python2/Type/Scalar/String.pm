@@ -226,7 +226,7 @@ sub __gt__ {
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ gt $other->__tonative__)
         if ($other->__type__ eq 'str');
 
-    ...;
+    die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
 sub __lt__ {
@@ -235,7 +235,7 @@ sub __lt__ {
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ lt $other->__tonative__)
         if ($other->__type__ eq 'str');
 
-    ...;
+    die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
 sub __ge__ {
@@ -244,7 +244,7 @@ sub __ge__ {
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ ge $other->__tonative__)
         if ($other->__type__ eq 'str');
 
-    ...;
+    die Python2::Type::Exception->new('NotImplementedError', '__ge__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
 sub __le__ {
@@ -253,7 +253,7 @@ sub __le__ {
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ le $other->__tonative__)
         if ($other->__type__ eq 'str');
 
-    ...;
+    die Python2::Type::Exception->new('NotImplementedError', '__le__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
 sub __contains__ {
