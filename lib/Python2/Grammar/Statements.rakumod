@@ -14,6 +14,7 @@ role Python2::Grammar::Statements {
             | <statement-if>
             | <statement-with>
             | <class-definition>
+            | <statement-import>
             | <statement-p5import>
         ]
 
@@ -31,6 +32,10 @@ role Python2::Grammar::Statements {
 
     token statement-p5import {
         'p5import' <.ws> <perl5-package-name> <.ws> 'as' <.ws> <name>
+    }
+
+    token statement-import {
+        'import' <.ws> <name>
     }
 
     # TODO p5 probably permits more here

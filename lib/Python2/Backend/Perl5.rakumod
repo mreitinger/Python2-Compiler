@@ -107,6 +107,13 @@ class Python2::Backend::Perl5 {
         );
     }
 
+    multi method e(Python2::AST::Node::Statement::Import $node) {
+        return sprintf('Python2::Internals::setvar($stack, \'%s\', Python2::Type::Object::StdLib::%s->new())',
+            $node.name,
+            $node.name,
+        );
+    }
+
     multi method e(Python2::AST::Node::Name $node) {
         return sprintf("'%s'", $node.name.subst("'", "\\'", :g));
     }

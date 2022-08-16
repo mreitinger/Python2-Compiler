@@ -21,6 +21,10 @@ class Python2::AST {
         has Str $.name is required  is rw;
     }
 
+    class Node::Statement::Import is Node {
+        has Str $.name is required  is rw;
+    }
+
     class Node::Power is Node {
         # unless this is False we check if it
         # resolves at runtime. this is overridden only by VariableAssignment.

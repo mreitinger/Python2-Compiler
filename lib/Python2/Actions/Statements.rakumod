@@ -22,6 +22,14 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-import($/) {
+        $/.make(Python2::AST::Node::Statement::Import.new(
+            start-position      => $/.from,
+            end-position        => $/.to,
+            name                => $/<name>.Str
+        ));
+    }
+
     method statement-print($/) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             start-position  => $/.from,
