@@ -19,8 +19,8 @@ sub __dump__    { warn Dumper(shift); }
 sub __class__   { ref(shift); }
 sub __type__    { die Python2::Type::Exception->new('NotImplementedError', '__type__ for ' . ref(shift)); }
 
-sub __cmp__     { die Python2::Type::Exception->new('NotImplementedError', '__cmp__ between ' . shift->__type__ . ' and ' . shift->__type__); }
-sub __eq__      { die Python2::Type::Exception->new('NotImplementedError', '__eq__ between ' . shift->__type__ . ' and ' . shift->__type__); } # ==
+sub __cmp__     { die Python2::Type::Exception->new('NotImplementedError', '__cmp__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__); }
+sub __eq__      { die Python2::Type::Exception->new('NotImplementedError', '__eq__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__); } # ==
 
 # we implement this using __hasattr__ instead of (ab)using __getattr__ in case we need more
 # fine control when interfacing with perl 5 objects.
@@ -40,12 +40,12 @@ sub __ne__      {
 }
 
 
-sub __lt__          { die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . shift->__type__ . ' and ' . shift->__type__); } # <
-sub __gt__          { die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . shift->__type__ . ' and ' . shift->__type__); } # >
-sub __le__          { die Python2::Type::Exception->new('NotImplementedError', '__le__ between ' . shift->__type__ . ' and ' . shift->__type__);; } # <=
-sub __ge__          { die Python2::Type::Exception->new('NotImplementedError', '__ge__ between ' . shift->__type__ . ' and ' . shift->__type__);; } # >=
-sub __contains__    { die Python2::Type::Exception->new('NotImplementedError', '__contains__ between ' . shift->__type__ . ' and ' . shift->__type__);; } # in
-sub __len__         { die Python2::Type::Exception->new('NotImplementedError', '__len__ for ' . shift->__type__) };
+sub __lt__          { die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__); } # <
+sub __gt__          { die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__); } # >
+sub __le__          { die Python2::Type::Exception->new('NotImplementedError', '__le__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__);; } # <=
+sub __ge__          { die Python2::Type::Exception->new('NotImplementedError', '__ge__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__);; } # >=
+sub __contains__    { die Python2::Type::Exception->new('NotImplementedError', '__contains__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__);; } # in
+sub __len__         { die Python2::Type::Exception->new('NotImplementedError', '__len__ for ' . $_[0]->__type__) };
 
 
 # is - used for our X is Y implementation, python2 has no explicit __is__
