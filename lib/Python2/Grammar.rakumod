@@ -7,7 +7,6 @@ use Python2::ParseFail;
 
 #use Grammar::Tracer;
 
-
 # in most places this Grammar is limited on purpose until the tests cover more
 grammar Python2::Grammar
     does Python2::Grammar::Statements

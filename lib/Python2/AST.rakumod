@@ -61,7 +61,11 @@ class Python2::AST {
 
     # Expressions
     class Node::Expression::Container is Node::Expression {
-        has Node $.expression   is required is rw;
+        # list of bitwise expressions
+        has Node @.expressions   is required is rw;
+
+        # list bitwise operators (between the expressions)
+        has Str  @.operators     is required is rw;
     }
 
     class Node::Expression::Literal is Node::Expression {}

@@ -2,12 +2,62 @@ use Python2::AST;
 use Data::Dump;
 
 class Python2::Actions::Expressions {
+    # token expression {
+    #     <xor-expresion> [ <.ws> '|' <.ws> <xor-expression> ]*
+    # }
+
+    # token xor-expression {
+    #     <and-expresion> [ <.ws> '^' <.ws> <and-expression> ]*
+    # }
+
+    # token and-expression {
+    #     <shift-expresion> [ <.ws> '&' <.ws> <shift-expression> ]*
+    # }
+
+    # token shift-expression {
+    #     <arithmetic-expression-low-precedence> [ <.ws> <shift-expression-operator> <.ws> <arithmetic-expression-low-precedence> ]
+    # }
+
+    # token shift-expression-operator {
+    #     | '<<'
+    #     | '>>'
+    # }
+
     # top level 'expression'
     method expression ($/) {
         $/.make(Python2::AST::Node::Expression::Container.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            expression      => $/<arithmetic-expression-low-precedence>.made,
+            expressions     => $/<xor-expression>.map({ $_.made }),
+            operators       => $/<or-expression-operator>.map({ $_.Str }),
+        ));
+    }
+
+    method xor-expression ($/) {
+        $/.make(Python2::AST::Node::Expression::Container.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            expressions     => $/<and-expression>.map({ $_.made }),
+            operators       => $/<xor-expression-operator>.map({ $_.Str }),
+        ));
+    }
+
+
+    method and-expression ($/) {
+        $/.make(Python2::AST::Node::Expression::Container.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            expressions     => $/<shift-expression>.map({ $_.made }),
+            operators       => $/<and-expression-operator>.map({ $_.Str }),
+        ));
+    }
+
+    method shift-expression ($/) {
+        $/.make(Python2::AST::Node::Expression::Container.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            expressions     => $/<arithmetic-expression-low-precedence>.map({ $_.made }),
+            operators       => $/<shift-expression-operator>.map({ $_.Str }),
         ));
     }
 

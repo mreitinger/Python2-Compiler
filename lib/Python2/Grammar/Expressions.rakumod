@@ -1,8 +1,27 @@
 role Python2::Grammar::Expressions {
     token expression {
-        <arithmetic-expression-low-precedence>
+        <xor-expression> [ <.ws> <or-expression-operator> <.ws> <xor-expression> ]*
     }
 
+    token or-expression-operator { '|' }
+
+    token xor-expression {
+        <and-expression> [ <.ws> <xor-expression-operator> <.ws> <and-expression> ]*
+    }
+
+    token xor-expression-operator { '^' }
+
+    token and-expression {
+        <shift-expression> [ <.ws> <and-expression-operator> <.ws> <shift-expression> ]*
+    }
+
+    token and-expression-operator { '&' }
+
+    token shift-expression {
+        <arithmetic-expression-low-precedence> [ <.ws> <shift-expression-operator> <.ws> <arithmetic-expression-low-precedence> ]*
+    }
+
+    token shift-expression-operator { '<<' | '>>' }
 
     # literals
     token literal {

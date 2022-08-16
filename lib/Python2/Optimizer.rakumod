@@ -2,14 +2,12 @@ use Python2::AST;
 
 class Python2::Optimizer {
     multi method t (Python2::AST::Node::Expression::Container $node is rw) {
-        $.t($node.expression);
+        for $node.expressions -> $expression is rw {
+            $.t($expression);
+        }
 
-        # usually this is an ArithmeticExpression but the optimizer might have reduced it to a
-        # Literal already
-        return unless $node.expression ~~ Python2::AST::Node::Expression::ArithmeticExpression;
-
-        if ($node.expression.operations.elems == 1) {
-            $node.expression = $node.expression.operations[0];
+        if $node.expressions.elems == 1 {
+            $node = $node.expressions[0];
         }
     }
 

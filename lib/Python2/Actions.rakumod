@@ -51,6 +51,8 @@ class Python2::Actions
             dictionary-entry
             string-prefix string-prefix-raw string-prefix-unicode
             perl5-package-name extended-list-delimiter
+            or-expression-operator  xor-expression-operator
+            and-expression-operator shift-expression-operator
         >;
 
         return if @whitelist.first($name);

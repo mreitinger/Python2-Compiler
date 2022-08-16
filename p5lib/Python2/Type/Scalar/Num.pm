@@ -52,4 +52,49 @@ sub __le__ {
     ...;
 }
 
+sub __or__ {
+    my ($self, $pstack, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("bitwise or expects int, got %s and %s", $self->__type__, $other->__type__))
+        unless (($self->__type__ eq 'int') and ($other->__type__ eq 'int'));
+
+    return \Python2::Type::Scalar::Num->new(int($self->__tonative__) | int($other->__tonative__));
+}
+
+sub __and__ {
+    my ($self, $pstack, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("bitwise or expects int, got %s and %s", $self->__type__, $other->__type__))
+        unless (($self->__type__ eq 'int') and ($other->__type__ eq 'int'));
+
+    return \Python2::Type::Scalar::Num->new(int($self->__tonative__) & int($other->__tonative__));
+}
+
+sub __xor__ {
+    my ($self, $pstack, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("bitwise or expects int, got %s and %s", $self->__type__, $other->__type__))
+        unless (($self->__type__ eq 'int') and ($other->__type__ eq 'int'));
+
+    return \Python2::Type::Scalar::Num->new(int($self->__tonative__) ^ int($other->__tonative__));
+}
+
+sub __lshift__ {
+    my ($self, $pstack, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("bitwise or expects int, got %s and %s", $self->__type__, $other->__type__))
+        unless (($self->__type__ eq 'int') and ($other->__type__ eq 'int'));
+
+    return \Python2::Type::Scalar::Num->new(int($self->__tonative__) << int($other->__tonative__));
+}
+
+sub __rshift__ {
+    my ($self, $pstack, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("bitwise or expects int, got %s and %s", $self->__type__, $other->__type__))
+        unless (($self->__type__ eq 'int') and ($other->__type__ eq 'int'));
+
+    return \Python2::Type::Scalar::Num->new(int($self->__tonative__) >> int($other->__tonative__));
+}
+
 1;

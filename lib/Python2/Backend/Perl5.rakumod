@@ -487,7 +487,43 @@ class Python2::Backend::Perl5 {
 
     # Expressions
     multi method e(Python2::AST::Node::Expression::Container $node) {
-        return $.e($node.expression);
+        # grammar ensures we only get valid operators here
+        my %operator-method-map =
+            '|'     => '__or__',
+            '&'     => '__and__',
+            '^'     => '__xor__',
+            '<<'    => '__lshift__',
+            '>>'    => '__rshift__',
+            ;
+
+        my $p5;
+
+        my @expressions = $node.expressions.clone;
+        my @operators   = $node.operators.clone;
+
+        # initial left element
+        my $left-element = @expressions.shift;
+
+        my $operator;
+        my $right-element;
+
+        $p5 ~= sprintf('sub { my $left = %s;', $.e($left-element));
+
+        # as long as we have operators remaining there must be more expressions
+        while @operators.elems > 0 {
+            $operator       = @operators.shift;
+            $right-element  = @expressions.shift;
+
+            $p5 ~= sprintf(
+                '$left = $$left->%s(undef, ${ %s });',
+                %operator-method-map{$operator},
+                $.e($right-element)
+            );
+        }
+
+        $p5 ~= 'return $left; }->()';
+
+        return $p5;
     }
 
     # this implementation does not account for some of the more complex constructs like chaining function calls
