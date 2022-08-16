@@ -39,6 +39,14 @@ class Python2::Optimizer {
         }
     }
 
+    multi method t (Python2::AST::Node::Test $node is rw) {
+        $.t($node.left);
+        $.t($node.right);
+
+        # If we don't have a condition strip out the test
+        $node = $node.left if not $node.condition;
+    }
+
     multi method t (Python2::AST::Node::Test::Logical $node is rw) {
         # Descend to all our children
         for $node.values -> $value is rw {
@@ -47,15 +55,6 @@ class Python2::Optimizer {
 
         # If we don't have a condition strip out the test
         $node = $node.values[0] if not $node.condition;
-    }
-
-    multi method t (Python2::AST::Node::Statement::VariableAssignment $node is rw) {
-        # expression is always a test
-        $.t($node.expression);
-
-        # optimize out the test if it has no condition
-        next if $node.expression.condition;
-        $node.expression = $node.expression.left;
     }
 
     # fallback: if we don't know better just optimize all attributes on the current
