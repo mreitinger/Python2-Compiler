@@ -676,11 +676,11 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
-        return sprintf('Python2::Internals::convert_to_python_type(%s)', $node.value);
+        return sprintf('\Python2::Type::Scalar::Num->new(%s)', $node.value);
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
-        return sprintf('Python2::Internals::convert_to_python_type(%s)', $node.value)
+        return sprintf('\Python2::Type::Scalar::Num->new(%s)', $node.value)
     }
 
     multi method e(Python2::AST::Node::Subscript $node) {
