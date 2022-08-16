@@ -209,6 +209,8 @@ class Python2::AST {
         has Node $.value is rw;
     }
 
+    class Node::Statement::Break is Node {}
+
     class Node::Statement::Test::Comparison is Node::Expression {
         has Node $.left     is required is rw;
         has Node $.right    is rw;

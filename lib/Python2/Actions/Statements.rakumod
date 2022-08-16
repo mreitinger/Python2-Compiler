@@ -38,6 +38,13 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-break($/) {
+        $/.make(Python2::AST::Node::Statement::Break.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+        ));
+    }
+
     method statement-raise($/) {
         $/.make(Python2::AST::Node::Statement::Raise.new(
             value => $/.values[0].made

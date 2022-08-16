@@ -8,6 +8,7 @@ role Python2::Grammar::Statements {
             | <statement-print>
             | <statement-raise>
             | <statement-return>
+            | <statement-break>
             | <expression>
             | <statement-loop-for>
             | <statement-loop-while>
@@ -45,6 +46,10 @@ role Python2::Grammar::Statements {
 
     token statement-return {
         | 'return' [\h+ <test-list>]?
+    }
+
+    token statement-break {
+        | 'break'
     }
 
     token statement-loop-for {

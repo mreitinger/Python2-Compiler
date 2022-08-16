@@ -162,6 +162,10 @@ class Python2::Backend::Perl5 {
         return sprintf('Python2::Internals::py2print(${ %s }, {})', $.e($node.value));
     }
 
+    multi method e(Python2::AST::Node::Statement::Break $node) {
+        return 'last;'
+    }
+
     multi method e(Python2::AST::Node::Statement::Raise $node) {
         return sprintf('raise(${ %s }, {})', $.e($node.value));
     }
