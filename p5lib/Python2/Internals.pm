@@ -40,6 +40,14 @@ sub getvar {
     return exists $call_frame->[ITEMS]->{$name} ? \$call_frame->[ITEMS]->{$name} : \$stack->[ITEMS]->{$name};
 }
 
+sub unescape {
+    my $string = shift;
+
+    $string =~ s/\n/\\n/g;
+    $string =~ s/\t/\\t/g;
+
+    return $string;
+}
 
 sub py2print {
     pop(@_); # named arguments hash

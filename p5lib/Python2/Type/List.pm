@@ -7,6 +7,8 @@ use strict;
 use Scalar::Util qw/ refaddr /;
 use List::Util qw/ min max /;
 
+use Python2::Internals;
+
 sub new {
     my ($self, @initial_elements) = @_;
 
@@ -16,7 +18,7 @@ sub new {
 sub __str__ {
     my $self = shift;
 
-    return '[' . join(', ', map { $_->__str__ } @{ $self }) . ']';
+    return '[' . join(', ', map { Python2::Internals::unescape( $_->__str__ ) } @{ $self }) . ']';
 }
 
 sub __iadd__ {
