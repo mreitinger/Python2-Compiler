@@ -643,7 +643,7 @@ class Python2::Backend::Perl5 {
             );
         }
 
-        $p5 ~= 'return $left; }->();';
+        $p5 ~= 'return $left; }->()';
 
         return $p5;
     }
