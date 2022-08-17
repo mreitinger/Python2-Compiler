@@ -57,7 +57,7 @@ grammar Python2::Grammar
 
     token scope-increase {
         :my $pos;
-        <.empty-lines>+ # takes care of all whitespace before the scope increase - including \n
+        <.non-code>+ # takes care of all whitespace before the scope increase - including \n
         <?before <level> \h+ {$pos = $/.pos;}>
         {#`(need this empty code block to reset position)}
         { @*levels.push: $pos - $/.pos; }
