@@ -116,6 +116,7 @@ role Python2::Grammar::Expressions {
     token string {
         | <string-prefix><single-quoted-string>
         | <string-prefix><double-quoted-string>
+        | <string-prefix><triple-single-quoted-string>
         | <single-quoted-string>
         | <double-quoted-string>
         | <triple-single-quoted-string>

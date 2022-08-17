@@ -15,3 +15,4 @@ print '''6
 print '''A\tB'''
 print '''C\nD'''
 
+print u'''x'''
