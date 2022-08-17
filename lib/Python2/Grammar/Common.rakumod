@@ -24,9 +24,9 @@ role Python2::Grammar::Common {
     }
 
     token trailer {
-        || <argument-list>   # handles ('x')
-        || <subscript>       # handles ['x']
-        || '.' <name>        # handles .foo
+        || <.ws> <argument-list>    # handles ('x')
+        || <.ws> <subscript>        # handles ['x']
+        || <.ws> '.' <.ws> <name>   # handles .foo
     }
 
     token subscript { '[' <test> [':' <test>]? ']' }
