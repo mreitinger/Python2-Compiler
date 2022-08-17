@@ -16,3 +16,6 @@ print '''A\tB'''
 print '''C\nD'''
 
 print u'''x'''
+
+print ''' foo ' bar '''
+print ''' foo '' bar '''

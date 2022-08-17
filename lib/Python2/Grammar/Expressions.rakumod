@@ -114,12 +114,12 @@ role Python2::Grammar::Expressions {
     # string machting including escaped quotes
     # currently we don't allow any other escape sequences
     token string {
+        | <string-prefix><triple-single-quoted-string>
         | <string-prefix><single-quoted-string>
         | <string-prefix><double-quoted-string>
-        | <string-prefix><triple-single-quoted-string>
+        | <triple-single-quoted-string>
         | <single-quoted-string>
         | <double-quoted-string>
-        | <triple-single-quoted-string>
     }
 
     token string-prefix {
@@ -138,9 +138,11 @@ role Python2::Grammar::Expressions {
     token string-literal-triple-single-quoted {
         (
             [
-                | "\\'"         # escaped quote character
-                | '\\'          # escaped literal backslash
-                | <-['\\]>+   # everything except vertical whitespace, backslash and quote
+                | <-[']> "'"  <-[']>    # single-single quotes within triple quoted strings
+                | <-[']> "''" <-[']>    # double-single quotes within triple quoted strings
+                | "\\'"                 # escaped quote character
+                | '\\'                  # escaped literal backslash
+                | <-['\\]>              # everything except vertical whitespace, backslash and quote
             ]*
         )
     }
