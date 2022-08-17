@@ -16,7 +16,8 @@ sub new {
     load $class;
 
     my $object = bless({
-        object => $class->new(),
+        class  => $class,
+        object => undef,
     }, $self);
 
     return $object;
@@ -55,9 +56,10 @@ sub __eq__ {
     return \Python2::Type::Scalar::Bool->new(0)
 }
 
-# TODO this should init the perl object at this point not when calling new()
 sub __call__ {
-    return \clone(shift);
+    my $object = clone(shift);
+    $object->{object} = $object->{class}->new();
+    return \$object;
 }
 
 # called for every unknown method
