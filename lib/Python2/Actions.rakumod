@@ -53,6 +53,7 @@ class Python2::Actions
             perl5-package-name extended-list-delimiter
             or-expression-operator  xor-expression-operator
             and-expression-operator shift-expression-operator
+            full-slice start-slice end-slice
         >;
 
         return if @whitelist.first($name);

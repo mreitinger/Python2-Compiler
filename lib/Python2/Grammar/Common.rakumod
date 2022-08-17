@@ -29,5 +29,26 @@ role Python2::Grammar::Common {
         || <.ws> '.' <.ws> <name>   # handles .foo
     }
 
-    token subscript { '[' <test> [':' <test>]? ']' }
+    token subscript {
+        '['
+            [
+                || <start-slice>
+                || <full-slice>
+                || <end-slice>
+                || <test>
+            ]
+        ']'
+    }
+
+    token full-slice {
+        <test> ':' <test>
+    }
+
+    token start-slice {
+        ':' <test>
+    }
+
+    token end-slice {
+        <test> ':'
+    }
 }

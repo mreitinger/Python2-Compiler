@@ -232,12 +232,39 @@ class Python2::Actions::Expressions {
     }
 
     # subscript
-    method subscript ($/) {
+    multi method subscript ($/ where $/<test>) {
         $/.make(Python2::AST::Node::Subscript.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value   => $/<test>[0].made,
-            target  => $/<test>[1]:exists ?? $/<test>[1].made !! Nil,
+            value           => $/<test>.made,
+            target          => Nil,
+        ))
+    }
+
+    multi method subscript ($/ where $/<full-slice>) {
+        $/.make(Python2::AST::Node::Subscript.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            value           => $/<full-slice><test>[0].made,
+            target          => $/<full-slice><test>[1].made,
+        ))
+    }
+
+    multi method subscript ($/ where $/<start-slice>) {
+        $/.make(Python2::AST::Node::Subscript.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            value           => Python2::AST::Node::Expression::Literal::Integer.new(value => 0),
+            target          => $/<start-slice><test>.made,
+        ))
+    }
+
+    multi method subscript ($/ where $/<end-slice>) {
+        $/.make(Python2::AST::Node::Subscript.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            value           => $/<end-slice><test>.made,
+            target          => Python2::AST::Node::Expression::Literal::Integer.new(value => -1),
         ))
     }
 

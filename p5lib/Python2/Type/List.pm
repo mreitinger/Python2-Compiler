@@ -47,6 +47,10 @@ sub __getslice__ {
     $key     = $key->__tonative__;
     $target  = $target->__tonative__;
 
+    if ($target == '-1') {
+        $target = ${ $self->__len__ }->__tonative__;
+    }
+
     # if the target is longer than the list cap it
     if ($target > ${ $self->__len__ }->__tonative__ ) {
         $target = ${ $self->__len__}->__tonative__;
