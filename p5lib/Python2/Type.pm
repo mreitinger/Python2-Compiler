@@ -15,7 +15,22 @@ use constant { PARENT => 0, ITEMS => 1 };
 
 sub __print__   { return shift->__str__; }
 sub __str__     { die Python2::Type::Exception->new('NotImplementedError', '__str__ for ' . shift->__type__); }
-sub __dump__    { warn Dumper(shift); }
+
+sub __dump__ {
+    my $self   = shift @_;
+    shift  @_; # parent stack - unused
+    pop   @_; # default named arguments hash - unused
+
+    my $depth = $_[0] // Python2::Type::Scalar::Num->new(3);
+
+    die Python2::Type::Exception->new('TypeError', 'dumpstack expects a integer as depth, got ' . $depth->__type__)
+        unless ($depth->__type__ eq 'int');
+
+    my $dumper = Data::Dumper->new([$self]);
+    $dumper->Maxdepth($depth->__tonative__);
+    return \Python2::Type::Scalar::String->new($dumper->Dump());
+}
+
 sub __class__   { ref(shift); }
 sub __type__    { die Python2::Type::Exception->new('NotImplementedError', '__type__ for ' . ref(shift)); }
 
