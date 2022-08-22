@@ -20,7 +20,7 @@ role Python2::Grammar::Statements {
         ]
 
         # ? to match EOF
-        "\n"?
+        ["\n"|';']?
     }
 
     token statement-print {
