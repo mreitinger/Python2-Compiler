@@ -717,6 +717,15 @@ class Python2::Backend::Perl5 {
        );
     }
 
+    # set handling
+    multi method e(Python2::AST::Node::Expression::SetDefinition $node) {
+        return sprintf('\Python2::Type::Set->new(%s)',
+            $node.entries.map({
+                '${' ~ $.e($_) ~ '}'
+            }).join(', ')
+       );
+    }
+
     multi method e(Python2::AST::Node::Block $node) {
         return sprintf('%s', $node.statements.map({
             self.e($_)

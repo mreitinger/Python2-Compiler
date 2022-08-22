@@ -87,6 +87,16 @@ role Python2::Grammar::Expressions {
     }
 
 
+    # set handling
+    token set-entry-list {
+        <set-entry>* %% <list-delimiter>
+    }
+
+    token set-entry {
+        <.ws> <test> <.ws>
+    }
+
+
     # lambda definition
     token lambda-definition {
         'lambda' <.ws> <function-definition-argument-list> <.ws> ':' <.ws> <test>

@@ -120,6 +120,10 @@ class Python2::AST {
         has Pair @.entries is required is rw;
     }
 
+    class Node::Expression::SetDefinition is Node::Expression {
+        has Node @.entries is required is rw;
+    }
+
     class Node::Expression::FunctionCall is Node::Expression {
         has Node    $.atom is required is rw;
         has Node    @.arguments is rw;

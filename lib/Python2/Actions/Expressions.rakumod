@@ -325,6 +325,25 @@ class Python2::Actions::Expressions {
         ));
     }
 
+    # set handling
+    method set-entry-list($/) {
+        # get every set entry in the list. we just bypass the intermediate
+        # set-entry-list that we just use for the grammar so far.
+        my @set-entries;
+
+        for $/<set-entry> -> $entry {
+            my $expression  = $entry<test>.made;
+
+            @set-entries.append($expression);
+        }
+
+        $/.make(Python2::AST::Node::Expression::SetDefinition.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            entries         => @set-entries,
+        ));
+    }
+
     multi method object-access-operation ($/ where $/<instance-variable-access>) {
         $/.make($/<instance-variable-access>.made);
     }

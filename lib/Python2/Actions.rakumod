@@ -48,7 +48,7 @@ class Python2::Actions
             triple-single-quoted-string
             string-literal-triple-single-quoted
             list-delimiter
-            dictionary-entry
+            dictionary-entry set-entry
             string-prefix string-prefix-raw string-prefix-unicode
             perl5-package-name extended-list-delimiter
             or-expression-operator  xor-expression-operator

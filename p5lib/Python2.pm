@@ -11,6 +11,7 @@ use Carp qw/ confess /;
 
 use Python2::Builtin;
 use Python2::Type::List;
+use Python2::Type::Set;
 use Python2::Type::Enumerate;
 use Python2::Type::Tuple;
 use Python2::Type::Dict;
@@ -42,6 +43,7 @@ our $builtins = [
             'sum'       => Python2::Builtin::Sum->new(),
             'round'     => Python2::Builtin::Round->new(),
             'len'       => Python2::Builtin::Len->new(),
+            'set'       => Python2::Builtin::Set->new(),
 
             'None'      => Python2::Type::Scalar::None->new(),
             'True'      => Python2::Type::Scalar::Bool->new(1),

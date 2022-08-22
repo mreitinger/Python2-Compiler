@@ -14,6 +14,7 @@ role Python2::Grammar::Common {
         | '[' <.ws> <expression-list> <.ws> ']'
         | '[' <.ws> <list-comprehension> <.ws> ']'
         | '{' <.ws> <dictionary-entry-list> <.ws> '}'
+        | '{' <.ws> <set-entry-list> <.ws> '}'
         | <name>
         | <number>
         | <string>
