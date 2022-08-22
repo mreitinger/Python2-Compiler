@@ -548,19 +548,6 @@ class Python2::Backend::Perl5 {
 
         my Str $p5 = 'my $p = undef;';
 
-        # simple function-call. we handle this first so we produce simpler code and
-        # don't conflict with method calls down below
-        if @elements.elems == 2 and @elements[1] ~~ Python2::AST::Node::ArgumentList {
-            $p5 ~= sprintf('$p = %s;', $.e(@elements[0]));
-
-            $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
-                if $node.must-resolve;
-
-            $p5 ~= sprintf('$$p->__call__($stack, %s);', $.e(@elements[1]));
-
-            return sprintf('sub{ %s }->()', $p5);
-        }
-
         # single atom
         if (@elements.elems == 1) {
             $p5 ~= sprintf('$p = %s;', $.e(@elements[0]));
@@ -577,7 +564,17 @@ class Python2::Backend::Perl5 {
             my $current-element = @elements.shift;
             my $next-element = @elements.first;
 
-            if $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
+            if $current-element ~~ Python2::AST::Node::Atom and $next-element ~~ Python2::AST::Node::ArgumentList {
+                    my $argument-list = @elements.shift;
+
+                    $p5 ~= sprintf('$p = %s;', $.e($current-element));
+
+                    $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
+                        if $node.must-resolve;
+
+                    $p5 ~= sprintf('$p = $$p->__call__($stack, %s);', $.e($argument-list));
+            }
+            elsif $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
 
                 $p5 ~= sprintf('$p = ${$p}->%s($stack, %s);',
