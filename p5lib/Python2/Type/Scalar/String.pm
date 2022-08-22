@@ -49,6 +49,15 @@ sub split {
     return \Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } @result);
 }
 
+sub strip {
+    my $string = shift->{value};
+
+    $string =~ s/^\s*//;
+    $string =~ s/\s*$//;
+
+    return \Python2::Type::Scalar::String->new($string);
+}
+
 sub join {
     my ($self, $pstack, $iterable) = @_;
 
