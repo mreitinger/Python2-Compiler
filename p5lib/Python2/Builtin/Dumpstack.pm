@@ -9,7 +9,8 @@ sub __call__ {
     shift @_; # $self - unused
     my $pstack = shift  @_; # parent stack - unused
     pop   @_; # default named arguments hash - unused
-    my $depth = shift @_ // Python2::Type::Scalar::Num->new(3);
+
+    my $depth = $_[0] // Python2::Type::Scalar::Num->new(3);
 
     die Python2::Type::Exception->new('TypeError', 'dumpstack expects a integer as depth, got ' . $depth->__type__)
         unless ($depth->__type__ eq 'int');
