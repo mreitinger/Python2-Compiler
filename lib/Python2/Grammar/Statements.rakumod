@@ -61,9 +61,9 @@ role Python2::Grammar::Statements {
     }
 
     token statement-if {
-        'if' <.ws> <test> ':' <block>
+        'if' <.ws> <test> <.ws> ':' <block>
         <statement-elif>*
-        [<level> 'else' ':' <block>]?
+        [<level> 'else' <.ws> ':' <block>]?
     }
 
     token statement-with {
