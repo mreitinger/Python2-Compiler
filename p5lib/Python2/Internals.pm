@@ -245,6 +245,15 @@ sub arithmetic {
     die("arithmetic_operations for $operator not yet implemented");
 }
 
+sub raise {
+    my $exception = shift;
+
+    die Python2::Type::Exception->new('TypeError', 'raise expects a Exception object, got ' . $exception->__type__)
+        unless $exception->__type__ eq 'exception';
+
+    die $exception;
+}
+
 sub getopt {
     my ($stack, $function_name, $argument_definition, @arguments) = @_;
 
