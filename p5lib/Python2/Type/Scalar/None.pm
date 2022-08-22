@@ -5,9 +5,11 @@ use warnings;
 use strict;
 
 sub new {
-    my ($self, $value) = @_;
+    my ($self) = @_;
 
-    return bless([], $self);
+    return bless({
+        value => undef,
+    }, $self);
 }
 
 sub __str__         { 'None'; }
