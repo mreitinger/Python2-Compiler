@@ -44,6 +44,7 @@ our $builtins = [
             'round'     => Python2::Builtin::Round->new(),
             'len'       => Python2::Builtin::Len->new(),
             'set'       => Python2::Builtin::Set->new(),
+            'str'       => Python2::Builtin::Str->new(),
 
             'None'      => Python2::Type::Scalar::None->new(),
             'True'      => Python2::Type::Scalar::Bool->new(1),
