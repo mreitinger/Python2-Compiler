@@ -79,13 +79,13 @@ sub AUTOLOAD {
     return if ($requested_method eq 'DESTROY');
 
     # check if our object even has the requested method
-    die("Unknown method $requested_method")
+    die Python2::Type::Exception->new('AttributeError', 'object of class \'' . ref($self->{object}) . "' has no method '$requested_method'")
         unless $self->{object}->can($requested_method);
 
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
 
-    die("named arguments not supported when calling perl5 methods")
+    die Python2::Type::Exception->new('NotImplementedError', 'named arguments not supported when calling perl5 methods')
         if scalar(%$named_arguments);
 
     # convert all 'Python' objects to native representations
@@ -96,7 +96,7 @@ sub AUTOLOAD {
     # TODO: this needs to handle way more cases like a list getting returned
     my @retval = $self->{object}->$requested_method(@argument_list);
 
-    die("Got invalid return value with multiple values when calling '$requested_method' on " . ref($self->{object}))
+    die Python2::Type::Exception->new('NotImplementedError', "Got invalid return value with multiple values when calling '$requested_method' on " . ref($self->{object}))
         if scalar(@retval) > 1;
 
     return Python2::Internals::convert_to_python_type($retval[0]);
