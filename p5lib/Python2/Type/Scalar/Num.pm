@@ -10,6 +10,8 @@ sub __str__ {return shift->{value}; }
 
 sub __type__ { shift->{value} =~ m/^\d+$/ ? 'int' : 'float'; }
 
+sub __is_py_true__  { shift->{value} != 0 ? 1 : 0; }
+
 sub __ne__ {
     my ($self, $pstack, $other) = @_;
 

@@ -17,4 +17,6 @@ sub __print__       { return shift->{value} ? 'True' : 'False' }
 sub __tonative__    { return shift->{value}; }
 sub __type__        { return 'bool'; }
 
+sub __is_py_true__  { shift->{value}; }
+
 1;

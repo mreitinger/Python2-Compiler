@@ -15,6 +15,11 @@ sub new {
     return bless([@initial_elements], $self);
 }
 
+sub __is_py_true__  {
+    my $self = shift;
+    return scalar @$self > 0 ? 1 : 0;
+}
+
 sub __str__ {
     my $self = shift;
 

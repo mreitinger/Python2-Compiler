@@ -39,6 +39,9 @@ sub __ne__      {
         : \Python2::Type::Scalar::Bool->new(1);
 }
 
+sub __is_py_true__  {
+    die Python2::Type::Exception->new('NotImplementedError', '__is_py_true__ for ' . $_[0]->__type__);
+}
 
 sub __lt__          { die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__); } # <
 sub __gt__          { die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $_[0]->__type__ . ' and ' . $_[2]->__type__); } # >

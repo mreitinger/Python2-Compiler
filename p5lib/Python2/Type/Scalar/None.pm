@@ -16,6 +16,7 @@ sub __str__         { 'None'; }
 sub __tonative__    { undef; }
 sub __type__        { 'none'; }
 sub __print__       { 'None'; }
+sub __is_py_true__  { 0; }
 
 sub __is__          {
     my ($self, $pstack, $other) = @_;

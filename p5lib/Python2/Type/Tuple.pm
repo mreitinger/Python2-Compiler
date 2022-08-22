@@ -15,6 +15,11 @@ sub __str__ {
     return '(' . join(', ', map { $_->__str__ } @$self) . ')';
 }
 
+sub __is_py_true__  {
+    my $self = shift;
+    return scalar @$self > 0 ? 1 : 0;
+}
+
 sub __getslice__ {
     my ($self, $pstack, $key, $target) = @_;
 

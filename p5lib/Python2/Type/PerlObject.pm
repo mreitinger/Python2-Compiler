@@ -31,6 +31,8 @@ sub new_from_object {
     }, $self);
 }
 
+sub __is_py_true__  { 1; }
+
 sub can {
     my ($self, $method_name) = @_;
 

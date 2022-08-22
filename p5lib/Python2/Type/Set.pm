@@ -49,6 +49,11 @@ sub __str__ {
     "])";
 }
 
+sub __is_py_true__  {
+    my $self = shift;
+    return scalar CORE::keys %$self > 0 ? 1 : 0;
+}
+
 # dummy value - we only need the keys anyway. initialize once so
 # we save some overhead.
 my $value = Python2::Type::Scalar::Num->new(1);

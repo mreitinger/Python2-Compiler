@@ -6,6 +6,7 @@ use strict;
 
 sub __str__  { return "'" . shift->{value} . "'"; }
 sub __type__ { 'str'; }
+sub __is_py_true__  { length(shift->{value}) > 0 ? 1 : 0; }
 
 sub split {
     pop(@_); # default named arguments hash
