@@ -49,6 +49,15 @@ sub unescape {
     return $string;
 }
 
+sub unsplat {
+    my ($value) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'splat(*) expects a list, got ' . $value->__type__)
+        unless $value->__type__ eq 'list';
+
+    return @$value;
+}
+
 sub py2print {
     pop(@_); # named arguments hash
     print $_->__print__ foreach(@_);

@@ -37,7 +37,11 @@ role Python2::Grammar::Expressions {
 
     token argument {
         || <name> <.ws> '=' <.ws> <test>
-        || <test>
+        || <splat>? <test>
+    }
+
+    token splat {
+        '*'
     }
 
     # arithmetic expressions

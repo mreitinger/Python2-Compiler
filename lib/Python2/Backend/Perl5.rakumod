@@ -136,7 +136,12 @@ class Python2::Backend::Perl5 {
 
         if @positional-arguments {
             # positional arguments get passed as regular arguments to the perl sub
-            $p5 ~= @positional-arguments.map({ '${' ~ $.e($_) ~ '}' }).join(', ');
+            $p5 ~= @positional-arguments.map({
+                $_.splat
+                    ?? sprintf('(Python2::Internals::unsplat(${ %s }))', $.e($_))
+                    !! '${' ~ $.e($_) ~ '}'
+            }).join(', ');
+
             $p5 ~= ','; # to accomodate a possible named argument hashref
         }
 

@@ -369,8 +369,9 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Argument.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            name    => $/<name> ?? $/<name>.made !! Nil,
-            value   => $/<test>.made,
+            name            => $/<name> ?? $/<name>.made !! Nil,
+            value           => $/<test>.made,
+            splat           => $/<splat> ?? True !! False,
         ));
     }
 }

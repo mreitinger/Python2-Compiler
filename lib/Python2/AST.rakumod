@@ -235,6 +235,7 @@ class Python2::AST {
     class Node::Argument is Node {
         has Node    $.value is required;
         has Node    $.name; #optional: could be a named argument
+        has Bool    $.splat;
     }
 
     class Node::LambdaDefinition is Node::Expression {

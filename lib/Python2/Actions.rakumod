@@ -41,7 +41,7 @@ class Python2::Actions
             before
             level ws scope-increase
             float integer digit
-            lower upper
+            lower upper splat
             empty-lines
             double-quoted-string         single-quoted-string
             string-literal-double-quoted string-literal-single-quoted
