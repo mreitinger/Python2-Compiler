@@ -80,8 +80,16 @@ sub AUTOLOAD {
     return if ($requested_method eq 'DESTROY');
 
     # check if our object even has the requested method
-    die Python2::Type::Exception->new('AttributeError', 'object of class \'' . ref($self->{object}) . "' has no method '$requested_method'")
-        unless $self->{object}->can($requested_method);
+    unless ($self->{object}->can($requested_method)) {
+        if ($requested_method eq '__getattr__') {
+            # we did not find the requested method and the called object does not implemement __getattr__
+            # provide a bettter error message otherwise it would just say 'has not method __getattr__'
+
+            $requested_method = defined $argument_list[0] ? $argument_list[0]->__tonative__ : 'unknown';
+        }
+
+        die Python2::Type::Exception->new('AttributeError', 'object of class \'' . ref($self->{object}) . "' has no method '$requested_method'");
+    }
 
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
