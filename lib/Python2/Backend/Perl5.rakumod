@@ -577,7 +577,10 @@ class Python2::Backend::Perl5 {
             elsif $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
 
-                $p5 ~= sprintf('$p = ${$p}->%s($stack, %s);',
+                $p5 ~= sprintf('$p = $$p->can(\'%s\') ? ${$p}->%s($stack, %s) : ${ ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new(\'%s\'), {}) }->__call__(undef, %s);',
+                    $current-element.name,
+                    $current-element.name,
+                    $.e($argument-list),
                     $current-element.name,
                     $.e($argument-list)
                 );

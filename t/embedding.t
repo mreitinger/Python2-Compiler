@@ -107,7 +107,50 @@ subtest "embedding - lambda" => sub {
     is $perl5_output, "6\n", 'output matches';
 };
 
+subtest "embedding - __getattr__ fallback" => sub {
+    my Str $input = q:to/END/;
+    def foo(a):
+        # we call 'unknown_attr' and expect it to be handled by the __getattr__ fallback
+        print a.unknown_attr
+    END
 
+    my $compiler = Python2::Compiler.new(
+        embedded => 'quux',
+    );
+
+    my $generated_perl5_code = $compiler.compile($input);
+
+    $generated_perl5_code ~= q:to/END/;
+        {
+            package GetAttrTest;
+
+            sub __getattr__     { 'from__getattr__'; }
+
+            sub new { return bless([], shift); }
+
+            1;
+        }
+
+        my $obj = GetAttrTest->new();
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        $p5->__run_function__('foo', [$obj]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    is $perl5_output, "from__getattr__\n", 'output matches';
+};
 
 
 
