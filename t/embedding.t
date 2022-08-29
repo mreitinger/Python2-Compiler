@@ -203,7 +203,7 @@ subtest "embedding - coderef wrapper" => sub {
 subtest "embedding - perlobject" => sub {
     my Str $input = q:to/END/;
     def foo(a):
-        a.test_method('positional-argument')
+        a.test_method('positional-argument', named_key='named_value')
     END
 
     my $compiler = Python2::Compiler.new(
@@ -217,9 +217,10 @@ subtest "embedding - perlobject" => sub {
             package PerlObjectTest;
 
             sub test_method {
-                my ($self, $positional) = @_;
+                my ($self, $positional, $named) = @_;
 
                 print "positional: $positional\n";
+                print "named: $named->{named_key}\n";
             }
 
             sub new { return bless([], shift); }
@@ -245,7 +246,7 @@ subtest "embedding - perlobject" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    is $perl5_output, "positional: positional-argument\n", 'output matches';
+    is $perl5_output, "positional: positional-argument\nnamed: named_value\n", 'output matches';
 };
 
 
