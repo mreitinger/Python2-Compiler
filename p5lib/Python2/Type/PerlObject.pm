@@ -107,8 +107,14 @@ sub AUTOLOAD {
         $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
     }
 
+
     # TODO: this needs to handle way more cases like a list getting returned
-    my @retval = $self->{object}->$requested_method(@argument_list, $named_arguments);
+    # This matches the calling conventions for Inline::Python so Perl code written to work with
+    # Inline::Python can keep working as-is.
+    my @retval = scalar keys %$named_arguments
+        ? $self->{object}->$requested_method([@argument_list], $named_arguments)
+        : $self->{object}->$requested_method(@argument_list);
+
 
     die Python2::Type::Exception->new('NotImplementedError', "Got invalid return value with multiple values when calling '$requested_method' on " . ref($self->{object}))
         if scalar(@retval) > 1;
