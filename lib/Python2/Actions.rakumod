@@ -54,6 +54,7 @@ class Python2::Actions
             or-expression-operator  xor-expression-operator
             and-expression-operator shift-expression-operator
             full-slice start-slice end-slice
+            not-in
         >;
 
         return if @whitelist.first($name);

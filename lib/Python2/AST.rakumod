@@ -218,6 +218,7 @@ class Python2::AST {
     class Node::Statement::Test::Comparison is Node::Expression {
         has Node $.left     is required is rw;
         has Node $.right    is rw;
+        has Bool $.negate   is required;
         has Str $.comparison-operator;
     }
 

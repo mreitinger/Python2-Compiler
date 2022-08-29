@@ -361,7 +361,7 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::ArgumentList.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            arguments => $/<argument>.map({ $_.made })
+            arguments       => $/<argument>.map({ $_.made }),
         ));
     }
 

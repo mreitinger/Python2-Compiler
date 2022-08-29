@@ -349,17 +349,27 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
         if ($node.right) {
-            return $node.comparison-operator eq '__contains__'
-                ??  sprintf('${%s}->%s(undef, ${%s})',
-                        $.e($node.right),
-                        $node.comparison-operator,
-                        $.e($node.left),
-                    )
-                !!  sprintf('${%s}->%s(undef, ${%s})',
-                        $.e($node.left),
-                        $node.comparison-operator,
-                        $.e($node.right),
-                    );
+            if ($node.comparison-operator eq '__contains__') {
+                return $node.negate
+                    ??  sprintf('\Python2::Type::Scalar::Bool->new(not ${ ${%s}->%s(undef, ${%s}) }->__tonative__)',
+                            $.e($node.right),
+                            $node.comparison-operator,
+                            $.e($node.left),
+                        )
+                    !!  sprintf('${%s}->%s(undef, ${%s})',
+                            $.e($node.right),
+                            $node.comparison-operator,
+                            $.e($node.left),
+                        )
+                    ;
+            }
+            else {
+                return sprintf('${%s}->%s(undef, ${%s})',
+                    $.e($node.left),
+                    $node.comparison-operator,
+                    $.e($node.right),
+                );
+            }
         } else {
             return $.e($node.left);
         }

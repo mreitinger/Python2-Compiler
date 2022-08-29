@@ -191,19 +191,27 @@ class Python2::Actions::Statements {
     }
 
     method comparison ($/) {
+        my $comparison-operator = $/<comparison-operator><not-in>:exists
+            ?? 'not-in'
+            !! $/<comparison-operator> // '';
+
         my %operators =
             '==' => '__eq__',
-            '!=' => '__ne__',
-            '<'  => '__lt__',
-            '>'  => '__gt__',
-            '<=' => '__le__',
-            '>=' => '__ge__',
-            'is' => '__is__',
-            'in' => '__contains__';
+            '!='        => '__ne__',
+            '<'         => '__lt__',
+            '>'         => '__gt__',
+            '<='        => '__le__',
+            '>='        => '__ge__',
+            'is'        => '__is__',
+            'in'        => '__contains__',
+            'not-in'    => '__contains__';
 
         $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
             start-position  	=> $/.from,
             end-position    	=> $/.to,
+
+            # 'not in' is handled as a dedicated operator
+            negate              => $comparison-operator eq 'not-in' ?? True !! False,
 
             left                => $/<expression>[0].made,
 
@@ -211,8 +219,8 @@ class Python2::Actions::Statements {
                 ?? $/<expression>[1].made
                 !! Nil,
 
-            comparison-operator => $/<comparison-operator>
-                ?? %operators{$/<comparison-operator>.Str}
+            comparison-operator => $comparison-operator.chars > 0
+                ?? %operators{$comparison-operator}
                 !! Nil,
         ));
     }
