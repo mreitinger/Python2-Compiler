@@ -157,7 +157,10 @@ subtest "embedding - coderef wrapper" => sub {
     my Str $input = q:to/END/;
     def foo(a):
         x = a.get_coderef()
-        x('passed-parameter')
+        y = a.get_coderef_with_args()
+        x('passed-parameter1')
+
+        y('passed-parameter2', named_key = 'named_value')
     END
 
     my $compiler = Python2::Compiler.new(
@@ -172,6 +175,14 @@ subtest "embedding - coderef wrapper" => sub {
 
             sub get_coderef {
                 return sub { print 'FROM-PERL: ' . shift . "\n"; };
+            }
+
+            sub get_coderef_with_args {
+                return sub {
+                    my ($positionals, $named) = @_;
+                    print 'FROM-PERL positional: ' . $positionals->[0] . "\n";
+                    print 'FROM-PERL named: ' . $named->{named_key} . "\n";
+                };
             }
 
             sub new { return bless([], shift); }
@@ -197,7 +208,7 @@ subtest "embedding - coderef wrapper" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    is $perl5_output, "FROM-PERL: passed-parameter\n", 'output matches';
+    is $perl5_output, "FROM-PERL: passed-parameter1\nFROM-PERL positional: passed-parameter2\nFROM-PERL named: named_value\n", 'output matches';
 };
 
 subtest "embedding - perlobject" => sub {

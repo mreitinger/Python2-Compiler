@@ -24,15 +24,27 @@ sub __call__ {
     die Python2::Type::Exception->new('NotImplementedError', "expected named arguments hash when calling perl5 coderef")
         unless ref($named_arguments) eq 'HASH';
 
-    die Python2::Type::Exception->new('NotImplementedError', "named arguments not supported when calling perl5 coderef")
-        if scalar(%$named_arguments);
 
-
+    # convert all 'Python' objects to native representations
     foreach my $argument (@argument_list) {
         $argument = $argument->__tonative__;
     }
 
-    my @retval = $self->[0]->(@argument_list);
+    foreach my $argument (keys %$named_arguments) {
+        $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
+    }
+
+
+    # TODO: this needs to handle way more cases like a list getting returned
+    # This matches the calling conventions for Inline::Python so Perl code written to work with
+    # Inline::Python can keep working as-is.
+    my @retval = scalar keys %$named_arguments
+        ? $self->[0]->([@argument_list], $named_arguments)
+        : $self->[0]->(@argument_list);
+
+    die Python2::Type::Exception->new('NotImplementedError', "Got invalid return value with multiple values when calling perl5 coderef")
+        if scalar(@retval) > 1;
+
     return Python2::Internals::convert_to_python_type($retval[0]);
 }
 
