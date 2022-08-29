@@ -274,10 +274,10 @@ class Python2::Backend::Perl5 {
         $p5 ~= 'foreach my $var (@{$i}) {';
         $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.name));
 
-        $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.test))
-            if ($node.test);
+        $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.condition))
+            if ($node.condition);
 
-        $p5 ~= sprintf('$r->__iadd__(undef, ${ %s });', $.e($node.expression));
+        $p5 ~= sprintf('$r->__iadd__(undef, ${ %s });', $.e($node.test));
         $p5 ~= '}';
 
         return $p5 ~ 'return \$r; }';

@@ -298,9 +298,9 @@ class Python2::Actions::Expressions {
             start-position  => $/.from,
             end-position    => $/.to,
             name            => $/<name>.made,
-            iterable        => $/<test>[0].made,
-            expression      => $/<expression>.made,
-            test            => $/<test>[1] ?? $/<test>[1].made !! Nil,
+            iterable        => $/<test>[1].made,
+            test            => $/<test>[0].made,
+            condition       => $/<test>[2] ?? $/<test>[2].made !! Nil,
         ));
     }
 
