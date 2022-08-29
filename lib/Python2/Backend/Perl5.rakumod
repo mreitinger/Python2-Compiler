@@ -552,7 +552,7 @@ class Python2::Backend::Perl5 {
         if (@elements.elems == 1) {
             $p5 ~= sprintf('$p = %s;', $.e(@elements[0]));
 
-            $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
+            $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
                 if ($node.must-resolve and @elements[0].expression ~~ Python2::AST::Node::Name);
 
             return sprintf('sub{ %s; return $p; }->()', $p5);
@@ -569,7 +569,7 @@ class Python2::Backend::Perl5 {
 
                     $p5 ~= sprintf('$p = %s;', $.e($current-element));
 
-                    $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
+                    $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
                         if $node.must-resolve;
 
                     $p5 ~= sprintf('$p = $$p->__call__($stack, %s);', $.e($argument-list));
@@ -592,12 +592,12 @@ class Python2::Backend::Perl5 {
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
                 $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
-                $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
+                $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
             }
             else {
                 $p5 ~= sprintf('$p = %s;', $.e($current-element));
-                $p5 ~= sprintf(q|$$p or die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
+                $p5 ~= sprintf(q|defined $$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element.expression ~~ Python2::AST::Node::Name);
             }
         }
