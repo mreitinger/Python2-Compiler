@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use base qw/ Python2::Type /;
+use Python2::Type::PerlSub;
 
 use Module::Load;
 

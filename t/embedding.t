@@ -153,6 +153,54 @@ subtest "embedding - __getattr__ fallback" => sub {
 };
 
 
+subtest "embedding - coderef wrapper" => sub {
+    my Str $input = q:to/END/;
+    def foo(a):
+        x = a.get_coderef()
+        x('passed-parameter')
+    END
+
+    my $compiler = Python2::Compiler.new(
+        embedded => 'quux',
+    );
+
+    my $generated_perl5_code = $compiler.compile($input);
+
+    $generated_perl5_code ~= q:to/END/;
+        {
+            package GetCodeRefTest;
+
+            sub get_coderef {
+                return sub { print 'FROM-PERL: ' . shift . "\n"; };
+            }
+
+            sub new { return bless([], shift); }
+
+            1;
+        }
+
+        my $obj = GetCodeRefTest->new();
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        $p5->__run_function__('foo', [$obj]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    is $perl5_output, "FROM-PERL: passed-parameter\n", 'output matches';
+};
+
+
 
 
 done-testing();

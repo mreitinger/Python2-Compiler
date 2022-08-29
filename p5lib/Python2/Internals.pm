@@ -331,6 +331,10 @@ sub convert_to_python_type {
         );
     }
 
+    if (ref($value) eq 'CODE') {
+        return \Python2::Type::PerlSub->new($value);
+    }
+
     # anything else must be a plain scalar
     return looks_like_number($value)
         ? \Python2::Type::Scalar::Num->new($value)
