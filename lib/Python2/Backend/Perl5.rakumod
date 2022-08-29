@@ -268,7 +268,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::ListComprehension $node) {
         my Str $p5;
 
-        $p5 ~= sprintf('do { my $i = ${ %s };', $.e($node.iterable));
+        $p5 ~= sprintf('sub { my $i = ${ %s };', $.e($node.iterable));
         $p5 ~= 'my $r = Python2::Type::List->new();';
 
         $p5 ~= 'foreach my $var (@{$i}) {';
@@ -280,7 +280,7 @@ class Python2::Backend::Perl5 {
         $p5 ~= sprintf('$r->__iadd__(undef, ${ %s });', $.e($node.test));
         $p5 ~= '}';
 
-        return $p5 ~ 'return \$r; }';
+        return $p5 ~ 'return \$r; }->()';
     }
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {

@@ -365,12 +365,22 @@ class Python2::Actions::Expressions {
         ));
     }
 
-    method argument($/) {
+    multi method argument($/ where $/<test>) {
         $/.make(Python2::AST::Node::Argument.new(
             start-position  => $/.from,
             end-position    => $/.to,
             name            => $/<name> ?? $/<name>.made !! Nil,
             value           => $/<test>.made,
+            splat           => $/<splat> ?? True !! False,
+        ));
+    }
+
+    multi method argument($/ where $/<list-comprehension>) {
+        $/.make(Python2::AST::Node::Argument.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $/<name> ?? $/<name>.made !! Nil,
+            value           => $/<list-comprehension>.made,
             splat           => $/<splat> ?? True !! False,
         ));
     }

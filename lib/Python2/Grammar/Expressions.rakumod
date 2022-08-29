@@ -36,6 +36,7 @@ role Python2::Grammar::Expressions {
     }
 
     token argument {
+        || <list-comprehension>
         || <name> <.ws> '=' <.ws> <test>
         || <splat>? <test>
     }
