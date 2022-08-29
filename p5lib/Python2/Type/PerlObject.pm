@@ -85,7 +85,11 @@ sub AUTOLOAD {
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
 
-    die Python2::Type::Exception->new('NotImplementedError', 'named arguments not supported when calling perl5 methods')
+    # we don't support named arguments but still expect the empty hash - just here to catch bugs
+    die Python2::Type::Exception->new('NotImplementedError', "expected named arguments hash when calling perl5 method $requested_method on " . ref($self->{object}))
+        unless ref($named_arguments) eq 'HASH';
+
+    die Python2::Type::Exception->new('NotImplementedError', "named arguments not supported when calling perl5 methods $requested_method on " . ref($self->{object}))
         if scalar(%$named_arguments);
 
     # convert all 'Python' objects to native representations
