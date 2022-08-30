@@ -8,6 +8,7 @@ use Data::Dumper;
 use Scalar::Util qw/ looks_like_number blessed /;
 use Clone qw/ clone /;
 use Carp qw/ confess /;
+use Module::Load;
 
 use constant {
     PARENT  => 0,
@@ -58,6 +59,13 @@ sub apply_base_class {
 
     # replace the stack of our object with the stack of our parent class
     @$stack = @{ clone $$base_class->{stack} };
+}
+
+sub import_module {
+    my ($stack, $name) = @_;
+
+    load "Python2::Type::Object::StdLib::$name";
+    setvar($stack, $name, "Python2::Type::Object::StdLib::$name"->new());
 }
 
 sub unescape {
