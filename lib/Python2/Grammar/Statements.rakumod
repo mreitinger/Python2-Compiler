@@ -153,8 +153,10 @@ role Python2::Grammar::Statements {
         'def' <.ws> <name> '(' <function-definition-argument-list> ')' ':' <block>
     }
 
+    # inheritance is restricted to a single <name> for now - we don't support anything else at
+    # this time.
     token class-definition {
-        'class' <.ws> <name> ':' <block>
+        'class' <.ws> <name> [ '(' <name> ')' ]? ':' <block>
     }
 
     token function-definition-argument-list {

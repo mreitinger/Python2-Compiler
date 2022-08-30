@@ -490,9 +490,10 @@ class Python2::Backend::Perl5 {
         my Str $preamble = 'use Python2;';
 
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Object /; %s sub __build__ { my $self = shift; my $stack = $self->{stack}; %s; return $self; } }',
+            'package %s { use base qw/ Python2::Type::Object /; %s sub __build__ { my $self = shift; my $pstack = shift; my $stack = $self->{stack}; %s %s; return $self; } }',
             $perl5_class_name,
             $preamble,
+            $node.base-class ?? sprintf('Python2::Internals::apply_base_class($stack, $pstack, \'%s\');', $node.base-class.name) !! '',
             $.e($node.block)
         );
 

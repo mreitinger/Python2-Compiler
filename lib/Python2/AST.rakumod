@@ -245,8 +245,9 @@ class Python2::AST {
     }
 
     class Node::Statement::ClassDefinition is Node::Expression {
-        has Node    $.name is required is rw;
-        has Node    $.block is required is rw;
+        has Node    $.name          is required is rw;
+        has Node    $.block         is required is rw;
+        has Node    $.base-class;
     }
 
     class Node::Block is Node {

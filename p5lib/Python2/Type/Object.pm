@@ -49,8 +49,9 @@ sub __str__ {
 # TODO handle __build__/__init__ here, see new()
 sub __call__ {
     my $object = clone(shift);
+    my $pstack = shift;
 
-    $object->__build__;
+    $object->__build__($pstack);
 
     # TODO - check parent stack for __init__
     # {} for unused named variables

@@ -239,8 +239,9 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::ClassDefinition.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            name            => $/<name>.made,
+            name            => $/<name>[0].made,
             block           => $/<block>.made,
+            base-class      => $/<name>[1] ?? $/<name>[1].made !! Nil,
         ));
     }
 
