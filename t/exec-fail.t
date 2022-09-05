@@ -4,12 +4,18 @@ use lib './lib';
 use Python2::Grammar;
 use Python2::Actions;
 use Python2::Backend::Perl5;
+use Python2::Compiler;
+
+# used for module compilation
+my $compiler = Python2::Compiler.new();
 
 my $testcase_directory = IO::Path.new("./t/exec-fail");
 
 unless $testcase_directory.e {
     die("Testcase directory not found, are you running tests from the wrong directory?");
 }
+
+%*ENV<PYTHONPATH> = './t/pylib';
 
 for $testcase_directory.dir -> $testcase {
     subtest $testcase => sub {
@@ -30,7 +36,7 @@ for $testcase_directory.dir -> $testcase {
 
 
         subtest "Perl 5 code generation for $testcase" => sub {
-            my $backend = Python2::Backend::Perl5.new();
+            my $backend = Python2::Backend::Perl5.new(:$compiler);
             ok($generated_perl5_code = $backend.e($ast));
         };
         $generated_perl5_code or flunk("Failed to generate Perl 5 code for $testcase");

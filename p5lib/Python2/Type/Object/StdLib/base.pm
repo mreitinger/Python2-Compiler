@@ -22,15 +22,6 @@ sub __str__ {
     return sprintf('<PythonObject at %s>', refaddr($self));
 }
 
-sub sub {
-    my ($self, $pstack, $regex, $newtext, $value) = @_;
-
-    $value = $value->__tonative__;
-    $value =~ s/$regex/$newtext/;
-
-    return \Python2::Type::Scalar::String->new($value);
-}
-
 sub __getattr__ {
     my ($self, $pstack, $attribute_name) = @_;
 

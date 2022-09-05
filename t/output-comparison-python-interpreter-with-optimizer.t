@@ -5,6 +5,7 @@ use Python2::Grammar;
 use Python2::Actions;
 use Python2::Optimizer;
 use Python2::Backend::Perl5;
+use Python2::Compiler;
 
 my $testcase_directory = IO::Path.new("./t/output-comparison-python-interpreter");
 
@@ -13,28 +14,39 @@ unless $testcase_directory.e {
 }
 
 %*ENV<PYTHONIOENCODING> = 'utf8';
+%*ENV<PYTHONPATH> = './t/pylib';
 
 for $testcase_directory.dir -> $testcase {
+    my $compiler-optimized   = Python2::Compiler.new(:optimize(True));
+    my $compiler-unoptimized = Python2::Compiler.new(:optimize(False));
+
     # really ugly hack: empty line test has nothing to be optimized and would fail the 'optimized code is smaller' test
     next if ($testcase ~~ m/\/empty\-line\.py$/);
 
     subtest "Test for $testcase" => sub {
-        my $ast = Nil;
-        my $generated_perl5_code = Nil;
-        my $python2_output = Nil;
-        my $perl5_output = Nil;
-        my $parsed = Nil;
+        my $ast-unoptimized;
+        my $ast-optimized;
+        my $parsed-unoptimized;
+        my $parsed-optimized;
+
+        my $optimized_perl5_code;
+        my $python2_output;
+        my $perl5_output;
 
         subtest "Parser for $testcase" => sub {
-            $parsed = Python2::Grammar.parse($testcase.slurp, actions => Python2::Actions);
+            $parsed-optimized = $compiler-optimized.parser.parse($testcase.slurp, actions => Python2::Actions);
+            $parsed-unoptimized = $compiler-unoptimized.parser.parse($testcase.slurp, actions => Python2::Actions);
         };
-        $parsed or flunk("Parser failed for $testcase");
+        $parsed-optimized or flunk("Parser-optimized failed for $testcase");
+        $parsed-unoptimized or flunk("Parser-optimized failed for $testcase");
 
 
         subtest "AST for $testcase" => sub {
-            $ast = $parsed.made;
+            $ast-optimized = $parsed-optimized.made;
+            $ast-unoptimized = $parsed-unoptimized.made;
         };
-        $ast or flunk("AST generation failed for $testcase");
+        $ast-optimized or flunk("AST-optimized generation failed for $testcase");
+        $ast-unoptimized or flunk("AST-unoptimized generation failed for $testcase");
 
 
         subtest "Python 2 execution for $testcase" => sub {
@@ -49,32 +61,29 @@ for $testcase_directory.dir -> $testcase {
 
 
         subtest "Perl 5 code generation for $testcase" => sub {
-            my $backend = Python2::Backend::Perl5.new();
-            my $unoptimized_perl5_code = $backend.e($ast);
-            $backend = Python2::Backend::Perl5.new(); # hack to reset state
+            my $unoptimized_perl5_code  = $compiler-unoptimized.backend.e($ast-unoptimized);
 
-            my $optimizer = Python2::Optimizer.new();
-            $optimizer.t($ast);
+            $compiler-optimized.optimizer.t($ast-optimized);
 
-            ok($generated_perl5_code = $backend.e($ast));
+            $optimized_perl5_code       = $compiler-optimized.backend.e($ast-optimized);
 
             cmp-ok(
-                $unoptimized_perl5_code.chars, '>', $generated_perl5_code.chars,
+                $unoptimized_perl5_code.chars, '>', $optimized_perl5_code.chars,
                 'resulting optimized code is smaller than unoptimized'
             );
         };
-        $generated_perl5_code or flunk("Failed to generate Perl 5 code for $testcase");
+        $optimized_perl5_code or flunk("Failed to generate Perl 5 code for $testcase");
 
         subtest "Perl 5 execution $testcase" => sub {
             my $perl5;
             lives-ok {
                 $perl5 = run('perl', :in, :out, :err);
-                $perl5.in.say($generated_perl5_code);
+                $perl5.in.say($optimized_perl5_code);
                 $perl5.in.close;
                 $perl5_output = $perl5.out.slurp;
             }
 
-            diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+            diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$optimized_perl5_code\n---\n")
                 unless $perl5.exitcode == 0;
         };
         $perl5_output !~~ Nil or flunk("Failed Perl 5 execution for $testcase");

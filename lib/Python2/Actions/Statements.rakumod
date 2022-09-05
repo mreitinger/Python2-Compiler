@@ -30,6 +30,23 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-from($/) {
+        $/.make(Python2::AST::Node::Statement::FromImport.new(
+            start-position      => $/.from,
+            end-position        => $/.to,
+            name                => $/<dotted-name>.Str,
+            import-names        => $/<import-names>.made,
+        ));
+    }
+
+    method import-names($/) {
+        $/.make(Python2::AST::Node::Statement::ImportNames.new(
+            start-position      => $/.from,
+            end-position        => $/.to,
+            names               => $/<name>.map({ $_.made }),
+        ));
+    }
+
     method statement-print($/) {
         $/.make(Python2::AST::Node::Statement::Print.new(
             start-position  => $/.from,

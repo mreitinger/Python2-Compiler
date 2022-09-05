@@ -8,11 +8,9 @@ subtest "embedding - run script" => sub {
     print 1
     END
 
-    my $compiler = Python2::Compiler.new(
-        embedded => 'quux',
-    );
+    my $compiler = Python2::Compiler.new();
 
-    my $generated_perl5_code = $compiler.compile($input);
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
@@ -44,11 +42,9 @@ subtest "embedding - run function" => sub {
         print d
     END
 
-    my $compiler = Python2::Compiler.new(
-        embedded => 'quux',
-    );
+    my $compiler = Python2::Compiler.new();
 
-    my $generated_perl5_code = $compiler.compile($input);
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
@@ -76,11 +72,9 @@ subtest "embedding - lambda" => sub {
         return lambda x, y : x + y
     END
 
-    my $compiler = Python2::Compiler.new(
-        embedded => 'quux',
-    );
+    my $compiler = Python2::Compiler.new();
 
-    my $generated_perl5_code = $compiler.compile($input);
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
@@ -114,11 +108,9 @@ subtest "embedding - __getattr__ fallback" => sub {
         print a.unknown_attr
     END
 
-    my $compiler = Python2::Compiler.new(
-        embedded => 'quux',
-    );
+    my $compiler = Python2::Compiler.new();
 
-    my $generated_perl5_code = $compiler.compile($input);
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
         {
@@ -163,11 +155,9 @@ subtest "embedding - coderef wrapper" => sub {
         y('passed-parameter2', named_key = 'named_value')
     END
 
-    my $compiler = Python2::Compiler.new(
-        embedded => 'quux',
-    );
+    my $compiler = Python2::Compiler.new();
 
-    my $generated_perl5_code = $compiler.compile($input);
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
         {
@@ -219,11 +209,9 @@ subtest "embedding - perlobject" => sub {
         a.test_method_combined('positional-argument', named_key='named_value')
     END
 
-    my $compiler = Python2::Compiler.new(
-        embedded => 'quux',
-    );
+    my $compiler = Python2::Compiler.new();
 
-    my $generated_perl5_code = $compiler.compile($input);
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
         {

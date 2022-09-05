@@ -8,14 +8,35 @@ use Data::Dump;
 class Python2::Compiler {
     has Bool $.optimize = True;
     has Bool $.dumpast  = False;
-    has Str  $.embedded;
 
-    has $!backend = Python2::Backend::Perl5.new(:$!embedded);
-    has $!parser        = Python2::Grammar.new();
-    has $!optimizer     = Python2::Optimizer.new();
-    has $!actions       = Python2::Actions.new();
+    has $.backend = Python2::Backend::Perl5.new(
+        :compiler(self),
+    );
 
-    method compile (Str $input) {
+    has $.parser        = Python2::Grammar.new();
+    has $.optimizer     = Python2::Optimizer.new();
+    has $.actions       = Python2::Actions.new();
+
+    method compile (
+            Str $input,             # Python 2 source code
+
+            Str :$embedded,         # class name to use as 'main' class.
+                                    # used when embedding the code in some other environment where the caller
+                                    # needs to know the main class name
+                                    # if this is set the call to main->block() is not included in the output
+                                    # and is left for the caller to execute so parameters can be passed.
+
+            Bool :$module = False,  # determines if we are compiling a module or standalone script.
+                                    # if set to True this will not allow a main block and embedded must be set
+                                    # so our caller can specify the module name
+
+            :@import-names          # optional - provide a list of names to import from the to-be-compiled module
+                                    # this will be passed to the backend method compiling the root node which will
+                                    # filter the nodes
+    ) {
+        die("Module compilation requested but no embedded named passed, check embedded parameter")
+            if $module and not $embedded;
+
         my $ast = $!parser.parse($input, actions => $!actions);
 
         CATCH {
@@ -39,7 +60,7 @@ class Python2::Compiler {
             exit 0;
         }
 
-        return $!backend.e($root);
+        return $!backend.e($root, :$module, :$embedded, :@import-names);
     }
 
     method handle-parse-fail(Str :$input, Int :$pos is copy, Str :$what?) {

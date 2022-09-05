@@ -6,14 +6,11 @@ use Python2::ParseFail;
 class Python2::Backend::Perl5 {
     has Str $!o = '';
     has Str %!modules;
-    has Str $.embedded; # class name to use as 'main' class.
-                        # used when embedding the code in some other environment where the caller
-                        # needs to know the main class name
-                        # if this is set the call to main->block() is not included in the output
-                        # and is left for the caller to execute so parameters can be passed.
+    has $.compiler is required;
 
 
-    has Str $!wrapper = q:to/END/;
+    # Wrapper used for complete scripts
+    has Str $!script-wrapper = q:to/END/;
         use v5.26.0;
         use strict;
         use lib qw( p5lib );
@@ -42,6 +39,32 @@ class Python2::Backend::Perl5 {
         }
         END
 
+    # Wrapper used for modules
+    has Str $!module-wrapper = q:to/END/;
+        %s
+
+        package Python2::Type::Class::main_%s {
+            use Python2;
+            use Python2::Internals;
+
+            use base 'Python2::Type::Main';
+
+            # return the source of the original python file
+            sub __source__ {
+        return <<'PythonInput%s';
+        %s
+        PythonInput%s
+            }
+
+            sub __block__ {
+                my ($self, $args) = @_;
+                my $stack = $self->{stack};
+
+                die("no main block allowed in modules");
+            }
+        }
+        END
+
     # code to auto-execute our main block. used for script execution and skipped when embedding
     has Str $!autoexec = q:to/END/;
         my $py2main = Python2::Type::Class::main_%s->new();
@@ -59,7 +82,7 @@ class Python2::Backend::Perl5 {
     #]
 
     # root node: iteral over all statements and create perl code for them
-    multi method e(Python2::AST::Node::Root $node) {
+    multi method e(Python2::AST::Node::Root $node, Bool :$module where { not $_ }, Str :$embedded) {
         for ($node.nodes) {
             $!o ~= $.e($_);
         }
@@ -68,11 +91,11 @@ class Python2::Backend::Perl5 {
         my Str $class_sha1_hash = sha1-hex($node.input);
 
         my Str $output = sprintf(
-            $!wrapper,                      # wrapper / sprintf definition
+            $!script-wrapper,               # wrapper / sprintf definition
             %!modules.values.join("\n"),    # python class definitions
 
             # name of the main package. provided when we get embedded or auto generated from sha1 hash
-            $.embedded ?? $.embedded !! $class_sha1_hash,
+            $embedded ?? $embedded !! $class_sha1_hash,
 
             $class_sha1_hash,   # sha1 hash for source heredoc start
             $node.input,        # python2 source code for exception handling
@@ -80,9 +103,48 @@ class Python2::Backend::Perl5 {
             $!o,                # block of main body
         );
 
-        unless ($.embedded) {
+        unless ($embedded) {
             $output ~= sprintf($!autoexec, $class_sha1_hash);
         }
+
+        return $output;
+    }
+
+    multi method e(
+        Python2::AST::Node::Root $node,     # the root node of our AST tree
+        Bool :$module where { $_ },         # this method handles modules  - match where $module is true
+        Str :$embedded is required,         # if we are compiling a module embedding must be set - see ::Compiler for details
+        :@import-names,                     # optional - list of names to limit what we import (from X import <imput-names>)
+    ) {
+        for $node.nodes -> $node {
+            # restricted by grammar - sanity check only
+            die("Expected statement") unless $node ~~ Python2::AST::Node::Statement;
+
+            if $node.statement ~~ Python2::AST::Node::Statement::FunctionDefinition {
+                $!o ~= $.e($node) if ((not @import-names) or @import-names.grep($node.statement.name.name));
+            }
+            elsif $node.statement ~~ Python2::AST::Node::Statement::ClassDefinition {
+                $!o ~= $.e($node) if ((not @import-names) or @import-names.grep($node.statement.name.name));
+            }
+            else {
+                die("Only class and function definitions supported when loading modules");
+            }
+        }
+
+        # sha1 hash of our input - used to identify the main clas
+        my Str $class_sha1_hash = sha1-hex($node.input);
+
+        my Str $output = sprintf(
+            $!module-wrapper,               # wrapper / sprintf definition
+            %!modules.values.join("\n"),    # python class definitions
+
+            # name of the main package. provided when we get embedded or auto generated from sha1 hash
+            $embedded,
+
+            $class_sha1_hash,   # sha1 hash for source heredoc start
+            $node.input,        # python2 source code for exception handling
+            $class_sha1_hash,   # sha1 hash for source heredoc end
+        );
 
         return $output;
     }
@@ -105,6 +167,40 @@ class Python2::Backend::Perl5 {
             $node.name,
             $node.perl5-package-name.subst("'", "\\'", :g),
         );
+    }
+
+    multi method e(Python2::AST::Node::Statement::FromImport $node) {
+        my @search-paths = %*ENV<PYTHONPATH>
+            ?? %*ENV<PYTHONPATH>.split(':')
+            !! die("PYTHONPATH environment variable not set - unable to load modules.");
+
+        # module name is validated by grammar
+        my $module-name = $node.name;
+        $module-name ~~ s:g!\.!/!;
+
+        # unique hash of the module and the requested objects
+        my Str $import-sha1-hash = sha1-hex(
+            $node.name ~
+            $node.import-names.names.map({ $_.name }).join(' ')
+        );
+
+        # TODO this completly ignores __init__.py
+        my Str $output;
+        for @search-paths -> $path {
+            my $full-path = join('/', $path, "$module-name.py");
+
+            next unless $full-path.IO.e;
+
+            my $input = $full-path.IO.slurp;
+            $output = $.compiler.compile(
+                $input,
+                :module(True),
+                :embedded($import-sha1-hash),
+                :import-names($node.import-names.names.map({ $_.name })),
+            );
+        }
+
+        die("Module {$node.name} not found.") unless $output;
     }
 
     multi method e(Python2::AST::Node::Statement::Import $node) {

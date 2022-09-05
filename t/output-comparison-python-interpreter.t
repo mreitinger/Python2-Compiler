@@ -5,6 +5,7 @@ use Python2::Grammar;
 use Python2::Actions;
 use Python2::Optimizer;
 use Python2::Backend::Perl5;
+use Python2::Compiler;
 
 my $testcase_directory = IO::Path.new("./t/output-comparison-python-interpreter");
 
@@ -13,8 +14,11 @@ unless $testcase_directory.e {
 }
 
 %*ENV<PYTHONIOENCODING> = 'utf8';
+%*ENV<PYTHONPATH> = './t/pylib';
 
 for $testcase_directory.dir -> $testcase {
+    my $compiler = Python2::Compiler.new();
+
     subtest "Test for $testcase" => sub {
         my $ast = Nil;
         my $generated_perl5_code = Nil;
@@ -23,7 +27,7 @@ for $testcase_directory.dir -> $testcase {
         my $parsed = Nil;
 
         subtest "Parser for $testcase" => sub {
-            $parsed = Python2::Grammar.parse($testcase.slurp, actions => Python2::Actions);
+            $parsed = $compiler.parser.parse($testcase.slurp, actions => Python2::Actions);
         };
         $parsed or flunk("Parser failed for $testcase");
 
@@ -46,8 +50,7 @@ for $testcase_directory.dir -> $testcase {
 
 
         subtest "Perl 5 code generation for $testcase" => sub {
-            my $backend = Python2::Backend::Perl5.new();
-            ok($generated_perl5_code = $backend.e($ast));
+            ok($generated_perl5_code = $compiler.backend.e($ast));
         };
         $generated_perl5_code or flunk("Failed to generate Perl 5 code for $testcase");
 

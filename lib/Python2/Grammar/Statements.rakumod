@@ -17,6 +17,7 @@ role Python2::Grammar::Statements {
             | <class-definition>
             | <statement-import>
             | <statement-p5import>
+            | <statement-from>
         ]
 
         # ? to match EOF
@@ -37,6 +38,14 @@ role Python2::Grammar::Statements {
 
     token statement-import {
         'import' <.ws> <name>
+    }
+
+    token statement-from {
+        'from' <.ws> <dotted-name> <.ws> 'import' <.ws> <import-names>
+    }
+
+    token import-names {
+        <name>+ %% <list-delimiter>
     }
 
     # TODO p5 probably permits more here

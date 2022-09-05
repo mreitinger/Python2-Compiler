@@ -73,6 +73,14 @@ class Python2::Actions::Expressions {
         ))
     }
 
+    method dotted-name ($/) {
+        $/.make(Python2::AST::Node::Name.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $/.Str,
+        ))
+    }
+
     method lambda-definition ($/) {
         $/.make(Python2::AST::Node::LambdaDefinition.new(
             start-position  => $/.from,

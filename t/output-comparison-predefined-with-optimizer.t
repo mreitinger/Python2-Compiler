@@ -5,12 +5,16 @@ use Python2::Grammar;
 use Python2::Actions;
 use Python2::Optimizer;
 use Python2::Backend::Perl5;
+use Python2::Compiler;
 
 my $testcase_directory = IO::Path.new("./t/output-comparison-predefined");
 
 unless $testcase_directory.e {
     die("Testcase directory not found, are you running tests from the wrong directory?");
 }
+
+# used for module compilation
+my $compiler = Python2::Compiler.new();
 
 for $testcase_directory.dir.grep(/\.py$/) -> $testcase {
     subtest "Test for $testcase" => sub {
@@ -35,9 +39,9 @@ for $testcase_directory.dir.grep(/\.py$/) -> $testcase {
         $ast or flunk("AST generation failed for $testcase");
 
         subtest "Perl 5 code generation for $testcase" => sub {
-            my $backend = Python2::Backend::Perl5.new();
+            my $backend = Python2::Backend::Perl5.new(:$compiler);
             my $unoptimized_perl5_code = $backend.e($ast);
-            $backend = Python2::Backend::Perl5.new(); # hack to reset state
+            $backend = Python2::Backend::Perl5.new(:$compiler); # hack to reset state
 
             my $optimizer = Python2::Optimizer.new();
             $optimizer.t($ast);
