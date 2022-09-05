@@ -130,9 +130,11 @@ role Python2::Grammar::Expressions {
     # currently we don't allow any other escape sequences
     token string {
         | <string-prefix><triple-single-quoted-string>
+        | <string-prefix><triple-double-quoted-string>
         | <string-prefix><single-quoted-string>
         | <string-prefix><double-quoted-string>
         | <triple-single-quoted-string>
+        | <triple-double-quoted-string>
         | <single-quoted-string>
         | <double-quoted-string>
     }
@@ -157,7 +159,7 @@ role Python2::Grammar::Expressions {
                 | <-[']> "''" <-[']>    # double-single quotes within triple quoted strings
                 | "\\'"                 # escaped quote character
                 | '\\'                  # escaped literal backslash
-                | <-['\\]>              # everything except vertical whitespace, backslash and quote
+                | <-['\\]>              # everything except backslash and quote
             ]*
         )
     }
@@ -165,9 +167,11 @@ role Python2::Grammar::Expressions {
     token string-literal-triple-double-quoted {
         (
             [
-                | '\\"'         # escaped quote character
-                | '\\'          # escaped literal backslash
-                | <-["\\]>+   # everything except vertical whitespace, backslash and quote
+                | <-["]> '"' <-["]>    # single-double quotes within triple quoted strings
+                | <-["]> '""' <-["]>   # double-double quotes within triple quoted strings
+                | '\\"'                # escaped quote character
+                | '\\'                 # escaped literal backslash
+                | <-["\\]>             # everything except backslash and quote
             ]*
         )
     }
