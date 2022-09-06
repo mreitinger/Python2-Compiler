@@ -1,9 +1,10 @@
 role Python2::Grammar::Statements {
     token statement {
         [
+            || <statement-with>
+            || <variable-assignment>
             | <function-definition>
             | <statement-try-except>
-            | <variable-assignment>
             | <arithmetic-assignment>
             | <statement-print>
             | <statement-raise>
@@ -13,7 +14,6 @@ role Python2::Grammar::Statements {
             | <statement-loop-for>
             | <statement-loop-while>
             | <statement-if>
-            | <statement-with>
             | <class-definition>
             | <statement-import>
             | <statement-p5import>
@@ -31,19 +31,19 @@ role Python2::Grammar::Statements {
     }
 
     token statement-raise {
-        'raise' <.ws> <test>
+        'raise' \h+ <test>
     }
 
     token statement-p5import {
-        'p5import' <.ws> <perl5-package-name> <.ws> 'as' <.ws> <name>
+        'p5import' \h+ <perl5-package-name> \h+ 'as' \h+ <name>
     }
 
     token statement-import {
-        'import' <.ws> <name>
+        'import' \h+ <name>
     }
 
     token statement-from {
-        'from' <.ws> <dotted-name> <.ws> 'import' <.ws> <import-names>
+        'from' \h+ <dotted-name> \h+ 'import' \h+ <import-names>
     }
 
     token import-names {
@@ -51,11 +51,11 @@ role Python2::Grammar::Statements {
     }
 
     token statement-del {
-        'del' <.ws> <name>
+        'del' \h+ <name>
     }
 
     token statement-assert {
-        'assert' <.ws> <test> [',' <.ws> <test>]?
+        'assert' \h+ <test> [<.ws> ',' <.ws> <test>]?
     }
 
     # TODO p5 probably permits more here
@@ -72,36 +72,36 @@ role Python2::Grammar::Statements {
     }
 
     token statement-loop-for {
-        'for' <.ws> <name> [<.ws> ',' <.ws> <name>]* <.ws> 'in' <.ws> <expression> ':' <block>
+        'for' \h+ <name> [<.ws> ',' <.ws> <name>]* \h+ 'in' \h+ <expression> ':' <block>
     }
 
     token statement-loop-while {
-        'while' <.ws> <test> <.ws> ':' <block>
+        'while' \h+ <test> <.ws> ':' <block>
     }
 
     token statement-if {
-        'if' <.ws> <test> <.ws> ':' <block>
+        'if' \h+ <test> <.ws> ':' <block>
         <statement-elif>*
         [<level> 'else' <.ws> ':' <block>]?
     }
 
     token statement-with {
-        'with' <.ws> <test> <.ws> 'as' <.ws> <name> <.ws> ':' <block>
+        'with' \h+ <test> \h+ 'as' \h+ <name> <.ws> ':' <block>
     }
 
     token statement-elif {
-        <level> 'elif' <.ws> <test>':' <block>
+        <level> 'elif' \h+ <test> <.ws> ':' <block>
     }
 
     token statement-try-except {
-        'try' ':' <block>
+        'try' <.ws> ':' <block>
         <exception-clause>+
-        [<level> 'finally' ':' <block>]?
+        [<level> 'finally' <.ws> ':' <block>]?
     }
 
     # TODO python allowes <test> to determine the variable assignment/exception
     token exception-clause {
-        <level> 'except' [<.ws> <name> [<.ws> ',' <.ws> <name>]?]? <.ws> ':' <block>
+        <level> 'except' [\h+ <name> [<.ws> ',' <.ws> <name>]?]? <.ws> ':' <block>
     }
 
 
@@ -111,19 +111,19 @@ role Python2::Grammar::Statements {
 
     token test {
         || <lambda-definition>
-        || <or_test> [ <.ws> 'if' <.ws> <or_test> <.ws> 'else' <.ws> <test> ]?
+        || <or_test> [ \h+ 'if' \h+ <or_test> \h+ 'else' \h+ <test> ]?
     }
 
     token or_test {
-        <and_test>  [<.ws> 'or' <.ws> <and_test> ]*
+        <and_test>  [\h+ 'or' \h+ <and_test> ]*
     }
 
     token and_test {
-        <not_test> [ <.ws> 'and' <.ws> <not_test> ]*
+        <not_test> [ \h+ 'and' \h+ <not_test> ]*
     }
 
     token not_test {
-        | 'not' <.ws> <not_test>
+        | 'not' \h+ <not_test>
         | <comparison>
     }
 
@@ -171,17 +171,17 @@ role Python2::Grammar::Statements {
     token arithmetic-assignment-operator:sym<\<\<=> { <sym> }
 
     token list-or-dict-element {
-        '[' <literal> [':' <literal>]? ']'
+        '[' <.ws> <literal> [<.ws> ':' <.ws> <literal>]? <.ws> ']'
     }
 
     token function-definition {
-        'def' <.ws> <name> '(' <function-definition-argument-list> ')' ':' <block>
+        'def' \h+ <name> '(' <function-definition-argument-list> ')' <.ws> ':' <block>
     }
 
     # inheritance is restricted to a single <name> for now - we don't support anything else at
     # this time.
     token class-definition {
-        'class' <.ws> <name> [ '(' <name> ')' ]? ':' <block>
+        'class' \h+ <name> [ '(' <.ws> <name> <.ws> ')' ]? <.ws> ':' <block>
     }
 
     token function-definition-argument-list {

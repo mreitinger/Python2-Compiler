@@ -78,7 +78,7 @@ role Python2::Grammar::Expressions {
     }
 
     token list-comprehension {
-        <test> <.ws> 'for' <.ws> <name> <.ws> 'in' <.ws> <test> [<.ws> 'if' <.ws> <test>]?
+        <test> \h+ 'for' \h+ <name> \h+ 'in' \h+ <test> [\h+ 'if' \h+ <test>]?
     }
 
 
