@@ -25,7 +25,15 @@ sub reader {
     # TODO: implement other options? not needed so far
     my $delimiter = $named_args->{delimiter} ? ${ $named_args->{delimiter} } : ',';
 
-    my $input = csv(in => $csvfile->[0], sep_char => $delimiter);
+    my $in;
+    if ($csvfile->__type__ eq 'file') {
+        # use the file handle
+        $in = $csvfile->[0];
+    } elsif ($csvfile->__type__ eq 'pyobject') {
+        # use a LWP User-Agent response object
+        $in = \$csvfile->{response}->decoded_content;
+    }
+    my $input = csv(in => $in, sep_char => $delimiter);
     my @input_pyobj = map {
         Python2::Type::List->new(map {
             looks_like_number($_)
@@ -33,6 +41,7 @@ sub reader {
             : Python2::Type::Scalar::String->new($_);
         } @$_)
     } @$input;
+
     # simply return a list which is good enough
     # as long we don't have to deal with huge files
     return \Python2::Type::List->new(@input_pyobj);
