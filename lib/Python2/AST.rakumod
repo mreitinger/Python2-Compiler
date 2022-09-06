@@ -218,10 +218,14 @@ class Python2::AST {
 
     class Node::Statement::TryExcept is Node::Expression {
         has Node    $.try-block  is required is rw;
-        has Node    $.except-block is required is rw;
+        has Node    @.except-blocks is required is rw;
         has Node    $.finally-block is rw;
     }
 
+    class Node::ExceptionClause is Node {
+        has Node $.exception is rw; # exception where this block is relevant, optional for plain 'except:'
+        has Node $.block is required is rw;
+    }
 
     class Node::Statement::Test::Expression is Node::Expression {
         has Node $.expression  is required is rw;

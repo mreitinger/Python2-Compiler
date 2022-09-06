@@ -158,8 +158,17 @@ class Python2::Actions::Statements {
             start-position  => $/.from,
             end-position    => $/.to,
             try-block       => $/<block>[0].made,
-            except-block    => $/<block>[1].made,
-            finally-block   => $/<block>[2] ?? $/<block>[2].made !! Python2::AST::Node,
+            except-blocks   => $/<exception-clause>.values.map({ $_.made }),
+            finally-block   => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
+        ));
+    }
+
+    method exception-clause($/) {
+        $/.make(Python2::AST::Node::ExceptionClause.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            exception       => $/<name> ?? $/<name>.made !! Nil,
+            block           => $/<block>.made,
         ));
     }
 

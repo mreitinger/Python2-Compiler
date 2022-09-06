@@ -95,8 +95,13 @@ role Python2::Grammar::Statements {
 
     token statement-try-except {
         'try' ':' <block>
-        <level> 'except' ':' <block>
+        <exception-clause>+
         [<level> 'finally' ':' <block>]?
+    }
+
+    # TODO python allowes <test> to determine the variable assignment/exception
+    token exception-clause {
+        <level> 'except' [<.ws> <name>]? <.ws> ':' <block>
     }
 
     token test-list {

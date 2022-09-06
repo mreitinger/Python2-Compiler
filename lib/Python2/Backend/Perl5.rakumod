@@ -423,14 +423,20 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {
-        my $p5 = sprintf('eval { %s } or do { %s };',
+        my Str $p5 = sprintf('eval { %s }; if ($@) { my $e = $@; sub { %s die $@; }->()};',
             $.e($node.try-block),
-            $.e($node.except-block),
+            $node.except-blocks.values.map({ $.e($_) }).join(' '),
         );
 
         $p5 ~= sprintf('{ %s }', $.e($node.finally-block)) if $node.finally-block;
 
         return $p5;
+    }
+
+    multi method e(Python2::AST::Node::ExceptionClause $node) {
+        return $node.exception
+            ?? sprintf(q|if ($e eq '%s') { %s; return; }|, $node.exception.name, $.e($node.block))
+            !! $.e($node.block) ~ ' return;';
     }
 
     multi method e(Python2::AST::Node::Test $node) {
