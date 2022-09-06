@@ -89,8 +89,8 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::VariableAssignment.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            target      => $/<power>.made,
-            expression  => $/<test>.made
+            targets         => $/<power>.map({ $_.made }),
+            expression      => $/<test>.made
         ));
     }
 

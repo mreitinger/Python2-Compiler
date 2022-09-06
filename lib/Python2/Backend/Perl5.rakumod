@@ -288,18 +288,45 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
-        Python2::ParseFail.new(:pos($node.start-position), :what("Expected name")).throw()
-            unless ($node.target.atom.expression ~~ Python2::AST::Node::Name);
-
         # see AST::Node::Power
-        $node.target.must-resolve = False;
-        $node.target.atom.recurse = False; # if it's a variable assignment we
-                                           # don't recurse upwards on the stack
+        for $node.targets.values -> $target is rw {
+            Python2::ParseFail.new(:pos($node.start-position), :what("Expected name")).throw()
+                unless ($target.atom.expression ~~ Python2::AST::Node::Name);
 
-        return sprintf('${%s} = ${%s}',
-            $.e($node.target),
-            $.e($node.expression)
-        );
+            $target.must-resolve = False;
+            $target.atom.recurse = False;   # if it's a variable assignment we
+                                            # don't recurse upwards on the stack
+        }
+
+        # simple '1:1' assignment
+        if ($node.targets.elems == 1) {
+            return sprintf('${%s} = ${%s}',
+                $.e($node.targets[0]),
+                $.e($node.expression)
+            );
+        }
+
+        else {
+            my Str $p5;
+
+            # assign our (potential) iterable to $i
+            $p5 ~= sprintf('{ my $i = %s;', $.e($node.expression));
+
+            # die if the object cannot provide a length
+            $p5 ~= sprintf(q|die Python2::Type::Exception->('TypeError', 'Expected iterable, got ' . $$i->__type__) unless $$i->can('__len__');|);
+
+            # die if the elements in the object don't match the amount of targets
+            $p5 ~= sprintf(q|die Python2::Type::Exception->('ValueError', 'too many values to unpack') unless ${$$i->__len__}->__tonative__ == %i;|, $node.targets.elems);
+
+            my Int $i = 0;
+            for $node.targets.values -> $target {
+                $p5 ~= sprintf(q|${%s} = ${ $$i->__getitem__(undef, Python2::Type::Scalar::Num->new(%i)) };|, $.e($target), $i++);
+            }
+
+            return $p5 ~ '}';
+        }
+
+
     }
 
     multi method e(Python2::AST::Node::Statement::ArithmeticAssignment $node) {
