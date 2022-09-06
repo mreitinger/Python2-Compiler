@@ -167,7 +167,8 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::ExceptionClause.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            exception       => $/<name> ?? $/<name>.made !! Nil,
+            exception       => $/<name>[0] ?? $/<name>[0].made !! Nil,
+            name            => $/<name>[1] ?? $/<name>[1].made !! Nil,
             block           => $/<block>.made,
         ));
     }

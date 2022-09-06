@@ -68,4 +68,6 @@ sub __trace__ { shift->[2] }
 
 sub __type__ { 'exception' }
 
+sub __print__ { shift->[1] }
+
 1;

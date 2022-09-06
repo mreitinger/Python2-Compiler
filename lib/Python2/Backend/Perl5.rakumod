@@ -435,7 +435,18 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::ExceptionClause $node) {
         return $node.exception
-            ?? sprintf(q|if ($e eq '%s') { %s; return; }|, $node.exception.name, $.e($node.block))
+            ??  $node.name
+                    # exception with type filter and name assignment
+                    ??  sprintf(q|if ($e eq '%s') { Python2::Internals::setvar($stack, '%s', $e); %s; return; }|,
+                            $node.exception.name,
+                            $node.name.name,
+                            $.e($node.block)
+                        )
+
+                    # exception with type filter only
+                    !!  sprintf(q|if ($e eq '%s') { %s; return; }|, $node.exception.name, $.e($node.block))
+
+            # generic 'except:'
             !! $.e($node.block) ~ ' return;';
     }
 

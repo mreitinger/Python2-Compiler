@@ -101,8 +101,9 @@ role Python2::Grammar::Statements {
 
     # TODO python allowes <test> to determine the variable assignment/exception
     token exception-clause {
-        <level> 'except' [<.ws> <name>]? <.ws> ':' <block>
+        <level> 'except' [<.ws> <name> [<.ws> ',' <.ws> <name>]?]? <.ws> ':' <block>
     }
+
 
     token test-list {
         <test>+ %% <list-delimiter>

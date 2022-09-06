@@ -224,6 +224,7 @@ class Python2::AST {
 
     class Node::ExceptionClause is Node {
         has Node $.exception is rw; # exception where this block is relevant, optional for plain 'except:'
+        has Node $.name  is rw; # name of the variable where we assign the exception to
         has Node $.block is required is rw;
     }
 
