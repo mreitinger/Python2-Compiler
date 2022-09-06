@@ -63,6 +63,15 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-assert($/) {
+        $/.make(Python2::AST::Node::Statement::Assert.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            assertion       => $/<test>[0].made,
+            message         => $/<test>[1] ?? $/<test>[1].made !! Nil,
+        ));
+    }
+
     method statement-break($/) {
         $/.make(Python2::AST::Node::Statement::Break.new(
             start-position  => $/.from,

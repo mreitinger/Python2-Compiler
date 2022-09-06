@@ -19,6 +19,7 @@ role Python2::Grammar::Statements {
             | <statement-p5import>
             | <statement-from>
             | <statement-del>
+            | <statement-assert>
         ]
 
         # ? to match EOF
@@ -51,6 +52,10 @@ role Python2::Grammar::Statements {
 
     token statement-del {
         'del' <.ws> <name>
+    }
+
+    token statement-assert {
+        'assert' <.ws> <test> [',' <.ws> <test>]?
     }
 
     # TODO p5 probably permits more here

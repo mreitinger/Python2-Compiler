@@ -160,6 +160,11 @@ class Python2::AST {
         has Node $.name is required is rw;
     }
 
+    class Node::Statement::Assert is Node::Expression {
+        has Node $.assertion is required is rw;
+        has Node $.message is rw;
+    }
+
     class Node::Statement::Raise is Node::Expression {
         has $.value is required is rw;
     }

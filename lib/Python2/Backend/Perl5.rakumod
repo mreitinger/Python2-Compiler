@@ -266,6 +266,19 @@ class Python2::Backend::Perl5 {
         return sprintf('Python2::Internals::delvar($stack, \'%s\')', $node.name.name);
     }
 
+    multi method e(Python2::AST::Node::Statement::Assert $node) {
+        my Str $assertion-error = sprintf("Python2::Type::Exception->new('AssertionError', %s)",
+            $node.message
+                ?? $.e($node.message)
+                !! ''
+        );
+
+        return sprintf('if ( not ${ %s }->__is_py_true__ ) { die %s; }',
+            $.e($node.assertion),
+            $assertion-error
+        );
+    }
+
     multi method e(Python2::AST::Node::Statement::Break $node) {
         return 'last;'
     }
