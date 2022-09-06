@@ -313,10 +313,10 @@ class Python2::Backend::Perl5 {
             $p5 ~= sprintf('{ my $i = %s;', $.e($node.expression));
 
             # die if the object cannot provide a length
-            $p5 ~= sprintf(q|die Python2::Type::Exception->('TypeError', 'Expected iterable, got ' . $$i->__type__) unless $$i->can('__len__');|);
+            $p5 ~= sprintf(q|die Python2::Type::Exception->new('TypeError', 'Expected iterable, got ' . $$i->__type__) unless $$i->can('__len__');|);
 
             # die if the elements in the object don't match the amount of targets
-            $p5 ~= sprintf(q|die Python2::Type::Exception->('ValueError', 'too many values to unpack') unless ${$$i->__len__}->__tonative__ == %i;|, $node.targets.elems);
+            $p5 ~= sprintf(q|die Python2::Type::Exception->new('ValueError', 'too many values to unpack') unless ${$$i->__len__}->__tonative__ == %i;|, $node.targets.elems);
 
             my Int $i = 0;
             for $node.targets.values -> $target {
