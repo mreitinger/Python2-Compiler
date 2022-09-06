@@ -35,24 +35,26 @@ role Python2::Grammar::Common {
 
     token subscript {
         '['
+            <.ws>
             [
                 || <start-slice>
                 || <full-slice>
                 || <end-slice>
                 || <test>
             ]
+            <.ws>
         ']'
     }
 
     token full-slice {
-        <test> ':' <test>
+        <test> <.ws> ':' <.ws> <test>
     }
 
     token start-slice {
-        ':' <test>
+        ':' <.ws> <test>
     }
 
     token end-slice {
-        <test> ':'
+        <test> <.ws> ':'
     }
 }
