@@ -428,7 +428,7 @@ class Python2::Backend::Perl5 {
             $.e($node.except-block),
         );
 
-        $p5 ~= sprintf('; { %s }', $.e($node.finally-block)) if $node.finally-block;
+        $p5 ~= sprintf('{ %s }', $.e($node.finally-block)) if $node.finally-block;
 
         return $p5;
     }
