@@ -55,6 +55,14 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-del($/) {
+        $/.make(Python2::AST::Node::Statement::Del.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $/<name>.made
+        ));
+    }
+
     method statement-break($/) {
         $/.make(Python2::AST::Node::Statement::Break.new(
             start-position  => $/.from,

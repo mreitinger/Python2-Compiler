@@ -22,6 +22,15 @@ sub setvar {
     $stack->[ITEMS]->{$name} = $value;
 }
 
+# delete a variable on our stack
+sub delvar {
+    my ($stack, $name) = @_;
+
+    defined $stack->[ITEMS]->{$name}
+        ? delete $stack->[ITEMS]->{$name}
+        : die Python2::Type::Exception->new('NameError', "name '$name' not defined");
+}
+
 # return a reference to a variable name on our stack
 sub getvar {
     my ($stack, $recurse, $name) = @_;

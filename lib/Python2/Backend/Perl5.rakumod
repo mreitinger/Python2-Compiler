@@ -262,6 +262,10 @@ class Python2::Backend::Perl5 {
         return sprintf('Python2::Internals::py2print(${ %s }, {})', $.e($node.value));
     }
 
+    multi method e(Python2::AST::Node::Statement::Del $node) {
+        return sprintf('Python2::Internals::delvar($stack, \'%s\')', $node.name.name);
+    }
+
     multi method e(Python2::AST::Node::Statement::Break $node) {
         return 'last;'
     }

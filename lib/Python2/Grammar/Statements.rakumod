@@ -18,6 +18,7 @@ role Python2::Grammar::Statements {
             | <statement-import>
             | <statement-p5import>
             | <statement-from>
+            | <statement-del>
         ]
 
         # ? to match EOF
@@ -46,6 +47,10 @@ role Python2::Grammar::Statements {
 
     token import-names {
         <name>+ %% <list-delimiter>
+    }
+
+    token statement-del {
+        'del' <.ws> <name>
     }
 
     # TODO p5 probably permits more here
