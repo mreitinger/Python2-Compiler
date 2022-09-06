@@ -124,7 +124,7 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/<single-quoted-string>.<string-literal-single-quoted>.Str,
+            value => $/<single-quoted-string>.<string-literal-single-quoted>.Str.subst("\\\n", "", :g),
             raw   => $string-prefix eq 'r',
         ));
     }
@@ -135,8 +135,8 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/<double-quoted-string>.<string-literal-double-quoted>.Str,
-            raw   => $string-prefix eq 'r'
+            value           => $/<double-quoted-string>.<string-literal-double-quoted>.Str.subst("\\\n", "", :g),
+            raw             => $string-prefix eq 'r'
         ));
     }
 
@@ -144,7 +144,7 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/<triple-single-quoted-string>.<string-literal-triple-single-quoted>.Str,
+            value => $/<triple-single-quoted-string>.<string-literal-triple-single-quoted>.Str.subst("\\\n", "", :g),
             raw   => False,
         ));
     }
@@ -153,7 +153,7 @@ class Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/<triple-double-quoted-string>.<string-literal-triple-double-quoted>.Str,
+            value => $/<triple-double-quoted-string>.<string-literal-triple-double-quoted>.Str.subst("\\\n", "", :g),
             raw   => False,
         ));
     }

@@ -181,6 +181,7 @@ role Python2::Grammar::Expressions {
             [
                 | "\\'"         # escaped quote character
                 | '\\'          # escaped literal backslash
+                | '\\'\n        # line continuation, filtered out later by the Actions
                 | <-['\\\v]>+   # everything except vertical whitespace, backslash and quote
             ]*
         )
@@ -191,6 +192,7 @@ role Python2::Grammar::Expressions {
             [
                 | '\\"'         # escaped quote character
                 | '\\'          # escaped literal backslash
+                | '\\'\n        # line continuation, filtered out later by the Actions
                 | <-["\\\v]>+   # everything except vertical whitespace, backslash and quote
             ]*
         )
