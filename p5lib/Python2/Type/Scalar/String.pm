@@ -4,6 +4,8 @@ use base qw/ Python2::Type::Scalar /;
 use warnings;
 use strict;
 
+use utf8;
+
 sub __str__  { return "'" . shift->{value} . "'"; }
 sub __type__ { 'str'; }
 sub __is_py_true__  { length(shift->{value}) > 0 ? 1 : 0; }
@@ -242,6 +244,17 @@ sub __getslice__ {
     }
 
     return \Python2::Type::Scalar::String->new( substr($self->{value}, $start, $target-$start) );
+}
+
+sub encode {
+    pop(@_); # default named arguments hash
+    my($self, $pstack, $encoding) = @_;
+
+    my $str = $self->__tonative__;
+    if ($encoding =~ m/utf-?8/) {
+        utf8::encode($str);
+    }
+    return \Python2::Type::Scalar::String->new($str);
 }
 
 sub __gt__ {
