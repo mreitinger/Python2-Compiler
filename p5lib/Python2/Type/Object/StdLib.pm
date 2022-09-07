@@ -7,5 +7,6 @@ use Python2::Type::Object::StdLib::re;
 use Python2::Type::Object::StdLib::csv;
 use Python2::Type::Object::StdLib::urllib2;
 use Python2::Type::Object::StdLib::urllib;
+use Python2::Type::Object::StdLib::json;
 
 1;
