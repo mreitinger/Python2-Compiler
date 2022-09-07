@@ -28,7 +28,12 @@ sub __getattr__ {
     die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
 
-    return \$self->{stack}->[1]->{$attribute_name->__tonative__};
+    $attribute_name = $attribute_name->__tonative__;
+
+    return \$self->{stack}->[1]->{$attribute_name}
+        if defined $self->{stack}->[1]->{$attribute_name};
+
+    die Python2::Type::Exception->new('AttributeError', "'" . ref($self) . "' has no attribute '$attribute_name'");
 }
 
 sub AUTOLOAD {
