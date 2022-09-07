@@ -115,15 +115,15 @@ role Python2::Grammar::Statements {
     }
 
     token or_test {
-        <and_test>  [\h+ 'or' \h+ <and_test> ]*
+        <and_test>  [<.ws> 'or' <.ws> <and_test> ]*
     }
 
     token and_test {
-        <not_test> [ \h+ 'and' \h+ <not_test> ]*
+        <not_test> [ <.ws> 'and' <.ws> <not_test> ]*
     }
 
     token not_test {
-        | 'not' \h+ <not_test>
+        | 'not' <.ws> <not_test>
         | <comparison>
     }
 
