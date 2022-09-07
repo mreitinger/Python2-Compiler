@@ -12,7 +12,7 @@ use Scalar::Util qw/ refaddr /;
 sub new {
     my ($self) = @_;
 
-    my $object = bless({ stack => [$Python2::builtins] }, $self);
+    my $object = bless({ stack => [$Python2::builtins, {}] }, $self);
 
     return $object;
 }
