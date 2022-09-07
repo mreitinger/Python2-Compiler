@@ -6,7 +6,7 @@ use v5.26.0;
 use warnings;
 use strict;
 
-use Text::CSV_XS qw( csv );
+use Text::CSV_XS qw/ csv /;
 use Scalar::Util qw/ looks_like_number /;
 
 sub new {

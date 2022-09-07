@@ -6,5 +6,6 @@ use strict;
 use Python2::Type::Object::StdLib::re;
 use Python2::Type::Object::StdLib::csv;
 use Python2::Type::Object::StdLib::urllib2;
+use Python2::Type::Object::StdLib::urllib;
 
 1;
