@@ -8,6 +8,7 @@ use v5.26.0;
 use warnings;
 use strict;
 use Scalar::Util qw/ refaddr /;
+use Python2::Type::PythonMethod;
 
 sub new {
     my ($self) = @_;
@@ -32,6 +33,9 @@ sub __getattr__ {
 
     return \$self->{stack}->[1]->{$attribute_name}
         if defined $self->{stack}->[1]->{$attribute_name};
+
+    return \Python2::Type::PythonMethod->new($self->can($attribute_name), $self)
+        if $self->can($attribute_name);
 
     die Python2::Type::Exception->new('AttributeError', "'" . ref($self) . "' has no attribute '$attribute_name'");
 }
