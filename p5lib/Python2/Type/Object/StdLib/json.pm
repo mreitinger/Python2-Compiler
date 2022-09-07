@@ -21,16 +21,14 @@ sub dumps {
     my ($self, $pstack, $obj, $skipkey, $ensure_ascii, $check_circular, $allow_nan,
         $cls, $indent, $separators, $encoding, $default, $sort_keys) = @_;
 
-    my $json_str;
-    if ($obj->__tonative__) {
-        # TODO: implement options as needed
-        # python2 uses space_after as default
-        my $json = JSON->new->space_after(1);
-        $json_str = $json->encode($obj->__tonative__);
-    } else {
-        die Python2::Type::Exception->new('TypeError',
-            sprintf("object contains non-JSON serializable elements"));
-    }
+    die Python2::Type::Exception->new('TypeError',
+            sprintf("object contains non-JSON serializable elements"))
+            unless $obj->__tonative__;
+
+    # TODO: implement options as needed
+    # python2 uses space_after as default
+    my $json = JSON->new->space_after(1);
+    my $json_str = $json->encode($obj->__tonative__);
 
     return \Python2::Type::Scalar::String->new($json_str);
 }
