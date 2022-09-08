@@ -50,8 +50,37 @@ our $builtins = [
             'None'      => Python2::Type::Scalar::None->new(),
             'True'      => Python2::Type::Scalar::Bool->new(1),
             'False'     => Python2::Type::Scalar::Bool->new(0),
-            'Exception' => Python2::Builtin::Exception->new(), # Exception gets a message passed so
-                                                               # it is implemented as a function
+
+            # Exceptions gets a message passed so they get implemented as a function - this is not
+            # 100% correct but should cover our use case
+            'Exception'             => Python2::Type::Exception->new('Exception'),
+            'StandardError'         => Python2::Type::Exception->new('StandardError'),
+            'ArithmeticError'       => Python2::Type::Exception->new('ArithmeticError'),
+            'LookupError'           => Python2::Type::Exception->new('LookupError'),
+            'AssertionError'        => Python2::Type::Exception->new('AssertionError'),
+            'AttributeError'        => Python2::Type::Exception->new('AttributeError'),
+            'EOFError'              => Python2::Type::Exception->new('EOFError'),
+            'EnvironmentError'      => Python2::Type::Exception->new('EnvironmentError'),
+            'FloatingPointError'    => Python2::Type::Exception->new('FloatingPointError'),
+            'IOError'               => Python2::Type::Exception->new('IOError'),
+            'ImportError'           => Python2::Type::Exception->new('ImportError'),
+            'IndexError'            => Python2::Type::Exception->new('IndexError'),
+            'KeyError'              => Python2::Type::Exception->new('KeyError'),
+            'KeyboardInterrupt'     => Python2::Type::Exception->new('KeyboardInterrupt'),
+            'MemoryError'           => Python2::Type::Exception->new('MemoryError'),
+            'NameError'             => Python2::Type::Exception->new('NameError'),
+            'NotImplementedError'   => Python2::Type::Exception->new('NotImplementedError'),
+            'OSError'               => Python2::Type::Exception->new('OSError'),
+            'OverflowError'         => Python2::Type::Exception->new('OverflowError'),
+            'ReferenceError'        => Python2::Type::Exception->new('ReferenceError'),
+            'RuntimeError'          => Python2::Type::Exception->new('RuntimeError'),
+            'StopIteration'         => Python2::Type::Exception->new('StopIteration'),
+            'SyntaxError'           => Python2::Type::Exception->new('SyntaxError'),
+            'SystemError'           => Python2::Type::Exception->new('SystemError'),
+            'SystemExit'            => Python2::Type::Exception->new('SystemExit'),
+            'TypeError'             => Python2::Type::Exception->new('TypeError'),
+            'ValueError'            => Python2::Type::Exception->new('ValueError'),
+            'ZeroDivisionError'     => Python2::Type::Exception->new('ZeroDivisionError'),
         }
     ]
 ];

@@ -2,7 +2,11 @@ package Python2::Type::Exception;
 use v5.26.0;
 use warnings;
 use strict;
+
 use Devel::StackTrace;
+use Clone qw/ clone /;
+
+use Python2;
 
 use overload
     '""' => '__str__',
@@ -41,7 +45,6 @@ my $valid_exceptions = {
     SystemExit => 1,
     TypeError => 1,
     ValueError => 1,
-    WindowsError => 1,
     ZeroDivisionError => 1,
 };
 
@@ -51,23 +54,59 @@ sub new {
     die Python2::Type::Exception->new('Exception', "Invalid exception type '$type'")
         unless exists $valid_exceptions->{$type};
 
-    return bless([$type, $message,  Devel::StackTrace->new()], $self);
+    # there are 3 ways Exceptions get created:
+    # (1) - by Python2.pm as base exception classes with just a type
+    #       this takes care of the plain 'raise Exception' (without a message getting passed)
+    # (2) - by some code calling Exception('foo')
+    #       this ends up with a new Exception object, handled by __call__ below
+    # (3) - some internals create a new Python2::Type::Exception object from scratch
+
+    return defined $message
+        ? bless([$type, $message, Devel::StackTrace->new], $self) # handles (3)
+        : bless([$type, undef, undef], $self);                    # handles (1)
+
+}
+
+sub __call__ {
+    my $object          = clone(shift @_);
+    my $pstack          = shift @_;
+    my $message         = shift @_;
+
+    $object->[1] = $message;
+    $object->[2] = Devel::StackTrace->new(),
+
+    return \$object;
 }
 
 sub message {
     my $self = shift;
-    return sprintf('%s: %s', $self->[0], $self->[1]);
+    return defined $self->[1]
+        ? sprintf('%s: %s', $self->[0], $self->[1])
+        : $self->[0];
 }
 
 sub __str__  {
     my $self = shift;
-    return sprintf("%s: %s", $self->[0], $self->[1]);
-};
+    return defined $self->[1]
+        ? sprintf('%s: %s', $self->[0], $self->[1])
+        : $self->[0];
+}
 
-sub __trace__ { shift->[2] }
+sub __trace__ {
+    my $self = shift;
+
+    # if we don't get instanciated with a message we never get to __call__ and have no stacktrace
+    # so we create a new one here. we cannot store this in the pseudo-exception object since
+    # it might be reused
+    return defined $self->[2]
+        ?  $self->[2]                   # raise Exception('foo')
+        : Devel::StackTrace->new()      # raise Exception
+}
 
 sub __type__ { 'exception' }
 
-sub __print__ { shift->[1] }
+sub __print__ {
+    shift->[1] // ''
+}
 
 1;

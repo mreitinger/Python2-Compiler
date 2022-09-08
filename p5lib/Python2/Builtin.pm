@@ -13,7 +13,6 @@ use Python2::Builtin::Iter;
 use Python2::Builtin::Next;
 use Python2::Builtin::Enumerate;
 use Python2::Builtin::Filter;
-use Python2::Builtin::Exception;
 use Python2::Builtin::Round;
 use Python2::Builtin::Sum;
 use Python2::Builtin::Len;

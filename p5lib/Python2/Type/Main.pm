@@ -67,7 +67,9 @@ sub __handle_exception__ {
     if (ref($error) eq 'Python2::Type::Exception') {
         $message = $error->message;
 
-        while (my $frame = $error->__trace__->next_frame) {
+        my $trace = $error->__trace__;
+
+        while (my $frame = $trace->next_frame) {
             next unless $frame->package =~ m/^(Python2::Type|python_class_main)/;
 
             if ($frame->filename =~ m/^___position_(\d+)_(\d+)___$/) {
