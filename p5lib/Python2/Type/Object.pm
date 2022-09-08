@@ -46,16 +46,15 @@ sub __str__ {
 }
 
 # creates a new object instance from this class
-# TODO handle __build__/__init__ here, see new()
 sub __call__ {
-    my $object = clone(shift);
-    my $pstack = shift;
+    my $object          = clone(shift @_);
+    my $pstack          = shift @_;
 
     $object->__build__($pstack);
 
     # TODO - check parent stack for __init__
     # {} for unused named variables
-    $object->__init__(undef, {}) if $object->can('__init__');
+    $object->__init__(undef, @_) if $object->can('__init__');
 
     return \$object;
 }
