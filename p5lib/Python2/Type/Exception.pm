@@ -14,6 +14,10 @@ use overload
     # used so we can do "cheap" runtime checks
     'eq' => sub {
         my ($self, $expected) = @_;
+
+        # ugly hack - match exception for everything
+        return 1 if ($expected eq "Exception");
+
         return 1 if ($self->[0] eq $expected);
     };
 
