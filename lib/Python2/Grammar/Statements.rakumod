@@ -31,7 +31,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-raise {
-        'raise' \h+ <test>
+        'raise' \h+ <test> [<.ws> ',' <.ws> <test>]?
     }
 
     token statement-p5import {

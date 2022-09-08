@@ -166,7 +166,8 @@ class Python2::AST {
     }
 
     class Node::Statement::Raise is Node::Expression {
-        has $.value is required is rw;
+        has Node $.exception is required is rw;
+        has Node $.message   is rw;
     }
 
     class Node::Statement::VariableAssignment is Node::Expression {

@@ -81,7 +81,8 @@ class Python2::Actions::Statements {
 
     method statement-raise($/) {
         $/.make(Python2::AST::Node::Statement::Raise.new(
-            value => $/.values[0].made
+            exception   => $/<test>[0].made,
+            message     => $/<test>[1] ?? $/<test>[1].made !! Nil,
         ));
     }
 

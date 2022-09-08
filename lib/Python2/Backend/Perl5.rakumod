@@ -284,7 +284,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Raise $node) {
-        return sprintf('Python2::Internals::raise(${ %s })', $.e($node.value));
+        return $node.message
+            ?? sprintf('Python2::Internals::raise(${ %s }, ${ %s })', $.e($node.exception), $.e($node.message))
+            !! sprintf('Python2::Internals::raise(${ %s })', $.e($node.exception));
     }
 
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {

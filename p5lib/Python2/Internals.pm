@@ -292,12 +292,14 @@ sub arithmetic {
 }
 
 sub raise {
-    my $exception = shift;
+    my ($exception, $message) = @_;
 
     die Python2::Type::Exception->new('TypeError', 'raise expects a Exception object, got ' . $exception->__type__)
         unless $exception->__type__ eq 'exception';
 
-    die $exception;
+    die defined $message
+        ? ${ $exception->__call__(undef, $message->__tonative__) }
+        : $exception;
 }
 
 sub getopt {
