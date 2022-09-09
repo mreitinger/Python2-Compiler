@@ -19,8 +19,8 @@ sub new {
 }
 
 sub read {
-    pop(@_); # default named arguments hash
     my ($self, $pstack) = @_;
+
     return \Python2::Type::Scalar::String->new($self->{response}->decoded_content);
 }
 

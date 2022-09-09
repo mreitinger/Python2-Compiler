@@ -25,15 +25,15 @@ sub reader {
     # TODO: implement other options? not needed so far
     my $delimiter = $named_args->{delimiter} ? ${ $named_args->{delimiter} } : ',';
 
-    my $in;
-    if ($csvfile->__type__ eq 'file') {
-        # use the file handle
-        $in = $csvfile->[0];
-    } elsif ($csvfile->__type__ eq 'pyobject') {
-        # use a LWP User-Agent response object
-        $in = \$csvfile->{response}->decoded_content;
-    }
-    my $input = csv(in => $in, sep_char => $delimiter);
+    die Python2::Type::Exception->("TypeError", $csvfile->__type__ . " does not implement read()")
+        unless $csvfile->can("read");
+
+    my $in = ${ $csvfile->read(undef) };
+
+    die Python2::Type::Exception->("TypeError", $csvfile->__type__ . ".read() expected string, got " . $in->__type__)
+        unless ref($in) =~ m/^Python2::Type::Scalar/;
+
+    my $input = csv(in => \$in->__tonative__, sep_char => $delimiter);
     my @input_pyobj = map {
         Python2::Type::List->new(map {
             looks_like_number($_)

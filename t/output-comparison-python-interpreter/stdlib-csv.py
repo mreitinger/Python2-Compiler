@@ -1,7 +1,7 @@
 import csv
 
 data = {}
-r = csv.reader(open('tdata/csv/stdlib-csv-test.csv'), delimiter=';')
+r = csv.reader(open('t/testdata/stdlib-csv-test.csv'), delimiter=';')
 
 
 for row in r:
@@ -11,7 +11,7 @@ for row in r:
 
 
 # default separator is ','
-r = csv.reader(open('tdata/csv/stdlib-csv-test-comma.csv'))
+r = csv.reader(open('t/testdata/stdlib-csv-test-comma.csv'))
 
 for row in r:
     print row
