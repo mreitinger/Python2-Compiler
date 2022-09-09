@@ -8,5 +8,6 @@ use Python2::Type::Object::StdLib::csv;
 use Python2::Type::Object::StdLib::urllib2;
 use Python2::Type::Object::StdLib::urllib;
 use Python2::Type::Object::StdLib::json;
+use Python2::Type::Object::StdLib::os;
 
 1;
