@@ -766,13 +766,24 @@ class Python2::Backend::Perl5 {
             elsif $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
 
-                $p5 ~= sprintf('$p = $$p->can(\'%s\') ? ${$p}->%s($stack, %s) : ${ ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new(\'%s\'), {}) }->__call__(undef, %s);',
-                    $current-element.name,
-                    $current-element.name,
-                    $.e($argument-list),
-                    $current-element.name,
-                    $.e($argument-list)
-                );
+                # check if the object has a p5-style method
+                $p5 ~= sprintf(q|if ($$p->can('%s')) {|, $current-element.name);
+
+                # if yes, call it
+                $p5 ~= sprintf(q|$p = $$p->%s($stack, %s);|, $current-element.name, $.e($argument-list));
+
+                $p5 ~= '} else {';
+
+                # no p5-style method, give the object a chance to return a Function object via the __getattr__ fallback
+                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new('%s'));|, $current-element.name);
+
+                # die if even the fallback did not return anything
+                $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('AttributeError', ref($$p) . " instance has no attribute '%s'");|, $current-element.name);
+
+                # got a python-style method, call it
+                $p5 ~= sprintf(q|$p = $$p->__call__(undef, %s);|, $.e($argument-list));
+
+                $p5 ~= '}';
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {
                 $p5 ~= $current-element.target
