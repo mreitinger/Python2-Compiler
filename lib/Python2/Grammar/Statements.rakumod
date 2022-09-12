@@ -20,10 +20,15 @@ role Python2::Grammar::Statements {
             | <statement-from>
             | <statement-del>
             | <statement-assert>
+            | <statement-pass>
         ]
 
         # ? to match EOF
         ["\n"|';']?
+    }
+
+    token statement-pass {
+        'pass'
     }
 
     token statement-print {

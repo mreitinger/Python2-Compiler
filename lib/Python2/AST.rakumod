@@ -16,6 +16,8 @@ class Python2::AST {
         has Str $.name is required is rw;
     }
 
+    class Node::Statement::Pass is Node {}
+
     class Node::Statement::P5Import is Node {
         has Str $.perl5-package-name is required  is rw;
         has Str $.name is required  is rw;

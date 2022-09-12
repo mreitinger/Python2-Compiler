@@ -13,6 +13,15 @@ class Python2::Actions::Statements {
         ));
     }
 
+    # we could handle this within the grammar but this way we can keep all of our sanity checking
+    # in place as-is.
+    method statement-pass ($/) {
+        $/.make(Python2::AST::Node::Statement::Pass.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+        ));
+    }
+
     method statement-p5import($/) {
         $/.make(Python2::AST::Node::Statement::P5Import.new(
             start-position  => $/.from,
