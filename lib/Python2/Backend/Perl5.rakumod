@@ -647,20 +647,33 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
         my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
-        my Str $preamble = 'use Python2;';
+        my Str $preamble = 'use Python2; use Python2::Type::Object;';
 
+        # everything in %!modules will be placed at the beginning of the code
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Object /; %s sub __build__ { my $self = shift; my $pstack = shift; my $stack = $self->{stack}; %s %s; return $self; } }',
+            # we inject the base class at runtime by setting up @Package::ISA
+            'package %s { %s sub __build__ { my $self = shift; my $pstack = shift; $self->SUPER::__build__($pstack); my $stack = $self->{stack}; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
-            $node.base-class ?? sprintf('Python2::Internals::apply_base_class($stack, $pstack, \'%s\');', $node.base-class.name) !! '',
             $.e($node.block)
         );
 
-        return sprintf('Python2::Internals::setvar($stack, \'%s\', %s->new());',
+        my Str $p5;
+
+        if $node.base-class {
+            $p5 ~= sprintf(q|my $base_class = Python2::Internals::getvar($stack, 1, '%s'); $%s::ISA[0] = ref($$base_class);|, $node.base-class.name, $perl5_class_name);
+        }
+        else {
+            $p5 ~= sprintf(q|$%s::ISA[0] = 'Python2::Type::Object';|, $perl5_class_name);
+        };
+
+
+        $p5 ~= sprintf('Python2::Internals::setvar($stack, \'%s\', %s->new());',
             $node.name.name.subst("'", "\\'", :g),
             $perl5_class_name,
         );
+
+        return $p5;
     }
 
 

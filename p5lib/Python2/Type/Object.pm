@@ -59,6 +59,8 @@ sub __call__ {
     return \$object;
 }
 
+sub __build__ {}
+
 sub AUTOLOAD {
     our $AUTOLOAD;
     my $requested_method = $AUTOLOAD;
