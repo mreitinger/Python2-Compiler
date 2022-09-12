@@ -5,6 +5,7 @@ use warnings;
 use strict;
 
 use utf8;
+use MIME::Base64;
 
 sub __str__  { return "'" . shift->{value} . "'"; }
 sub __type__ { 'str'; }
@@ -248,11 +249,32 @@ sub __getslice__ {
 
 sub encode {
     pop(@_); # default named arguments hash
-    my($self, $pstack, $encoding) = @_;
+    my($self, $pstack, $encoding, $errors) = @_;
 
     my $str = $self->__tonative__;
     if ($encoding =~ m/utf-?8/) {
         utf8::encode($str);
+    } elsif ($encoding eq 'base64') {
+        $str = encode_base64($str);
+    } else {
+        die Python2::Type::Exception->new('LookupError',
+            sprintf("unknown encoding: %s", $encoding));
+    }
+    return \Python2::Type::Scalar::String->new($str);
+}
+
+sub decode {
+    pop(@_); # default named arguments hash
+    my($self, $pstack, $encoding, $errors) = @_;
+
+    my $str = $self->__tonative__;
+    if ($encoding =~ m/utf-?8/) {
+        utf8::decode($str);
+    } elsif ($encoding eq 'base64') {
+        $str = decode_base64($str);
+    } else {
+        die Python2::Type::Exception->new('LookupError',
+            sprintf("unknown encoding: %s", $encoding));
     }
     return \Python2::Type::Scalar::String->new($str);
 }
