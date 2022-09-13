@@ -6,15 +6,32 @@ use v5.26.0;
 use warnings;
 use strict;
 
+use Python2::Type::Object::StdLib::os::path;
 
 sub new {
     my ($self) = @_;
 
     my $object = bless({
-        stack => [$Python2::builtins],
+        stack => [$Python2::builtins, {
+            path => Python2::Type::Object::StdLib::os::path->new()
+        }],
     }, $self);
 
     return $object;
+}
+
+sub mkdir {
+    my ($self, $pstack, $path, $mode) = @_;
+    mkdir $path or die Python2::Type::Exception->new('OSError',
+        "Could not create directory $path: $!");
+    return Python2::Type::Scalar::Bool->new(1);
+}
+
+sub rmdir {
+    my ($self, $pstack, $path, $mode) = @_;
+    rmdir $path or die Python2::Type::Exception->new('OSError',
+        "Could not remove directory $path: $!");
+    return Python2::Type::Scalar::Bool->new(1);
 }
 
 sub stat {
@@ -22,7 +39,7 @@ sub stat {
 
     # TODO: implement other attributes / posix.stat_result? not needed so far
 
-    my @st = stat $path->__tonative__ 
+    my @st = stat $path->__tonative__
         or die Python2::Type::Exception->new('OSError', 'No such file or directory: ' . $path);
 
     # perl stat order
