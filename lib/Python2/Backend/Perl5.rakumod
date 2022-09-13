@@ -41,8 +41,6 @@ class Python2::Backend::Perl5 {
 
     # Wrapper used for modules
     has Str $!module-wrapper = q:to/END/;
-        %s
-
         package Python2::Type::Class::main_%s {
             use Python2;
             use Python2::Internals;
@@ -60,9 +58,12 @@ class Python2::Backend::Perl5 {
                 my ($self, $args) = @_;
                 my $stack = $self;
 
-                die("no main block allowed in modules");
+                %s
             }
         }
+
+        # run the one-off init code
+        Python2::Type::Class::main_%s->new()->__run__();
         END
 
     # code to auto-execute our main block. used for script execution and skipped when embedding
@@ -110,25 +111,46 @@ class Python2::Backend::Perl5 {
         return $output;
     }
 
+    # handles 'from <module> import <names>'
     multi method e(
         Python2::AST::Node::Root $node,     # the root node of our AST tree
         Bool :$module where { $_ },         # this method handles modules  - match where $module is true
         Str :$embedded is required,         # if we are compiling a module embedding must be set - see ::Compiler for details
-        :@import-names,                     # optional - list of names to limit what we import (from X import <imput-names>)
+        :@import-names is required,         # optional - list of names to limit what we import (from X import <imput-names>)
     ) {
+        my Str $p5; # code for the complete module definition
+
         for $node.nodes -> $node {
             # restricted by grammar - sanity check only
             die("Expected statement") unless $node ~~ Python2::AST::Node::Statement;
 
+            # code for the current statement
+            my Str $p5-statement;
+
+            # if it's some kind of definition import it to our namespace as long as the name matches and keep it
+            # around for the one-off run of the init block
             if $node.statement ~~ Python2::AST::Node::Statement::FunctionDefinition {
-                $!o ~= $.e($node) if ((not @import-names) or @import-names.grep($node.statement.name.name));
+                $p5-statement ~= $.e($node);
+                $!o ~= $p5-statement if @import-names.grep($node.statement.name.name);
             }
             elsif $node.statement ~~ Python2::AST::Node::Statement::ClassDefinition {
-                $!o ~= $.e($node) if ((not @import-names) or @import-names.grep($node.statement.name.name));
+                $p5-statement ~= $.e($node);
+                $!o ~= $p5-statement if @import-names.grep($node.statement.name.name);
+            }
+            elsif $node.statement ~~ Python2::AST::Node::Statement::VariableAssignment {
+                # the complete node, for initialization
+                $p5-statement ~= $.e($node);
+
+
+                # the filtered assignment, for our namespace
+                $node.statement.name-filter = @import-names;
+                $!o ~= $.e($node);
             }
             else {
-                die("Only class and function definitions supported when loading modules");
+                $p5-statement ~= $.e($node);
             }
+
+            $p5 ~= $p5-statement;
         }
 
         # sha1 hash of our input - used to identify the main clas
@@ -136,7 +158,6 @@ class Python2::Backend::Perl5 {
 
         my Str $output = sprintf(
             $!module-wrapper,               # wrapper / sprintf definition
-            %!modules.values.join("\n"),    # python class definitions
 
             # name of the main package. provided when we get embedded or auto generated from sha1 hash
             $embedded,
@@ -144,6 +165,8 @@ class Python2::Backend::Perl5 {
             $class_sha1_hash,   # sha1 hash for source heredoc start
             $node.input,        # python2 source code for exception handling
             $class_sha1_hash,   # sha1 hash for source heredoc end
+            $p5,                # the main body of the module
+            $embedded
         );
 
         return $output;
@@ -199,6 +222,8 @@ class Python2::Backend::Perl5 {
                 :import-names($node.import-names.names.map({ $_.name })),
             );
         }
+
+        %!modules{$import-sha1-hash} = $output;
 
         die("Module {$node.name} not found.") unless $output;
     }
@@ -302,10 +327,12 @@ class Python2::Backend::Perl5 {
 
         # simple '1:1' assignment
         if ($node.targets.elems == 1) {
-            return sprintf('${%s} = ${%s}',
-                $.e($node.targets[0]),
-                $.e($node.expression)
-            );
+            return ((not $node.name-filter) or $node.name-filter.grep($node.targets[0].atom.expression.name))
+                ??  sprintf('${%s} = ${%s}',
+                        $.e($node.targets[0]),
+                        $.e($node.expression)
+                    )
+                !!  '';
         }
 
         else {
@@ -322,7 +349,11 @@ class Python2::Backend::Perl5 {
 
             my Int $i = 0;
             for $node.targets.values -> $target {
-                $p5 ~= sprintf(q|${%s} = ${ $$i->__getitem__(undef, Python2::Type::Scalar::Num->new(%i)) };|, $.e($target), $i++);
+                if (not $node.name-filter or $node.name-filter.grep($target.atom.expression.name)) {
+                    $p5 ~= sprintf(q|${%s} = ${ $$i->__getitem__(undef, Python2::Type::Scalar::Num->new(%i)) };|, $.e($target), $i);
+                }
+
+                $i++;
             }
 
             return $p5 ~ '}';

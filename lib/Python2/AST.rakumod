@@ -174,6 +174,7 @@ class Python2::AST {
 
     class Node::Statement::VariableAssignment is Node::Expression {
         has Python2::AST::Node::Power   @.targets       is required is rw;
+        has                             @.name-filter;
         has Node                        $.expression    is required is rw;
     }
 
