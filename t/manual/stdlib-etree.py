@@ -4,7 +4,10 @@ import ElementTree
 # import xml.etree.ElementTree as ET
 
 svg_multiplier = 1.75
-
+try:
+    tree = ElementTree.parse('/non/existent/file')
+except:
+    print 'No such file or directory'
 tree = ElementTree.parse('t/testdata/test.svg')
 
 root = tree.getroot()

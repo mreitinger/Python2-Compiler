@@ -25,6 +25,8 @@ sub parse {
     pop(@_); # default named arguments hash
     my ($self, $pstack, $source, $parser) = @_;
 
+    die Python2::Type::Exception->new('OSError', 'No such file or directory: ' . $source)
+        unless (-e $source);
     my $p = XML::Parser->new(Style => 'Tree');
     my $tree = $p->parsefile($source);
 
@@ -35,12 +37,9 @@ sub getroot {
     pop(@_); # default named arguments hash
     my ($self, $pstack) = @_;
 
-    my $tree = $self->{tree};
-
-    my $tag = $tree->[0];
-    my $content = $tree->[1];
-
-    return \Python2::Type::Object::StdLib::etree::Element->new($tag, $content);
+    return \Python2::Type::Object::StdLib::etree::Element->new(
+        $self->{tree}->[0], $self->{tree}->[1]
+    );
 }
 
 1;
