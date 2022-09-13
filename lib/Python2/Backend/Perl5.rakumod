@@ -32,7 +32,7 @@ class Python2::Backend::Perl5 {
 
             sub __block__ {
                 my ($self, $args) = @_;
-                my $stack = $self->{stack};
+                my $stack = $self;
 
                 %s
             }
@@ -58,7 +58,7 @@ class Python2::Backend::Perl5 {
 
             sub __block__ {
                 my ($self, $args) = @_;
-                my $stack = $self->{stack};
+                my $stack = $self;
 
                 die("no main block allowed in modules");
             }
@@ -652,7 +652,7 @@ class Python2::Backend::Perl5 {
         # everything in %!modules will be placed at the beginning of the code
         %!modules{$perl5_class_name} = sprintf(
             # we inject the base class at runtime by setting up @Package::ISA
-            'package %s { %s sub __build__ { my $self = shift; my $pstack = shift; $self->SUPER::__build__($pstack); my $stack = $self->{stack}; %s; return $self; } }',
+            'package %s { %s sub __build__ { my $self = shift; my $pstack = shift; $self->SUPER::__build__($pstack); my $stack = $self; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
             $.e($node.block)

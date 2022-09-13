@@ -13,7 +13,7 @@ use Clone 'clone';
 sub new {
     my ($self) = @_;
 
-    my $object = bless({ stack => [$Python2::builtins] }, $self);
+    my $object = bless([$Python2::builtins], $self);
 
     return $object;
 }
@@ -26,7 +26,7 @@ sub can {
     # TODO this will return true even if the stack item
     # TODO is not a method.
 
-    if (defined $self->{stack}->[1]->{$method_name}) {
+    if (defined $self->[1]->{$method_name}) {
         return 1;
     }
 }
@@ -37,7 +37,7 @@ sub __getattr__ {
     die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
 
-    return \$self->{stack}->[1]->{$attribute_name->__tonative__};
+    return \$self->[1]->{$attribute_name->__tonative__};
 }
 
 sub __str__ {
@@ -72,7 +72,7 @@ sub AUTOLOAD {
     my $self = shift;       # this object
     my $pstack = shift;     # the stack of our parent/caller
 
-    my $method_ref = $self->{stack}->[1]->{$requested_method} // die("Unknown method $requested_method");
+    my $method_ref = $self->[1]->{$requested_method} // die("Unknown method $requested_method");
 
     return $method_ref->__call__($pstack, $self, @_);
 }
