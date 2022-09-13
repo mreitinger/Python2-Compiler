@@ -26,13 +26,13 @@ use Python2::Type::PerlObject;
 use Python2::Type::Exception;
 use Python2::Type::Function;
 
-
 # builtins is used as our top level stack so it must look like one
 our $builtins = Python2::Stack->new(
     undef,
     {
         'sorted'    => Python2::Builtin::Sorted->new(),
         'int'       => Python2::Builtin::Int->new(),
+        'float'     => Python2::Builtin::Float->new(),
         'hasattr'   => Python2::Builtin::Hasattr->new(),
         'map'       => Python2::Builtin::Map->new(),
         'range'     => Python2::Builtin::Range->new(),
