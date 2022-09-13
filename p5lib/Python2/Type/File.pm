@@ -19,6 +19,15 @@ sub new {
     return $object;
 }
 
+sub __enter__ {
+    my $self = shift;
+    return \$self;
+}
+
+sub __exit__ {
+    shift->close();
+}
+
 sub read {
     pop(@_); #default named args hash
 

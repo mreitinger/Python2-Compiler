@@ -5,9 +5,7 @@ with open('./t/testdata/fileio-testfile.txt') as x:
     print x.read(4)
     print x.read()
 
-    x.close()
-
-    try:
-        x.read()
-    except:
-        print "IO on closed filehandle failed as expected"
+try:
+    x.read()
+except:
+    print "filehandle was closed after with block executed, as expected"

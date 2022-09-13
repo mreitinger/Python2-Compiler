@@ -524,12 +524,26 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::With $node) {
         my Str $p5 = qq|\n# line 999 "___position_{$node.start-position}_{$node.block.start-position}___"\n|;
 
-        $p5 ~= sprintf('{ my $p = %s; Python2::Internals::setvar($stack, %s, $$p); %s; Python2::Internals::setvar($stack, %s, undef); }',
-            $.e($node.test),
-            $.e($node.name),
-            $.e($node.block),
-            $.e($node.name),
-        );
+        # self-contained block to ensoure $p does not conflict
+        $p5 ~= '{';
+
+        # the object with references (with <object> as <variable>)
+        $p5 ~= sprintf('my $o = %s;', $.e($node.test));
+
+        # call __enter__ which must return the variable to be assigned
+        $p5 ~= 'my $p = $$o->__enter__($stack, {});';
+
+        # assign to <variable>
+        $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $$p);', $.e($node.name));
+
+        # our code block
+        $p5 ~= $.e($node.block);
+
+        # TODO - we don't implement python's arguments to __exit__
+        $p5 ~= '$$o->__exit__($stack, Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), {});';
+
+        # end of self-contained block to ensoure $p does not conflict
+        $p5 ~= '}';
 
         return $p5;
     }
