@@ -20,14 +20,14 @@ sub encode {
     pop(@_); # default named arguments hash
     my ($self, $pstack, $input, $output) = @_;
     # Just a dummy to make the function importable, not called in any python script
-    return Python2::Type::Scalar::None->new();
+    die Python2::Type::Exception->new('NotImplementedError');
 }
 
 sub decode {
     pop(@_); # default named arguments hash
     my ($self, $pstack, $input, $output) = @_;
     # Just a dummy to make the function importable, not called in any python script
-    return Python2::Type::Scalar::None->new();
+    die Python2::Type::Exception->new('NotImplementedError');
 }
 
 sub b64encode {
