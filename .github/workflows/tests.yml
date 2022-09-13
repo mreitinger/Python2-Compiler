@@ -41,7 +41,7 @@ jobs:
       - name: setup perl environment
         run: |
           mkdir -p ~/perl5lib
-        curl -L https://cpanmin.us | perl - -l ~/perl5lib -n Scalar::Util Clone Ref::Util Carp::Always Devel::StackTrace Module::Load Text::CSV_XS
+        curl -L https://cpanmin.us | perl - -l ~/perl5lib -n Scalar::Util Clone Ref::Util Carp::Always Devel::StackTrace Module::Load Text::CSV_XS XML::Parser
 
 
       - name: Run tests

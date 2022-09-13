@@ -46,7 +46,9 @@ sub b64decode {
     pop(@_); # default named arguments hash
     my ($self, $pstack, $s, $altchars) = @_;
 
-    return Python2::Type::Scalar::String->new($s)->decode($pstack, 'base64', undef);
+    my $res = Python2::Type::Scalar::String->new($s)->decode($pstack, 'base64', undef);
+    $$res =~ s/\s+$//;
+    return \Python2::Type::Scalar::String->new($$res);
 }
 
 1;

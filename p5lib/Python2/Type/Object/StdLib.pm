@@ -10,5 +10,6 @@ use Python2::Type::Object::StdLib::urllib;
 use Python2::Type::Object::StdLib::json;
 use Python2::Type::Object::StdLib::os;
 use Python2::Type::Object::StdLib::base64;
+use Python2::Type::Object::StdLib::ElementTree;
 
 1;
