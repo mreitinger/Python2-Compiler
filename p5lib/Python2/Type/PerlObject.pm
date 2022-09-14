@@ -116,10 +116,12 @@ sub AUTOLOAD {
         : $self->{object}->$requested_method(@argument_list);
 
 
-    die Python2::Type::Exception->new('NotImplementedError', "Got invalid return value with multiple values when calling '$requested_method' on " . ref($self->{object}))
-        if scalar(@retval) > 1;
-
-    return Python2::Internals::convert_to_python_type($retval[0]);
+    if (scalar(@retval) > 1) {
+        return Python2::Internals::convert_to_python_type([@retval]);
+    }
+    else {
+        return Python2::Internals::convert_to_python_type($retval[0]);
+    }
 }
 
 sub __type__ { return 'p5object'; }
