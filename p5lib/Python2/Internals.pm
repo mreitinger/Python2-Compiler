@@ -122,7 +122,7 @@ my $arithmetic_operations = {
             return \Python2::Type::Scalar::String->new($left->__tonative__ . $right->__tonative__);
         }
         else {
-            die("unsupported operand type(s) for '+'.");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand +', $left->__type__, $right->__type__));
         }
     },
 
@@ -135,7 +135,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left - $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand -', $left->__type__, $right->__type__));
         }
     },
 
@@ -148,7 +148,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left * $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand *', $left->__type__, $right->__type__));
         }
     },
 
@@ -161,7 +161,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left / $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand /', $left->__type__, $right->__type__));
         }
     },
 
@@ -174,7 +174,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left / $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand //', $left->__type__, $right->__type__));
         }
     },
 
@@ -187,7 +187,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left ** $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand **', $left->__type__, $right->__type__));
         }
     },
 
@@ -200,7 +200,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left & $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand &', $left->__type__, $right->__type__));
         }
     },
 
@@ -213,7 +213,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left | $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand |', $left->__type__, $right->__type__));
         }
     },
 
@@ -226,7 +226,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left ^ $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand ^', $left->__type__, $right->__type__));
         }
     },
 
@@ -239,7 +239,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left >> $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand >>', $left->__type__, $right->__type__));
         }
     },
 
@@ -252,7 +252,7 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             return \Python2::Type::Scalar::Num->new($left << $right);
         } else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand <<', $left->__type__, $right->__type__));
         }
     },
 
@@ -275,7 +275,7 @@ my $arithmetic_operations = {
             ));
         }
         else {
-            die("arithmetic op not yet implemented");
+            die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand %%', $left->__type__, $right->__type__));
         }
     },
 };
