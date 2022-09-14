@@ -832,9 +832,15 @@ class Python2::Backend::Perl5 {
                 $p5 ~= '}';
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {
-                $p5 ~= $current-element.target
-                    ?? sprintf('$p = ${$p}->__getslice__(undef, %s, {});', $.e($current-element)) # array slice
-                    !! sprintf('$p = ${$p}->__getitem__(undef, %s, {});', $.e($current-element));
+                if $current-element.target {
+                    $p5 ~= sprintf('$p = ${$p}->__getslice__(undef, %s, {});', $.e($current-element)) # array slice
+                }
+                else {
+                    $p5 ~= sprintf('$p = ${$p}->__getitem__(undef, %s, {});', $.e($current-element));
+
+                    $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . %s);|, $.e($current-element))
+                        if $node.must-resolve;
+                }
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
                 $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
