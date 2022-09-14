@@ -849,7 +849,7 @@ class Python2::Backend::Perl5 {
             }
             else {
                 $p5 ~= sprintf('$p = %s;', $.e($current-element));
-                $p5 ~= sprintf(q|defined $$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
+                $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element.expression ~~ Python2::AST::Node::Name);
             }
         }
