@@ -1,0 +1,6 @@
+print "asdf"[1:3]
+print "asdf"[0:2]
+print "asdf"[:2]
+print "asdf"[:5]
+print "asdf"[0:]
+print "asdf"[-1:]

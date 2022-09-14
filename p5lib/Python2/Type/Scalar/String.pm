@@ -230,6 +230,20 @@ sub startswith {
     return \Python2::Type::Scalar::Bool->new(0);
 }
 
+
+sub __getslice__ {
+    my ($self, $pstack, $start, $target) = @_;
+
+    $start   = $start->__tonative__;
+    $target  = $target->__tonative__;
+
+    if ($target == -1) {
+        $target = length($self->{value});
+    }
+
+    return \Python2::Type::Scalar::String->new( substr($self->{value}, $start, $target-$start) );
+}
+
 sub __gt__ {
     my ($self, $pstack, $other) = @_;
 
