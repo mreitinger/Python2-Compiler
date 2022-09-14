@@ -8,8 +8,8 @@ sub __name__ { 'open' }
 sub __call__ {
     shift @_; # $self - unused
     shift @_; # parent stack - unused
-
-    \Python2::Type::File->new($_[0]);
+    my $mode = ref($_[1]) eq 'Python2::Type::Scalar::String' ? $_[1]->__tonative__ : 'r';
+    \Python2::Type::File->new($_[0], $mode);
 };
 
 1;

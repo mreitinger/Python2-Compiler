@@ -23,3 +23,12 @@ try:
     os.mkdir('/somerootdir')
 except:
     print 'Permission denied - expected'
+
+handle = open('testfile', 'w')
+handle.write('x')
+
+os.remove('testfile')
+try:
+    os.remove('testfile')
+except:
+    print 'file does not exist anymore, fail expected'

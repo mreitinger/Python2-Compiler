@@ -20,6 +20,13 @@ sub new {
     return $object;
 }
 
+sub remove {
+    my ($self, $pstack, $path) = @_;
+    unlink $path or die Python2::Type::Exception->new('OSError',
+        "Could not remove $path: $!");
+    return Python2::Type::Scalar::None->new();
+}
+
 sub mkdir {
     my ($self, $pstack, $path, $mode) = @_;
     mkdir $path or die Python2::Type::Exception->new('OSError',
