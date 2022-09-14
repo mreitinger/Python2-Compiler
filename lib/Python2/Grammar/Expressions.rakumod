@@ -23,12 +23,6 @@ role Python2::Grammar::Expressions {
 
     token shift-expression-operator { '<<' | '>>' }
 
-    # literals
-    token literal {
-        | <string>
-        | <number>
-    }
-
     token argument-list {
         '('<.ews>
             <argument>* %% <extended-list-delimiter>
@@ -106,25 +100,6 @@ role Python2::Grammar::Expressions {
     token lambda-definition {
         'lambda' <.ws> <function-definition-argument-list> <.ws> ':' <.ws> <test>
     }
-
-
-    # access to object instance variables and methods
-    token object-access {
-        <name> <object-access-operation>+
-    }
-
-    token object-access-operation {
-        <instance-variable-access>
-    }
-
-    # access to a instance variable
-    token instance-variable-access {
-        '.' <name>
-    }
-
-
-    # basic, reused, tokens
-    # TODO migrate to dedicated module
 
     # string machting including escaped quotes
     # currently we don't allow any other escape sequences
