@@ -37,6 +37,10 @@ sub new {
     return $self;
 }
 
+sub __iter__ {
+    die Python2::Type::Exception->new('NotImplementedError', '__iter__ for set not yet implemented');
+}
+
 sub __str__ {
     my ($self) = @_;
 

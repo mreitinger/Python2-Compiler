@@ -46,6 +46,7 @@ our $builtins = [
             'str'       => Python2::Builtin::Str->new(),
             'dumpstack' => Python2::Builtin::Dumpstack->new(),
             'any'       => Python2::Builtin::Any->new(),
+            'list'      => Python2::Builtin::List->new(),
 
             'None'      => Python2::Type::Scalar::None->new(),
             'True'      => Python2::Type::Scalar::Bool->new(1),
