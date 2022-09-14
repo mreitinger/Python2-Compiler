@@ -21,6 +21,7 @@ role Python2::Grammar::Statements {
             | <statement-del>
             | <statement-assert>
             | <statement-pass>
+            | <statement-continue>
         ]
 
         # ? to match EOF
@@ -29,6 +30,10 @@ role Python2::Grammar::Statements {
 
     token statement-pass {
         'pass'
+    }
+
+    token statement-continue {
+        'continue'
     }
 
     token statement-print {

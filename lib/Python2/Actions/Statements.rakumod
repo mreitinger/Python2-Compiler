@@ -22,6 +22,13 @@ class Python2::Actions::Statements {
         ));
     }
 
+    method statement-continue ($/) {
+        $/.make(Python2::AST::Node::Statement::Continue.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+        ));
+    }
+
     method statement-p5import($/) {
         $/.make(Python2::AST::Node::Statement::P5Import.new(
             start-position  => $/.from,

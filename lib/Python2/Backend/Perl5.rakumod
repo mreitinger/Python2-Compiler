@@ -438,6 +438,7 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::Pass $node) { return ''; }
 
+    multi method e(Python2::AST::Node::Statement::Continue $node) { return 'next'; }
 
     multi method e(Python2::AST::Node::ListComprehension $node) {
         my Str $p5;

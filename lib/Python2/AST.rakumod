@@ -158,6 +158,8 @@ class Python2::AST {
         has $.value is required is rw;
     }
 
+    class Node::Statement::Continue is Node {}
+
     class Node::Statement::Del is Node::Expression {
         has Node $.name is required is rw;
     }
