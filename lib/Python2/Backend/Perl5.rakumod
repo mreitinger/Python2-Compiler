@@ -820,7 +820,7 @@ class Python2::Backend::Perl5 {
                 $p5 ~= '} else {';
 
                 # no p5-style method, give the object a chance to return a Function object via the __getattr__ fallback
-                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new('%s'));|, $current-element.name);
+                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new('%s'), {});|, $current-element.name);
 
                 # die if even the fallback did not return anything
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('AttributeError', ref($$p) . " instance has no attribute '%s'");|, $current-element.name);
