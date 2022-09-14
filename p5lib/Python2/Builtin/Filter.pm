@@ -18,7 +18,14 @@ sub __call__ {
             $result->__iadd__(undef, $_) if $_->__tonative__;
         }
     }
-    else { ...; }
+    elsif ($filter->__type__ eq 'function') {
+        foreach(@$list) {
+            $result->__iadd__(undef, $_) if ${ $filter->__call__(undef, $_, {}) }->__is_py_true__;
+        }
+    }
+    else {
+        die Python2::Type::Exception->new('TypeError', 'filter() expects None or a function, got ' . $filter->__type__);
+    }
 
     return \$result;
 }
