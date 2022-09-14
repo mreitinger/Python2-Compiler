@@ -549,14 +549,14 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::ElIf $node) {
-        return sprintf('elsif (${ %s }->__tonative__) { %s }', $.e($node.test), $.e($node.block));
+        return sprintf('elsif (${ %s }->__is_py_true__) { %s }', $.e($node.test), $.e($node.block));
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
         if ($node.right) {
             if ($node.comparison-operator eq '__contains__') {
                 return $node.negate
-                    ??  sprintf('\Python2::Type::Scalar::Bool->new(not ${ ${%s}->%s(undef, ${%s}) }->__tonative__)',
+                    ??  sprintf('\Python2::Type::Scalar::Bool->new(not ${ ${%s}->%s(undef, ${%s}) }->__is_py_true__)',
                             $.e($node.right),
                             $node.comparison-operator,
                             $.e($node.left),
@@ -585,7 +585,7 @@ class Python2::Backend::Perl5 {
 
         if ($node.condition.condition eq 'not') {
             # not always returns a bool
-            return sprintf('\Python2::Type::Scalar::Bool->new(not ${%s}->__tonative__)', $.e($node.values[0]));
+            return sprintf('\Python2::Type::Scalar::Bool->new(not ${%s}->__is_py_true__)', $.e($node.values[0]));
         }
         elsif ($node.condition.condition eq 'or') {
             # or returns the first true value or, if all are false, the last value
@@ -593,7 +593,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= 'sub { my $t;';
 
             for $node.values -> $value {
-                $p5 ~= sprintf('$t = %s; return $t if $$t->__tonative__;', $.e($value));
+                $p5 ~= sprintf('$t = %s; return $t if $$t->__is_py_true__;', $.e($value));
             }
 
             # if we didn't return before the all values are false - return the last one
@@ -609,7 +609,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= 'sub { my $t;';
 
             for $node.values -> $value {
-                $p5 ~= sprintf('$t = %s; return $t unless $$t->__tonative__;', $.e($value));
+                $p5 ~= sprintf('$t = %s; return $t unless $$t->__is_py_true__;', $.e($value));
             }
 
             # if we didn't return before the all values are true - return the last one
