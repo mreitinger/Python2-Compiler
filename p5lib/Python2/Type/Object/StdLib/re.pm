@@ -3,6 +3,7 @@ package Python2::Type::Object::StdLib::re;
 use base qw/ Python2::Type::Object::StdLib::base /;
 
 use Python2::Type::Object::StdLib::re::pattern;
+use Python2::Type::Object::StdLib::re::match;
 
 use v5.26.0;
 use warnings;
@@ -65,6 +66,17 @@ sub sub {
     $value =~ s/(?$flags)$regex/$newtext/g;
 
     return \Python2::Type::Scalar::String->new($value);
+}
+
+sub match {
+    pop(@_); #default named args hash
+    my ($self, $pstack, $regex, $string) = @_;
+    my $r = $regex->__tonative__;
+
+    # match.group(0) contains the outer match, so we simply wrap () around the expression
+    my $groups = [ $string =~ /($r)/g ];
+
+    return \Python2::Type::Object::StdLib::re::match->new($groups);
 }
 
 1;
