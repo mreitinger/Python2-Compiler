@@ -1,39 +1,15 @@
 class Python2::AST {
+    # base node type, keeps track of where in the source code the node was defined
     class Node {
         # position in the original python file
         has $.start-position = Nil;       # TODO mark as required once we support it everywhere
         has $.end-position   = Nil;       # TODO mark as required once we support it everywhere
     }
 
+    # to level node
     class Node::Root is Node {
         has Node @.nodes is rw;
         has Str  $.input is required;
-    }
-
-    class Node::Expression is Node {}
-
-    class Node::Name is Node {
-        has Str $.name is required is rw;
-    }
-
-    class Node::Statement::Pass is Node {}
-
-    class Node::Statement::P5Import is Node {
-        has Str $.perl5-package-name is required  is rw;
-        has Str $.name is required  is rw;
-    }
-
-    class Node::Statement::Import is Node {
-        has Str $.name is required  is rw;
-    }
-
-    class Node::Statement::FromImport is Node {
-        has Str  $.name is required  is rw;
-        has Node $.import-names is required is rw;
-    }
-
-    class Node::Statement::ImportNames is Node {
-        has Node @.names is required is rw;
     }
 
     class Node::Power is Node {
@@ -55,6 +31,114 @@ class Python2::AST {
         has Node $.expression is required is rw;
     }
 
+    class Node::ArgumentList is Node {
+        has Node @.arguments is required is rw;
+    }
+
+
+    # expressions
+    class Node::Expression is Node {}
+
+    class Node::Expression::Container is Node {
+        # list of bitwise expressions
+        has Node @.expressions   is required is rw;
+
+        # list bitwise operators (between the expressions)
+        has Str  @.operators     is required is rw;
+    }
+
+    class Node::Expression::Literal is Node {}
+
+    class Node::Expression::Literal::String is Node {
+        has Str     $.value is required  is rw;
+        has Bool    $.raw   is required;
+    }
+
+    class Node::Expression::Literal::Integer is Node {
+        has Int $.value is required  is rw;
+    }
+
+    class Node::Expression::Literal::Float is Node {
+        has Num $.value is required  is rw;
+    }
+
+    class Node::Expression::VariableAccess is Node {
+        has Node $.name is required is rw;
+    }
+
+    class Node::Expression::ArithmeticOperator is Node {
+        has Str $.arithmetic-operator is required  is rw;
+    }
+
+    class Node::Expression::ArithmeticExpression is Node {
+        has Node @.operations is required is rw;
+    }
+
+    class Node::Expression::InstanceVariableAccess is Node {
+        has Node $.name is required is rw;
+    }
+
+    class Node::Subscript is Node {
+        has Node $.value    is required is rw;
+        has Node $.target   is rw; # for array slicing
+    }
+
+    class Node::Expression::ListDefinition is Node {
+        has Node @.expressions is rw;
+    }
+
+    class Node::Expression::ExpressionList is Node {
+        has Node @.expressions is rw;
+    }
+
+    class Node::Expression::TestList is Node {
+        has Node @.tests is rw;
+    }
+
+    class Node::Expression::DictionaryDefinition is Node {
+        has Pair @.entries is required is rw;
+    }
+
+    class Node::Expression::SetDefinition is Node {
+        has Node @.entries is required is rw;
+    }
+
+    class Node::Expression::FunctionCall is Node {
+        has Node    $.atom is required is rw;
+        has Node    @.arguments is rw;
+    }
+
+    class Node::Expression::MethodCall is Node {
+        has Node    $.name is required is rw;
+        has Node    @.arguments is required is rw;
+    }
+
+    class Node::Name is Node {
+        has Str $.name is required is rw;
+    }
+
+
+    # Statements
+    class Node::Statement::Pass is Node {}
+
+    class Node::Statement::P5Import is Node {
+        has Str $.perl5-package-name is required  is rw;
+        has Str $.name is required  is rw;
+    }
+
+    class Node::Statement::Import is Node {
+        has Str $.name is required  is rw;
+    }
+
+    class Node::Statement::FromImport is Node {
+        has Str  $.name is required  is rw;
+        has Node $.import-names is required is rw;
+    }
+
+    class Node::Statement::ImportNames is Node {
+        has Node @.names is required is rw;
+    }
+
     class Node::Test is Node {
         has Node $.condition    is required is rw;
         has Node $.left         is required is rw;
@@ -70,159 +154,79 @@ class Python2::AST {
         has Str $.condition    is required is rw;
     }
 
-    # Expressions
-    class Node::Expression::Container is Node::Expression {
-        # list of bitwise expressions
-        has Node @.expressions   is required is rw;
-
-        # list bitwise operators (between the expressions)
-        has Str  @.operators     is required is rw;
-    }
-
-    class Node::Expression::Literal is Node::Expression {}
-
-    class Node::Expression::Literal::String is Node::Expression::Literal {
-        has Str     $.value is required  is rw;
-        has Bool    $.raw   is required;
-    }
-
-    class Node::Expression::Literal::Integer is Node::Expression::Literal {
-        has Int $.value is required  is rw;
-    }
-
-    class Node::Expression::Literal::Float is Node::Expression::Literal {
-        has Num $.value is required  is rw;
-    }
-
-    class Node::Expression::VariableAccess is Node::Expression {
-        has Node $.name is required is rw;
-    }
-
-    class Node::Expression::ArithmeticOperator is Node::Expression {
-        has Str $.arithmetic-operator is required  is rw;
-    }
-
-    class Node::Expression::ArithmeticExpression is Node::Expression {
-        has Node @.operations is required is rw;
-    }
-
-    class Node::Expression::InstanceVariableAccess is Node::Expression {
-        has Node $.name is required is rw;
-    }
-
-    class Node::Subscript is Node::Expression {
-        has Node $.value    is required is rw;
-        has Node $.target   is rw; # for array slicing
-    }
-
-    class Node::Expression::ListDefinition is Node::Expression {
-        has Node @.expressions is rw;
-    }
-
-    class Node::Expression::ExpressionList is Node::Expression {
-        has Node @.expressions is rw;
-    }
-
-    class Node::Expression::TestList is Node {
-        has Node @.tests is rw;
-    }
-
-    class Node::Expression::DictionaryDefinition is Node::Expression {
-        has Pair @.entries is required is rw;
-    }
-
-    class Node::Expression::SetDefinition is Node::Expression {
-        has Node @.entries is required is rw;
-    }
-
-    class Node::Expression::FunctionCall is Node::Expression {
-        has Node    $.atom is required is rw;
-        has Node    @.arguments is rw;
-    }
-
-    class Node::Expression::MethodCall is Node::Expression {
-        has Node    $.name is required is rw;
-        has Node    @.arguments is required is rw;
-    }
-
-    class Node::ArgumentList is Node {
-        has Node @.arguments is required is rw;
-    }
-
-    # Statements
-    class Node::Statement is Node::Expression {
+    class Node::Statement is Node {
         has Node $.statement is required is rw;
     }
 
-    class Node::Statement::Print is Node::Expression {
+    class Node::Statement::Print is Node {
         has $.value is required is rw;
     }
 
     class Node::Statement::Continue is Node {}
 
-    class Node::Statement::Del is Node::Expression {
+    class Node::Statement::Del is Node {
         has Node $.name is required is rw;
     }
 
-    class Node::Statement::Assert is Node::Expression {
+    class Node::Statement::Assert is Node {
         has Node $.assertion is required is rw;
         has Node $.message is rw;
     }
 
-    class Node::Statement::Raise is Node::Expression {
+    class Node::Statement::Raise is Node {
         has Node $.exception is required is rw;
         has Node $.message   is rw;
     }
 
-    class Node::Statement::VariableAssignment is Node::Expression {
+    class Node::Statement::VariableAssignment is Node {
         has Python2::AST::Node::Power   @.targets       is required is rw;
         has                             @.name-filter;
         has Node                        $.expression    is required is rw;
     }
 
-    class Node::Statement::ArithmeticAssignment is Node::Expression {
+    class Node::Statement::ArithmeticAssignment is Node {
         has Node    $.target    is required is rw;
         has Node    $.value     is required is rw;
         has Str     $.operator  is required;
     }
 
-    class Node::Statement::LoopFor is Node::Expression {
+    class Node::Statement::LoopFor is Node {
         has Node    @.names         is required is rw;
         has Node    $.iterable      is required is rw;
         has Node    $.block         is required is rw;
     }
 
-    class Node::Statement::LoopWhile is Node::Expression {
+    class Node::Statement::LoopWhile is Node {
         has Node    $.test          is required is rw;
         has Node    $.block         is required is rw;
     }
 
-    class Node::ListComprehension is Node::Expression {
+    class Node::ListComprehension is Node {
         has Node    $.name          is required is rw;
         has Node    $.iterable      is required is rw;
         has Node    $.test          is required is rw;
         has Node    $.condition     is rw;
     }
 
-    class Node::Statement::If is Node::Expression {
+    class Node::Statement::If is Node {
         has Node    $.test  is required is rw;
         has Node    $.block is required is rw;
         has Node    @.elifs is rw; #optional else-if blocks
         has Node    $.else  is rw;
     }
 
-    class Node::Statement::With is Node::Expression {
+    class Node::Statement::With is Node {
         has Node    $.test  is required is rw;
         has Node    $.block is required is rw;
         has Node    $.name  is required is rw;
     }
 
-    class Node::Statement::ElIf is Node::Expression {
+    class Node::Statement::ElIf is Node {
         has Node    $.test  is required is rw;
         has Node    $.block is required is rw;
     }
 
-    class Node::Statement::TryExcept is Node::Expression {
+    class Node::Statement::TryExcept is Node {
         has Node    $.try-block  is required is rw;
         has Node    @.except-blocks is required is rw;
         has Node    $.finally-block is rw;
@@ -234,7 +238,7 @@ class Python2::AST {
         has Node $.block is required is rw;
     }
 
-    class Node::Statement::Test::Expression is Node::Expression {
+    class Node::Statement::Test::Expression is Node {
         has Node $.expression  is required is rw;
     }
 
@@ -244,14 +248,14 @@ class Python2::AST {
 
     class Node::Statement::Break is Node {}
 
-    class Node::Statement::Test::Comparison is Node::Expression {
+    class Node::Statement::Test::Comparison is Node {
         has Node $.left     is required is rw;
         has Node $.right    is rw;
         has Bool $.negate   is required;
         has Str $.comparison-operator;
     }
 
-    class Node::Statement::FunctionDefinition is Node::Expression {
+    class Node::Statement::FunctionDefinition is Node {
         has Node    $.name is required is rw;
         has Node    @.argument-list is required is rw;
         has Node    $.block is required is rw;
@@ -268,12 +272,12 @@ class Python2::AST {
         has Bool    $.splat;
     }
 
-    class Node::LambdaDefinition is Node::Expression {
+    class Node::LambdaDefinition is Node {
         has Node    @.argument-list is required  is rw;
         has Node    $.block is required is rw;
     }
 
-    class Node::Statement::ClassDefinition is Node::Expression {
+    class Node::Statement::ClassDefinition is Node {
         has Node    $.name          is required is rw;
         has Node    $.block         is required is rw;
         has Node    $.base-class;

@@ -6,8 +6,6 @@ use strict;
 use Devel::StackTrace;
 use Clone qw/ clone /;
 
-use Python2;
-
 use overload
     '""' => '__str__',
 
