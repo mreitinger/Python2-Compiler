@@ -49,7 +49,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-import {
-        'import' \h+ <name>
+        'import' \h+ <dotted-name> [\h+ 'as' \h+ <name>]?
     }
 
     token statement-from {

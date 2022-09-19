@@ -74,10 +74,14 @@ sub apply_base_class {
 }
 
 sub import_module {
-    my ($stack, $name) = @_;
-
+    my ($stack, $name, $name_as) = @_;
+    $name =~ s/\./::/g;
+    if (length($name_as) == 0) {
+        my @names = split('\.', $name);
+        $name_as = $names[$#names];
+    }
     load "Python2::Type::Object::StdLib::$name";
-    setvar($stack, $name, "Python2::Type::Object::StdLib::$name"->new());
+    setvar($stack, $name_as, "Python2::Type::Object::StdLib::$name"->new());
 }
 
 sub unescape {

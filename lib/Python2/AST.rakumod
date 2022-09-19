@@ -12,6 +12,8 @@ class Python2::AST {
         has Str  $.input is required;
     }
 
+    class Node::Expression is Node {}
+
     class Node::Power is Node {
         # unless this is False we check if it
         # resolves at runtime. this is overridden only by VariableAssignment.
@@ -37,8 +39,6 @@ class Python2::AST {
 
 
     # expressions
-    class Node::Expression is Node {}
-
     class Node::Expression::Container is Node {
         # list of bitwise expressions
         has Node @.expressions   is required is rw;
@@ -46,8 +46,6 @@ class Python2::AST {
         # list bitwise operators (between the expressions)
         has Str  @.operators     is required is rw;
     }
-
-    class Node::Expression::Literal is Node {}
 
     class Node::Expression::Literal::String is Node {
         has Str     $.value is required  is rw;
@@ -128,6 +126,7 @@ class Python2::AST {
 
     class Node::Statement::Import is Node {
         has Str $.name is required  is rw;
+        has Str $.name-as is rw;
     }
 
     class Node::Statement::FromImport is Node {

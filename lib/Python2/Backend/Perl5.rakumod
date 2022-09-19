@@ -230,8 +230,8 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Import $node) {
-        return sprintf('Python2::Internals::import_module($stack, \'%s\')',
-            $node.name,
+        return sprintf('Python2::Internals::import_module($stack, \'%s\', \'%s\')',
+            $node.name, $node.name-as
         );
     }
 

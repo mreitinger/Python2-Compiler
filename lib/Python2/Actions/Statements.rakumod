@@ -42,7 +42,8 @@ class Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::Import.new(
             start-position      => $/.from,
             end-position        => $/.to,
-            name                => $/<name>.Str
+            name                => $/<dotted-name>.Str,
+            name-as             => $/<name>.Str
         ));
     }
 
