@@ -58,7 +58,7 @@ sub write {
 
     $self->[0]->print($string->__tonative__);
 
-    return Python2::Type::Scalar::None->new();
+    return \Python2::Type::Scalar::None->new();
 }
 
 sub close {
