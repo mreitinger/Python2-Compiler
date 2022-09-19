@@ -19,6 +19,7 @@ class Python2::Backend::Perl5 {
 
         package Python2::Type::Class::main_%s {
             use Python2;
+            use Python2::Stack;
             use Python2::Internals;
 
             use base 'Python2::Type::Main';
@@ -628,7 +629,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $pstack = shift; my $stack  = [defined $pstack ? $pstack : $Python2::builtins];';
+        $block ~= 'my $pstack = shift; my $stack  = Python2::Stack->new(defined $pstack ? $pstack : $Python2::builtins);';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
@@ -671,7 +672,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $stack = [$Python2::builtins];';
+        $block ~= 'my $stack = Python2::Stack->new($Python2::builtins);';
 
         # get arguments
         for $node.argument-list -> $argument {

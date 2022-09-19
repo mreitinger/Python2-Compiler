@@ -40,6 +40,15 @@ sub __getattr__ {
     return \$self->[1]->{$attribute_name->__tonative__};
 }
 
+sub __hasattr__ {
+    my ($self, $pstack, $attribute_name) = @_;
+
+    die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    return \Python2::Type::Scalar::Bool->new(exists $self->[1]->{$attribute_name->__tonative__});
+}
+
 sub __str__ {
     my $self = shift;
     return sprintf('<PythonObject at %s>', refaddr($self));
@@ -78,5 +87,7 @@ sub AUTOLOAD {
 }
 
 sub __type__ { return 'pyobject'; }
+
+sub __parent__ { return shift->[0]; }
 
 1;

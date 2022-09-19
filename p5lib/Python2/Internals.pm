@@ -35,19 +35,22 @@ sub delvar {
 sub getvar {
     my ($stack, $recurse, $name) = @_;
 
-    # if recursion is disabled (for variable assignment) don't travel upwards on the stack
-    return \$stack->[ITEMS]->{$name}
-        unless $recurse;
+    $name = Python2::Type::Scalar::String->new($name);
 
+    # if recursion is disabled (for variable assignment) don't travel upwards on the stack
+    return $stack->__getattr__(undef, $name)
+        unless $recurse;
 
     # recursion enabled - look upwards to find the variable
     my $call_frame = $stack;
 
-    until (exists $call_frame->[ITEMS]->{$name} or not defined $call_frame->[PARENT]) {
-        $call_frame = $call_frame->[PARENT];
+    until (${ $call_frame->__hasattr__(undef, $name) }->__tonative__ or not defined $call_frame->__parent__) {
+        $call_frame = $call_frame->__parent__;
     }
 
-    return exists $call_frame->[ITEMS]->{$name} ? \$call_frame->[ITEMS]->{$name} : \$stack->[ITEMS]->{$name};
+    return ${ $call_frame->__hasattr__(undef, $name) }->__tonative__
+        ? $call_frame->__getattr__(undef, $name)
+        : $stack->__getattr__(undef, $name);
 }
 
 sub apply_base_class {

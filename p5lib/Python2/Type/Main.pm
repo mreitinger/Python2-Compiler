@@ -13,7 +13,9 @@ use Python2;
 use Python2::Internals;
 
 sub new {
-    return bless([$Python2::builtins], shift);
+    return bless([
+        $Python2::builtins
+    ], shift);
 }
 
 # execute our main block with error handler
@@ -52,7 +54,23 @@ sub __run_function__ {
     return $retval;
 }
 
+sub __getattr__ {
+    my ($self, $pstack, $attribute_name) = @_;
 
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    return \$self->[1]->{$attribute_name->__tonative__};
+}
+
+sub __hasattr__ {
+    my ($self, $pstack, $attribute_name) = @_;
+
+    die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    return \Python2::Type::Scalar::Bool->new(exists $self->[1]->{$attribute_name->__tonative__});
+}
 
 sub __handle_exception__ {
     my ($self, $error) = @_;
@@ -144,6 +162,8 @@ sub __handle_exception__ {
 
     die $output;
 }
+
+sub __parent__ { return shift->[0]; }
 
 sub __type__ { return 'pyobject'; }
 
