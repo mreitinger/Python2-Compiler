@@ -1,14 +1,11 @@
-import ElementTree
-
-# TODO: should be
-# import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
 svg_multiplier = 1.75
 try:
-    tree = ElementTree.parse('/non/existent/file')
+    tree = ET.parse('/non/existent/file')
 except:
     print 'No such file or directory'
-tree = ElementTree.parse('t/testdata/test.svg')
+tree = ET.parse('t/testdata/test.svg')
 
 root = tree.getroot()
 

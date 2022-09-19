@@ -1,4 +1,4 @@
-package Python2::Type::Object::StdLib::ElementTree;
+package Python2::Type::Object::StdLib::xml::etree::ElementTree;
 
 use base qw/ Python2::Type::Object::StdLib::base /;
 
@@ -8,7 +8,7 @@ use strict;
 
 use XML::Parser;
 
-use Python2::Type::Object::StdLib::etree::Element;
+use Python2::Type::Object::StdLib::xml::etree::Element;
 
 sub new {
     my ($self, $tree) = @_;
@@ -30,14 +30,14 @@ sub parse {
     my $p = XML::Parser->new(Style => 'Tree');
     my $tree = $p->parsefile($source);
 
-    return \Python2::Type::Object::StdLib::ElementTree->new($tree);
+    return \Python2::Type::Object::StdLib::xml::etree::ElementTree->new($tree);
 }
 
 sub getroot {
     pop(@_); # default named arguments hash
     my ($self, $pstack) = @_;
 
-    return \Python2::Type::Object::StdLib::etree::Element->new(
+    return \Python2::Type::Object::StdLib::xml::etree::Element->new(
         $self->{tree}->[0], $self->{tree}->[1]
     );
 }

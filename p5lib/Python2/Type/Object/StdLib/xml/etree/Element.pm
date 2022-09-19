@@ -1,4 +1,4 @@
-package Python2::Type::Object::StdLib::etree::Element;
+package Python2::Type::Object::StdLib::xml::etree::Element;
 
 use base qw/ Python2::Type::Object::StdLib::base /;
 
