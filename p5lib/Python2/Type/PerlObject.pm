@@ -65,6 +65,11 @@ sub __call__ {
     return \$object;
 }
 
+sub __hasattr__ {
+    my ($self, $pstack, $key) = @_;
+    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+}
+
 # called for every unknown method
 sub AUTOLOAD {
     # we get the parent stack as $pstack but we don't pass it on

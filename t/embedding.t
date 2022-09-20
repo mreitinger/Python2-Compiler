@@ -315,6 +315,51 @@ subtest "embedding - return-values" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - __hasattr__ for PerlObject" => sub {
+    my Str $input = q:to/END/;
+    def foo(a):
+        print hasattr(a, 'test_true')
+        print hasattr(a, 'test_false')
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        {
+            package PerlObjectTest;
+
+            sub test_true {}
+
+            sub new { return bless([], shift); }
+
+            1;
+        }
+
+        my $obj = PerlObjectTest->new();
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        $p5->__run_function__('foo', [$obj]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected;
+    $expected ~= "True\nFalse\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
 
 
 
