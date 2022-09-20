@@ -87,6 +87,11 @@ sub __tonative__ {
 
 sub __type__ { return 'list'; }
 
+sub __hasattr__ {
+    my ($self, $pstack, $key) = @_;
+    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+}
+
 sub __eq__      {
     my ($self, $pstack, $other) = @_;
 

@@ -158,4 +158,9 @@ sub __eq__      {
     return \Python2::Type::Scalar::Bool->new(1);
 }
 
+sub __hasattr__ {
+    my ($self, $pstack, $key) = @_;
+    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+}
+
 1;

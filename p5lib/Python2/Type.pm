@@ -42,7 +42,7 @@ sub __eq__      { die Python2::Type::Exception->new('NotImplementedError', '__eq
 sub __hasattr__ {
     my ($self, $pstack, $key) = @_;
 
-    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+    die Python2::Type::Exception->new('NotImplementedError', '__hasattr__ for ' . $_[0]->__type__);
 }
 
 # !=
