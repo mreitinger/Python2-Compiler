@@ -43,7 +43,7 @@ class Python2::Actions::Statements {
             start-position      => $/.from,
             end-position        => $/.to,
             name                => $/<dotted-name>.Str,
-            name-as             => $/<name>.Str
+            name-as             => $/<name> ?? $/<name>.Str !! $/<dotted-name>.Str.split('.').tail()
         ));
     }
 
