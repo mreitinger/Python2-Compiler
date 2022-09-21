@@ -12,22 +12,37 @@ use Scalar::Util qw/ blessed refaddr /;
 use Clone qw/ clone /;
 
 sub new {
-    my ($self, $class) = @_;
+    my $self = shift;
 
-    load $class;
+    # ugly hack - redirect new() to our wrapped class. TODO
+    # this does not cover the 'class uses new for somthing thats not a constructor' case.
 
-    my $object = bless({
-        class  => $class,
-        object => undef,
-    }, $self);
+    if (ref $self) {
+        my ($pstack, @argument_list) = @_;
+        return $self->CALL_METHOD('new', @argument_list);
+    }
 
-    return $object;
+    # base class
+    else {
+        my $class = shift;
+
+        load $class;
+
+        my $object = bless({
+            class  => $class,
+            object => undef,
+        }, $self);
+
+        return $object;
+    }
+
 }
 
 sub new_from_object {
     my ($self, $object) = @_;
 
     return bless({
+        class  => ref($object),
         object => $object,
     }, $self);
 }
@@ -37,8 +52,14 @@ sub __is_py_true__  { 1; }
 sub can {
     my ($self, $method_name) = @_;
 
-    if (defined $self->{object}->can($method_name)) {
+    return 1 if $method_name eq 'new';
+
+    if ($self->{class}->can($method_name)) {
         return 1;
+    }
+
+    else {
+        return 0;
     }
 }
 
@@ -78,14 +99,14 @@ sub AUTOLOAD {
     # figure out the requested method
     our $AUTOLOAD;
     my $requested_method = $AUTOLOAD;
-    $requested_method =~ s/.*:://; #
+    $requested_method =~ s/.*:://;
 
     # TODO do we need to pass this on to our 'child' object? probably but needs verification
     # TODO it get's called from somewhere else anyway.
     return if ($requested_method eq 'DESTROY');
 
     # check if our object even has the requested method
-    unless ($self->{object}->can($requested_method)) {
+    unless ($self->{class}->can($requested_method)) {
         if ($requested_method eq '__getattr__') {
             # we did not find the requested method and the called object does not implemement __getattr__
             # provide a bettter error message otherwise it would just say 'has not method __getattr__'
@@ -95,6 +116,12 @@ sub AUTOLOAD {
 
         die Python2::Type::Exception->new('AttributeError', 'object of class \'' . ref($self->{object}) . "' has no method '$requested_method'");
     }
+
+    return $self->CALL_METHOD($requested_method, @argument_list);
+}
+
+sub CALL_METHOD {
+    my ($self, $requested_method, @argument_list) = @_;
 
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
@@ -112,14 +139,24 @@ sub AUTOLOAD {
         $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
     }
 
-
-    # TODO: this needs to handle way more cases like a list getting returned
     # This matches the calling conventions for Inline::Python so Perl code written to work with
     # Inline::Python can keep working as-is.
-    my @retval = scalar keys %$named_arguments
-        ? $self->{object}->$requested_method([@argument_list], $named_arguments)
-        : $self->{object}->$requested_method(@argument_list);
 
+    # if we didn't get initialized beforehand redirect to the class - used for
+    # object creation with constructors that are not called 'new'
+    my $target = defined $self->{object} ? $self->{object} : $self->{class};
+
+    my @retval;
+
+    eval {
+        @retval = scalar keys %$named_arguments
+            ? $target->$requested_method([@argument_list], $named_arguments)
+            : $target->$requested_method(@argument_list);
+    };
+
+    if ($@) {
+        die Python2::Type::Exception->new('Exception', $@);
+    }
 
     if (scalar(@retval) > 1) {
         return Python2::Internals::convert_to_python_type([@retval]);
