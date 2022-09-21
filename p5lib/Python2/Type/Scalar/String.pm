@@ -133,6 +133,14 @@ sub upper {
     return \Python2::Type::Scalar::String->new(uc shift->__tonative__);
 }
 
+sub __call__ {
+    shift @_; # $self - unused
+    shift @_; # parent stack - unused
+
+    # TODO - this attempts to convert way more than python
+    \Python2::Type::Scalar::String->new($_[0]->__tonative__);
+}
+
 sub count {
     pop(@_); # default named arguments hash
     my ($self, $pstack, $sub, $start, $end) = @_;

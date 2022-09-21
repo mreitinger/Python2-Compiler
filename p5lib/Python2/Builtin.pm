@@ -18,9 +18,8 @@ use Python2::Builtin::Round;
 use Python2::Builtin::Sum;
 use Python2::Builtin::Len;
 use Python2::Builtin::Set;
-use Python2::Builtin::Str;
 use Python2::Builtin::Dumpstack;
 use Python2::Builtin::Any;
-use Python2::Builtin::List;
+use Python2::Builtin::Isinstance;
 
 1;
