@@ -1,59 +1,84 @@
 role Python2::Grammar::Statements {
-    token statement {
-        [
-            || <statement-with>
-            || <variable-assignment>
-            | <function-definition>
-            | <statement-try-except>
-            | <arithmetic-assignment>
-            | <statement-print>
-            | <statement-raise>
-            | <statement-return>
-            | <statement-break>
-            | <expression>
-            | <statement-loop-for>
-            | <statement-loop-while>
-            | <statement-if>
-            | <class-definition>
-            | <statement-import>
-            | <statement-p5import>
-            | <statement-from>
-            | <statement-del>
-            | <statement-assert>
-            | <statement-pass>
-            | <statement-continue>
-        ]
+    # handles comments after statements - they already handle \n etc so we have a dedicated
+    # token for that
+    token end-of-line-comment {
+        '#' (\N+)
+    }
 
-        # ? to match EOF
-        ["\n"|';']?
+    token end-of-statement {
+        \h*
+        <end-of-line-comment>?
+        ["\n"|';'|$]
+    }
+
+
+    token statement {
+        ||  [
+                [
+                    | <statement-return>
+                    | <statement-with>
+                    | <function-definition>
+                    | <statement-try-except>
+                    | <statement-print>
+                    | <statement-raise>
+                    | <statement-break>
+                    | <statement-loop-for>
+                    | <statement-loop-while>
+                    | <statement-if>
+                    | <class-definition>
+                    | <statement-import>
+                    | <statement-p5import>
+                    | <statement-from>
+                    | <statement-del>
+                    | <statement-assert>
+                    | <statement-pass>
+                    | <statement-continue>
+                ]
+            ]
+        ||  [
+                [
+                    || <variable-assignment>
+                    || <arithmetic-assignment>
+                    || <expression>
+                ]
+                <.end-of-statement>
+            ]
     }
 
     token statement-pass {
         'pass'
+        <.end-of-statement>
     }
 
     token statement-continue {
         'continue'
+        <.end-of-line-comment>?
+        ["\n"|';'|$]
     }
 
     token statement-print {
-        'print' <.ws> <test>
+        'print' <.dws>* <test>
+        <.end-of-statement>
     }
 
     token statement-raise {
-        'raise' \h+ <test> [<.ws> ',' <.ws> <test>]?
+        'raise' \h+ <test> [<.dws>* ','<.dws>* <test>]?
+        <.end-of-statement>
     }
 
     token statement-p5import {
-        'p5import' \h+ <perl5-package-name> \h+ 'as' \h+ <name>
+        'p5import' <.dws>+ <perl5-package-name> <.dws>+ 'as' <.dws>+ <name>
+        <.end-of-statement>
     }
 
     token statement-import {
-        'import' \h+ <dotted-name> [\h+ 'as' \h+ <name>]?
+        'import' <.dws>+ <dotted-name> [<.dws>+ 'as' <.dws>+ <name>]?
+        <.end-of-statement>
     }
 
     token statement-from {
-        'from' \h+ <dotted-name> \h+ 'import' \h+ <import-names>
+        'from' <.dws>+ <dotted-name> <.dws>+ 'import' <.dws>+ <import-names>
+        <.end-of-statement>
     }
 
     token import-names {
@@ -61,11 +86,13 @@ role Python2::Grammar::Statements {
     }
 
     token statement-del {
-        'del' \h+ <name>
+        'del' <.dws>+ <name>
+        <.end-of-statement>
     }
 
     token statement-assert {
-        'assert' \h+ <test> [<.ws> ',' <.ws> <test>]?
+        'assert' <.dws>+ <test> [<.dws>* ',' <.dws>* <test>]?
+        <.end-of-statement>
     }
 
     # TODO p5 probably permits more here
@@ -74,72 +101,82 @@ role Python2::Grammar::Statements {
     }
 
     token statement-return {
-        | 'return' [\h+ <test-list>]?
+        'return' [<.dws>+ <test-list>]?
+        <.end-of-statement>
     }
 
     token statement-break {
-        | 'break'
+        'break'
+        <.end-of-statement>
     }
 
     token statement-loop-for {
-        'for' \h+ <name> [<.ws> ',' <.ws> <name>]* \h+ 'in' \h+ <expression> ':' <block>
+        'for' <.dws>+ <name> [<.dws>* ',' <.dws>* <name>]* <.dws>+ 'in' <.dws>+ <expression> <.dws>*':' <block>
     }
 
     token statement-loop-while {
-        'while' \h+ <test> <.ws> ':' <block>
+        'while' <.dws>+ <test> <.dws>* ':' <block>
     }
 
     token statement-if {
-        'if' \h+ <test> <.ws> ':' <block>
+        'if' <.dws>+ <test> <.dws>* ':' <block>
         <statement-elif>*
-        [<level> 'else' <.ws> ':' <block>]?
+        [<level> 'else' <.dws>* ':' <block>]?
     }
 
     token statement-with {
-        'with' \h+ <test> \h+ 'as' \h+ <name> <.ws> ':' <block>
+        'with' <.dws>+ <test> <.dws>+ 'as' <.dws>+ <name> <.dws>* ':' <block>
     }
 
     token statement-elif {
-        <level> 'elif' \h+ <test> <.ws> ':' <block>
+        <level> 'elif' <.dws>+ <test> <.dws>* ':' <block>
     }
 
     token statement-try-except {
-        'try' <.ws> ':' <block>
+        'try' <.dws>* ':' <block>
         <exception-clause>+
-        [<level> 'finally' <.ws> ':' <block>]?
+        [<level> 'finally' <.dws>* ':' <block>]?
     }
 
     # TODO python allowes <test> to determine the variable assignment/exception
     token exception-clause {
-        <level> 'except' [\h+ <name> [<.ws> ',' <.ws> <name>]?]? <.ws> ':' <block>
+        <level> 'except' [<.dws>+ <name> [<.dws>* ',' <.dws>* <name>]?]? <.dws>* ':' <block>
     }
 
+    token extended-test-list {
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        <.dws>*
+        <test>+ %% <list-delimiter>
+        <.dws>*
+    }
 
     token test-list {
         <test>+ %% <list-delimiter>
     }
 
     token test {
-        || <lambda-definition>
-        || <or_test> [ \h+ 'if' \h+ <or_test> \h+ 'else' \h+ <test> ]?
+        | <lambda-definition>
+        | <or_test> [ <.dws>+ 'if' <.dws>+ <or_test> <.dws>+ 'else' <.dws>+ <test> ]?
     }
 
     token or_test {
-        <and_test>  [<.ws> 'or' <.ws> <and_test> ]*
+        <and_test> [ <.dws>+ 'or' <.dws>+ <and_test> ]*
     }
 
     token and_test {
-        <not_test> [ <.ws> 'and' <.ws> <not_test> ]*
+        <not_test> [ <.dws>+ 'and' <.dws>+ <not_test> ]*
     }
 
     token not_test {
-        | 'not' <.ws> <not_test>
+        | 'not' <.dws>+ <not_test>
         | <comparison>
     }
 
     token comparison {
-        | <expression> <.ws> <comparison-operator> <.ws> <expression>
-        | <expression>
+        [
+            | <expression> <.dws>* <comparison-operator> <.dws>* <expression>
+            | <expression>
+        ]
     }
 
     proto token comparison-operator {*}
@@ -159,11 +196,11 @@ role Python2::Grammar::Statements {
     # '(a if 1 else b) = 3'. not sure if we can prevent this here of if we do some post
     # processing?
     token variable-assignment {
-        <power> [<.ws> ',' <.ws> <power>]* <.ws> '=' <.ws> <test>
+        <power> [ <.dws>* ',' <.dws>* <power>]*  <.dws>* '=' <.dws>* <test>
     }
 
     token arithmetic-assignment {
-        <power> <.ws> <arithmetic-assignment-operator> <.ws> <test>
+        <power> <.dws>* <arithmetic-assignment-operator>  <.dws>* <test>
     }
 
     proto token arithmetic-assignment-operator {*}
@@ -181,17 +218,17 @@ role Python2::Grammar::Statements {
     token arithmetic-assignment-operator:sym<\<\<=> { <sym> }
 
     token list-or-dict-element {
-        '[' <.ws> <literal> [<.ws> ':' <.ws> <literal>]? <.ws> ']'
+        '[' <.dws>* <literal> [<.dws>* ':' <.dws>* <literal>]? <.dws>* ']'
     }
 
     token function-definition {
-        'def' \h+ <name> '(' <function-definition-argument-list> ')' <.ws> ':' <block>
+        'def' <.dws>+ <name> '(' <function-definition-argument-list> ')' <.dws>* ':' <block>
     }
 
     # inheritance is restricted to a single <name> for now - we don't support anything else at
     # this time.
     token class-definition {
-        'class' \h+ <name> [ '(' <.ws> <name> <.ws> ')' ]? <.ws> ':' <block>
+        'class' <.dws>+ <name> [ '(' <.dws>* <name> <.dws>* ')' ]? <.dws>* ':' <block>
     }
 
     token function-definition-argument-list {
@@ -199,6 +236,6 @@ role Python2::Grammar::Statements {
     }
 
     token function-definition-argument {
-        <name> [<.ws> '=' <.ws> <test>]?
+        <name> [<.dws>* '=' <.dws>* <test>]?
     }
 }

@@ -35,9 +35,17 @@ class Python2::Actions
         );
     }
 
+    method end-of-line-comment($/) {
+        make Python2::AST::Node::Comment.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            comment         => $0.Str
+        );
+    }
+
     method FALLBACK($name, $args) {
         my @whitelist = <
-            ww ews
+            ww dws end-of-statement
             before
             level ws scope-increase
             float integer digit

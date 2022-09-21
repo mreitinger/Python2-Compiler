@@ -7,17 +7,14 @@ role Python2::Grammar::Common {
 
     # Match the comma used in lists (actual Lists and Argument defintions) including
     # optional whitespace around it.
-    token list-delimiter { <.ws> ',' <.ws> }
-
-    # 'extended' list delimiter - allow line continuation even without explicit \ at the end of line
-    token extended-list-delimiter { <.ews> ',' <.ews> }
+    token list-delimiter { <.dws>* ',' <.dws>* }
 
     token atom {
-        | '(' <.ws> <test-list> <.ws> ')'
-        | '[' <.ws> <expression-list> <.ws> ']'
-        | '[' <.ws> <list-comprehension> <.ws> ']'
-        | '{' <.ws> <dictionary-entry-list> <.ws> '}'
-        | '{' <.ws> <set-entry-list> <.ws> '}'
+        | '(' <extended-test-list>    ')'
+        | '[' <expression-list>       ']'
+        | '[' <list-comprehension>    ']'
+        | '{' <dictionary-entry-list> '}'
+        | '{' <set-entry-list>        '}'
         | <name>
         | <number>
         | <string>
@@ -28,33 +25,33 @@ role Python2::Grammar::Common {
     }
 
     token trailer {
-        || <.ws> <argument-list>    # handles ('x')
-        || <.ws> <subscript>        # handles ['x']
-        || <.ws> '.' <.ws> <name>   # handles .foo
+        || <.dws>* <argument-list>    # handles ('x')
+        || <.dws>* <subscript>        # handles ['x']
+        || <.dws>* '.' <.dws>* <name>   # handles .foo
     }
 
     token subscript {
         '['
-            <.ws>
+            <.dws>*
             [
                 || <start-slice>
                 || <full-slice>
                 || <end-slice>
                 || <test>
             ]
-            <.ws>
+            <.dws>*
         ']'
     }
 
     token full-slice {
-        <test> <.ws> ':' <.ws> <test>
+        <test> <.dws>* ':' <.dws>* <test>
     }
 
     token start-slice {
-        ':' <.ws> <test>
+        ':' <.dws>* <test>
     }
 
     token end-slice {
-        <test> <.ws> ':'
+        <test> <.dws>* ':'
     }
 }

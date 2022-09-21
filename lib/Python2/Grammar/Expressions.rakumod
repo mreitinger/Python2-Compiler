@@ -1,37 +1,40 @@
 role Python2::Grammar::Expressions {
     token expression {
-        <xor-expression> [ <.ws> <or-expression-operator> <.ws> <xor-expression> ]*
+        <xor-expression> [ <.dws>* <or-expression-operator> <.dws>* <xor-expression> ]*
     }
 
     token or-expression-operator { '|' }
 
     token xor-expression {
-        <and-expression> [ <.ws> <xor-expression-operator> <.ws> <and-expression> ]*
+        <and-expression> [ <.dws>* <xor-expression-operator> <.dws>* <and-expression> ]*
     }
 
     token xor-expression-operator { '^' }
 
     token and-expression {
-        <shift-expression> [ <.ws> <and-expression-operator> <.ws> <shift-expression> ]*
+        <shift-expression> [ <.dws>* <and-expression-operator> <.dws>* <shift-expression> ]*
     }
 
     token and-expression-operator { '&' }
 
     token shift-expression {
-        <arithmetic-expression-low-precedence> [ <.ws> <shift-expression-operator> <.ws> <arithmetic-expression-low-precedence> ]*
+        <arithmetic-expression-low-precedence> [ <.dws>* <shift-expression-operator> <.dws>* <arithmetic-expression-low-precedence> ]*
     }
 
     token shift-expression-operator { '<<' | '>>' }
 
     token argument-list {
-        '('<.ews>
-            <argument>* %% <extended-list-delimiter>
-        [ <.ews> ')' || <parse-fail(:pos(self.pos), :what('expected )'))> ]
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+
+        '('
+            <.dws>*
+            <argument>* %% <list-delimiter>
+            [ <.dws>* ')' || <parse-fail(:pos(self.pos), :what('expected )'))> ]
     }
 
     token argument {
         || <list-comprehension>
-        || <name> <.ws> '=' <.ws> <test>
+        || <name> <.dws>* '=' <.dws>* <test>
         || <splat>? <test>
     }
 
@@ -51,11 +54,11 @@ role Python2::Grammar::Expressions {
     }
 
     token arithmetic-operator-high-precedence {
-        <.ws> ['*' | '/' | '%'] <.ws>
+        <.dws>* ['*' | '/' | '%'] <.dws>*
     }
 
     token arithmetic-operator-low-precedence  {
-        <.ws> [|'+'|'-'] <.ws>
+        <.dws>* [|'+'|'-'] <.dws>*
     }
 
 
@@ -68,37 +71,45 @@ role Python2::Grammar::Expressions {
 
     # list handling
     token expression-list {
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        <.dws>*
         <expression>* %% <list-delimiter>
+        <.dws>*
     }
 
     token list-comprehension {
-        <test> \h+ 'for' \h+ <name> \h+ 'in' \h+ <test> [\h+ 'if' \h+ <test>]?
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        <.dws>*
+        <test> <.dws>+ 'for' <.dws>+ <name> <.dws> 'in' <.dws>+ <test> [<.dws>+ 'if' <.dws>+ <test>]?
+        <.dws>*
     }
 
 
     # dictionary handling
     token dictionary-entry-list {
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
         <dictionary-entry>* %% <list-delimiter>
     }
 
     token dictionary-entry {
-        <.ws> <test> <.ws> ':' <.ws> <test> <.ws>
+        <.dws>* <test> <.dws>* ':' <.dws>* <test> <.dws>*
     }
 
 
     # set handling
     token set-entry-list {
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
         <set-entry>* %% <list-delimiter>
     }
 
     token set-entry {
-        <.ws> <test> <.ws>
+        <.dws>* <test> <.dws>*
     }
 
 
     # lambda definition
     token lambda-definition {
-        'lambda' <.ws> <function-definition-argument-list> <.ws> ':' <.ws> <test>
+        'lambda' <.dws>+ <function-definition-argument-list> <.dws>* ':' <.dws>+ <test>
     }
 
     # string machting including escaped quotes

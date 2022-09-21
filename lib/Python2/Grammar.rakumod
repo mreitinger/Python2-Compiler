@@ -21,6 +21,10 @@ grammar Python2::Grammar
     token TOP {
         :my @*levels = (0);
 
+        # $*WHITE-SPACE this get's changed to \s+ when required for example when handling argument lists
+        # tokens statement and block resets it back to rx/[\h|"\\\n"]/
+        :my $*WHITE-SPACE = rx/[\h|"\\\n"]/;
+
         [
             || <non-code>
             || <level><statement>
@@ -29,14 +33,14 @@ grammar Python2::Grammar
         \n* #match empty lines at the end
     }
 
-    regex ws { <!ww> \s* "\\\n"? \s* }
+    regex ws { die("Use <dws> for dynamic whitespace instead.") }
 
-    # 'extended' whitespace - allow line continuation even without explicit \ at the end of line
-    # used within argument lists etc.
-    regex ews { <!ww> \s* "\\?\n"? \s* }
+    regex dws { $*WHITE-SPACE }
 
     # a list of statements at the next indentation level
     token block {
+        { $*WHITE-SPACE = rx/[\h|"\\\n"]/; }
+
         <scope-increase>
         <non-code>*
         <level><statement>
@@ -49,7 +53,7 @@ grammar Python2::Grammar
     }
 
     token non-code {
-        ||<comment>
+        || <comment>
         || <.empty-lines>
     }
 
@@ -71,9 +75,9 @@ grammar Python2::Grammar
 
     token scope-decrease {
         [\h*\n]* # may have some "empty" lines
+        { @*levels.pop }
         :my @indentations = @*levels.map:{' ' x $_};
         [$ || <?before @indentations\N>]
-        { @*levels.pop }
     }
 
     token comment {

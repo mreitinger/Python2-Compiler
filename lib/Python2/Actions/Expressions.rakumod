@@ -300,6 +300,16 @@ class Python2::Actions::Expressions {
         $/.make($test-list);
     }
 
+    method extended-test-list($/) {
+        my $test-list = Python2::AST::Node::Expression::TestList.new();
+
+        for $/<test> -> $test {
+            $test-list.tests.push($test.made);
+        }
+
+        $/.make($test-list);
+    }
+
 
     method list-comprehension($/) {
         $/.make(Python2::AST::Node::ListComprehension.new(
