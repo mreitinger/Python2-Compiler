@@ -148,7 +148,10 @@ class Python2::Actions::Statements {
             test            => $/<test>.made,
             block           => $/<block>[0].made,
             elifs           => $/<statement-elif>.List.map({ $_.made }),
-            else            => $/<block>[1] ?? $/<block>[1].made !! Python2::AST::Node,
+            else            =>
+                $/<block>[1]
+                    ?? $/<block>[1].made                            # complete block
+                    !! $/<statement> ?? $/<statement>.made !! Nil   # one-statement-shorthand
         ));
     }
 

@@ -121,7 +121,12 @@ role Python2::Grammar::Statements {
     token statement-if {
         'if' <.dws>+ <test> <.dws>* ':' <block>
         <statement-elif>*
-        [<level> 'else' <.dws>* ':' <block>]?
+        [<level> 'else' <.dws>* ':'
+            [
+                | <block>
+                | <.dws>+ <statement>
+            ]
+        ]?
     }
 
     token statement-with {
