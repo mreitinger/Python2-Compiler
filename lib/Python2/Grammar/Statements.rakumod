@@ -188,18 +188,18 @@ role Python2::Grammar::Statements {
         ]
     }
 
-    proto token comparison-operator {*}
-    token comparison-operator:sym<==>       { <sym> }
-    token comparison-operator:sym<!=>       { <sym> }
-    # token comparison-operator:sym<\<\>>   { <sym> } #NYI
-    token comparison-operator:sym<\>>       { <sym> }
-    token comparison-operator:sym<\<>       { <sym> }
-    token comparison-operator:sym<\>=>      { <sym> }
-    token comparison-operator:sym<\<=>      { <sym> }
-    token comparison-operator:sym<is>       { <sym> }
-    token comparison-operator:sym<in>       { <sym> }
-    token comparison-operator:sym<not-in>   { <not-in> }
-    token not-in                            { 'not in' }
+    token comparison-operator {
+        ||  '=='
+        ||  '!='
+        ||  '>='
+        ||  '<='
+        ||  '>'
+        ||  '<'
+        ||  'is not'
+        ||  'is'
+        ||  'in'
+        ||  'not in'
+    }
 
     # power ain't right here it would allow too much in the future like
     # '(a if 1 else b) = 3'. not sure if we can prevent this here of if we do some post
