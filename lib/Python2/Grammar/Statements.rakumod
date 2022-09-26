@@ -149,7 +149,7 @@ role Python2::Grammar::Statements {
 
     # TODO python allowes <test> to determine the variable assignment/exception
     token exception-clause {
-        <level> 'except' [<.dws>+ <name> [<.dws>* ',' <.dws>* <name>]?]? <.dws>* ':' <block>
+        <level> 'except' [<.dws>+ <name> [<.dws>* [','|'as'] <.dws>* <name>]?]? <.dws>* ':' <block>
     }
 
     token extended-test-list {
