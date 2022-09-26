@@ -82,7 +82,22 @@ sub import_module {
 
         $name =~ s/\./::/g;
         load "Python2::Type::Object::StdLib::$name";
-        setvar($stack, $name_as, "Python2::Type::Object::StdLib::$name"->new());
+
+        # used when only importing names with from foo import bar
+        if (defined $module->{functions}) {
+            my $object = "Python2::Type::Object::StdLib::$name"->new();
+
+            foreach my $function_name (@{ $module->{functions} }) {
+                setvar($stack, $function_name,
+                    Python2::Type::PythonMethod->new($object->can($function_name), $object)
+                );
+            }
+        }
+
+        # regular 'import foo'
+        else {
+            setvar($stack, $name_as, "Python2::Type::Object::StdLib::$name"->new());
+        }
     }
 }
 

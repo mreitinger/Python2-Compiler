@@ -194,39 +194,49 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::FromImport $node) {
-        my @search-paths = %*ENV<PYTHONPATH>
-            ?? %*ENV<PYTHONPATH>.split(':')
-            !! die("PYTHONPATH environment variable not set - unable to load modules.");
+        my Str $p5;
 
-        # module name is validated by grammar
-        my $module-name = $node.name;
-        $module-name ~~ s:g!\.!/!;
+        if %*ENV<PYTHONPATH> {
+            my @search-paths = %*ENV<PYTHONPATH>.split(':');
 
-        # unique hash of the module and the requested objects
-        my Str $import-sha1-hash = sha1-hex(
-            $node.name ~
-            $node.import-names.names.map({ $_.name }).join(' ')
-        );
+            # module name is validated by grammar
+            my $module-name = $node.name;
+            $module-name ~~ s:g!\.!/!;
 
-        # TODO this completly ignores __init__.py
-        my Str $output;
-        for @search-paths -> $path {
-            my $full-path = join('/', $path, "$module-name.py");
-
-            next unless $full-path.IO.e;
-
-            my $input = $full-path.IO.slurp;
-            $output = $.compiler.compile(
-                $input,
-                :module(True),
-                :embedded($import-sha1-hash),
-                :import-names($node.import-names.names.map({ $_.name })),
+            # unique hash of the module and the requested objects
+            my Str $import-sha1-hash = sha1-hex(
+                $node.name ~
+                $node.import-names.names.map({ $_.name }).join(' ')
             );
+
+            # TODO this completly ignores __init__.py
+            for @search-paths -> $path {
+                my $full-path = join('/', $path, "$module-name.py");
+
+                next unless $full-path.IO.e;
+
+                my $input = $full-path.IO.slurp;
+                $p5 = $.compiler.compile(
+                    $input,
+                    :module(True),
+                    :embedded($import-sha1-hash),
+                    :import-names($node.import-names.names.map({ $_.name })),
+                );
+
+                last if $p5;
+            }
+
+            %!modules{$import-sha1-hash} = $p5 if $p5;
         }
 
-        %!modules{$import-sha1-hash} = $output;
-
-        die("Module {$node.name} not found.") unless $output;
+        # we found not python module, fallback to perl module loading for our StdLib shims
+        # if even this fails we, unlike python, abort on runtime
+        if not $p5 {
+            return sprintf(
+                q|Python2::Internals::import_module($stack, [{ name => '%s', name_as => '%s', functions => [qw/%s/] }])|,
+                $node.name, $node.name, $node.import-names.names.map({ $_.name }).join(' ')
+            );
+        }
     }
 
     multi method e(Python2::AST::Node::Statement::Import $node) {
