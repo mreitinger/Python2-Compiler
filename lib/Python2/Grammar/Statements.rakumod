@@ -72,8 +72,12 @@ role Python2::Grammar::Statements {
     }
 
     token statement-import {
-        'import' <.dws>+ <dotted-name> [<.dws>+ 'as' <.dws>+ <name>]?
+        'import' <.dws>+ <import-module-as-name>+ %% <list-delimiter>
         <.end-of-statement>
+    }
+
+    token import-module-as-name {
+        <dotted-name> [<.dws>+ 'as' <.dws>+ <name>]?
     }
 
     token statement-from {

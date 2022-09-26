@@ -125,8 +125,7 @@ class Python2::AST {
     }
 
     class Node::Statement::Import is Node {
-        has Str $.name is required  is rw;
-        has Str $.name-as is rw;
+        has @.modules is required  is rw;
     }
 
     class Node::Statement::FromImport is Node {

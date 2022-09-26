@@ -63,6 +63,7 @@ class Python2::Actions
             and-expression-operator shift-expression-operator
             full-slice start-slice end-slice
             not-in
+            import-module-as-name
         >;
 
         return if @whitelist.first($name);

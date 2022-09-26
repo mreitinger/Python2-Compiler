@@ -39,11 +39,17 @@ class Python2::Actions::Statements {
     }
 
     method statement-import($/) {
+        my @modules = $/<import-module-as-name>.map({
+            %(
+                name        => $_<dotted-name>.Str,
+                name-as     => $_<name> ?? $_<name>.Str !! $_<dotted-name>.Str.split('.').tail()
+            )
+        });
+
         $/.make(Python2::AST::Node::Statement::Import.new(
             start-position      => $/.from,
             end-position        => $/.to,
-            name                => $/<dotted-name>.Str,
-            name-as             => $/<name> ?? $/<name>.Str !! $/<dotted-name>.Str.split('.').tail()
+            modules             => @modules,
         ));
     }
 
