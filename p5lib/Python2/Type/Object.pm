@@ -13,9 +13,9 @@ use Clone 'clone';
 sub new {
     my ($self) = @_;
 
-    my $object = bless([$Python2::builtins], $self);
-
-    return $object;
+    return bless([
+        $Python2::builtins
+    ], shift);
 }
 
 sub __is_py_true__  { 1; }
@@ -32,7 +32,7 @@ sub can {
 }
 
 sub __getattr__ {
-    my ($self, $pstack, $attribute_name) = @_;
+    my ($self, $attribute_name) = @_;
 
     die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
@@ -41,7 +41,7 @@ sub __getattr__ {
 }
 
 sub __hasattr__ {
-    my ($self, $pstack, $attribute_name) = @_;
+    my ($self, $attribute_name) = @_;
 
     die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
@@ -57,13 +57,12 @@ sub __str__ {
 # creates a new object instance from this class
 sub __call__ {
     my $object          = clone(shift @_);
-    my $pstack          = shift @_;
 
-    $object->__build__($pstack);
+    $object->__build__();
 
     # TODO - check parent stack for __init__
     # {} for unused named variables
-    $object->__init__(undef, @_) if $object->can('__init__');
+    $object->__init__(@_) if $object->can('__init__');
 
     return \$object;
 }
@@ -79,11 +78,10 @@ sub AUTOLOAD {
     return if ($requested_method eq 'DESTROY');
 
     my $self = shift;       # this object
-    my $pstack = shift;     # the stack of our parent/caller
 
     my $method_ref = $self->[1]->{$requested_method} // die("Unknown method $requested_method");
 
-    return $method_ref->__call__($pstack, $self, @_);
+    return $method_ref->__call__($self, @_);
 }
 
 sub __type__ { return 'pyobject'; }

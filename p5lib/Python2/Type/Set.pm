@@ -31,7 +31,7 @@ sub new {
     my $self = bless(\%elements, $class);
 
     foreach(@initial_elements) {
-        $self->add(undef, $_);
+        $self->add($_);
     }
 
     return $self;
@@ -62,7 +62,7 @@ sub __is_py_true__  {
 # we save some overhead.
 my $value = Python2::Type::Scalar::Num->new(1);
 sub add {
-    my ($self, $pstack, $value) = @_;
+    my ($self, $value) = @_;
 
     $self->{$value} = $value;
 }
@@ -85,7 +85,7 @@ sub __tonative__ {
 sub __type__ { return 'set'; }
 
 sub __eq__      {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     # if it's the same element it must match
     return \Python2::Type::Scalar::Bool->new(1)
@@ -109,7 +109,7 @@ sub __eq__      {
     # compare all elements and return false if anything doesn't match
     for (my $i = 0; $i <= scalar(@left)-1; $i++) {
         return \Python2::Type::Scalar::Bool->new(0)
-            unless $left[$i]->__eq__(undef, $right[$i]);
+            unless $left[$i]->__eq__($right[$i]);
     }
 
     # all matched - return true

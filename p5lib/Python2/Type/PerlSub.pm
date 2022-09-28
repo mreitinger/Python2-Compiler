@@ -15,7 +15,7 @@ sub new {
 }
 
 sub __call__ {
-    my ($self, $pstack, @argument_list) = @_;
+    my ($self, @argument_list) = @_;
 
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);

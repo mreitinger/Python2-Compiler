@@ -71,7 +71,6 @@ sub new {
 
 sub __call__ {
     my $object          = clone(shift @_);
-    my $pstack          = shift @_;
     my $message         = shift @_;
 
     $object->[1] = $message;
@@ -89,9 +88,11 @@ sub message {
 
 sub __str__  {
     my $self = shift;
-    return defined $self->[1]
+    my $str = defined $self->[1]
         ? sprintf('%s: %s', $self->[0], $self->[1])
         : $self->[0];
+
+    return $str;
 }
 
 sub __trace__ {

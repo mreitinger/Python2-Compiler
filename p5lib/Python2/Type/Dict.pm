@@ -20,7 +20,7 @@ sub new {
     while (my $key = shift @initial_elements) {
         my $value = shift @initial_elements;
 
-        $self->__setitem__(undef, $key, $value);
+        $self->__setitem__($key, $value);
     }
 
     return $self;
@@ -62,7 +62,7 @@ sub __len__ {
 }
 
 sub __getitem__ {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
 
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
@@ -71,7 +71,7 @@ sub __getitem__ {
 }
 
 sub get {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
 
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
@@ -80,7 +80,7 @@ sub get {
 }
 
 sub has_key {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
 
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
@@ -90,7 +90,7 @@ sub has_key {
 
 
 sub __setitem__ {
-    my ($self, $pstack, $key, $value) = @_;
+    my ($self, $key, $value) = @_;
 
     die("Unhashable type '" . ref($key) . "' with value '$value'")
         unless ref($key) =~ m/^Python2::Type::Scalar::/;
@@ -125,7 +125,7 @@ sub __is_py_true__  {
 sub __type__ { return 'dict'; }
 
 sub __eq__      {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     # if it's the same element it must match
     return \Python2::Type::Scalar::Bool->new(1)
@@ -146,11 +146,11 @@ sub __eq__      {
     # compare all elements and return false if anything doesn't match
     foreach (CORE::keys %$self) {
         return \Python2::Type::Scalar::Bool->new(0)
-            unless ${ $other->has_key(undef, $_) }->__tonative__;
+            unless ${ $other->has_key($_) }->__tonative__;
 
         return \Python2::Type::Scalar::Bool->new(0)
             unless ${
-                ${ $self->__getitem__(undef, $_) }->__eq__(undef, ${ $other->__getitem__(undef, $_) });
+                ${ $self->__getitem__($_) }->__eq__(${ $other->__getitem__($_) });
             }->__tonative__;
     }
 
@@ -159,7 +159,7 @@ sub __eq__      {
 }
 
 sub __hasattr__ {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 

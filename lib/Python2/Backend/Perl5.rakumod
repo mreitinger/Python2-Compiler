@@ -367,7 +367,7 @@ class Python2::Backend::Perl5 {
             my Int $i = 0;
             for $node.targets.values -> $target {
                 if (not $node.name-filter or $node.name-filter.grep($target.atom.expression.name)) {
-                    $p5 ~= sprintf(q|${%s} = ${ $$i->__getitem__(undef, Python2::Type::Scalar::Num->new(%i)) };|, $.e($target), $i);
+                    $p5 ~= sprintf(q|${%s} = ${ $$i->__getitem__(Python2::Type::Scalar::Num->new(%i)) };|, $.e($target), $i);
                 }
 
                 $i++;
@@ -469,7 +469,7 @@ class Python2::Backend::Perl5 {
         $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.condition))
             if ($node.condition);
 
-        $p5 ~= sprintf('$r->__iadd__(undef, ${ %s });', $.e($node.test));
+        $p5 ~= sprintf('$r->__iadd__(${ %s });', $.e($node.test));
         $p5 ~= '}';
 
         return $p5 ~ 'return \$r; }->()';
@@ -576,12 +576,12 @@ class Python2::Backend::Perl5 {
             my $right   = $node.comparison-operator eq '__contains__' ?? $node.left  !! $node.right;
 
             return $node.negate
-                ??  sprintf('\Python2::Type::Scalar::Bool->new(not ${ ${%s}->%s(undef, ${%s}) }->__is_py_true__)',
+                ??  sprintf('\Python2::Type::Scalar::Bool->new(not ${ ${%s}->%s(${%s}) }->__is_py_true__)',
                         $.e($left),
                         $node.comparison-operator,
                         $.e($right),
                     )
-                !!  sprintf('${%s}->%s(undef, ${%s})',
+                !!  sprintf('${%s}->%s(${%s})',
                         $.e($left),
                         $node.comparison-operator,
                         $.e($right),
@@ -638,7 +638,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $pstack = shift; my $stack  = Python2::Stack->new(defined $pstack ? $pstack : $Python2::builtins);';
+        $block ~= 'my $self = shift; my $stack = clone $self->[0];';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
@@ -663,13 +663,13 @@ class Python2::Backend::Perl5 {
 
         # the call to shift to get rid of $self which we don't need in this case.
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { %s }; sub __call__ { shift; %s } }',
+            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { %s }; sub __call__ { %s } }',
             $perl5_class_name,
             $.e($node.name),
             $block,
         );
 
-        return sprintf('Python2::Internals::setvar($stack, %s, %s->new());',
+        return sprintf('Python2::Internals::setvar($stack, %s, %s->new($stack));',
             $.e($node.name),
             $perl5_class_name,
         );
@@ -691,9 +691,9 @@ class Python2::Backend::Perl5 {
         # the actual function body
         $block ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
 
-        # the call to shift get rid of $self and $pstack which we don't need in this case.
+        # the call to shift get rid of $self  which we don't need in this case.
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { shift; shift; %s } }',
+            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { shift; %s } }',
             $perl5_class_name,
             $block,
         );
@@ -708,7 +708,7 @@ class Python2::Backend::Perl5 {
         # everything in %!modules will be placed at the beginning of the code
         %!modules{$perl5_class_name} = sprintf(
             # we inject the base class at runtime by setting up @Package::ISA
-            'package %s { %s sub __build__ { my $self = shift; my $pstack = shift; $self->SUPER::__build__($pstack); my $stack = $self; %s; return $self; } }',
+            'package %s { %s sub __build__ { my $self = shift; $self->SUPER::__build__(); my $stack = $self; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
             $.e($node.block)
@@ -763,7 +763,7 @@ class Python2::Backend::Perl5 {
             $right-element  = @expressions.shift;
 
             $p5 ~= sprintf(
-                '$left = $$left->%s(undef, ${ %s });',
+                '$left = $$left->%s(${ %s });',
                 %operator-method-map{$operator},
                 $.e($right-element)
             );
@@ -817,7 +817,7 @@ class Python2::Backend::Perl5 {
                     $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
                         if $node.must-resolve;
 
-                    $p5 ~= sprintf('$p = $$p->__call__($stack, %s);', $.e($argument-list));
+                    $p5 ~= sprintf('$p = $$p->__call__(%s);', $.e($argument-list));
             }
             elsif $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
@@ -826,34 +826,34 @@ class Python2::Backend::Perl5 {
                 $p5 ~= sprintf(q|if ($$p->can('%s')) {|, $current-element.name);
 
                 # if yes, call it
-                $p5 ~= sprintf(q|$p = $$p->%s($stack, %s);|, $current-element.name, $.e($argument-list));
+                $p5 ~= sprintf(q|$p = $$p->%s(%s);|, $current-element.name, $.e($argument-list));
 
                 $p5 ~= '} else {';
 
                 # no p5-style method, give the object a chance to return a Function object via the __getattr__ fallback
-                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new('%s'), {});|, $current-element.name);
+                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new('%s'), {});|, $current-element.name);
 
                 # die if even the fallback did not return anything
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('AttributeError', ref($$p) . " instance has no attribute '%s'");|, $current-element.name);
 
                 # got a python-style method, call it
-                $p5 ~= sprintf(q|$p = $$p->__call__(undef, %s);|, $.e($argument-list));
+                $p5 ~= sprintf(q|$p = $$p->__call__(%s);|, $.e($argument-list));
 
                 $p5 ~= '}';
             }
             elsif $current-element ~~ Python2::AST::Node::Subscript {
                 if $current-element.target {
-                    $p5 ~= sprintf('$p = ${$p}->__getslice__(undef, %s, {});', $.e($current-element)) # array slice
+                    $p5 ~= sprintf('$p = ${$p}->__getslice__(%s, {});', $.e($current-element)) # array slice
                 }
                 else {
-                    $p5 ~= sprintf('$p = ${$p}->__getitem__(undef, %s, {});', $.e($current-element));
+                    $p5 ~= sprintf('$p = ${$p}->__getitem__(%s, {});', $.e($current-element));
 
                     $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . %s);|, $.e($current-element))
                         if $node.must-resolve;
                 }
             }
             elsif $current-element ~~ Python2::AST::Node::Name {
-                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(undef, Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
+                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
             }

@@ -27,7 +27,7 @@ sub __tonative__ {
 }
 
 sub __eq__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new(0)
         if $other->__type__ eq 'none';
@@ -41,7 +41,7 @@ sub __len__ {
 
 # is - used for our X is Y implementation, python2 has no explicit __is__
 sub __is__  {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     # when compared to anything that's not our type it must be false
     return \Python2::Type::Scalar::Bool->new(0)

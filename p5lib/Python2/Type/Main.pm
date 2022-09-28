@@ -46,7 +46,7 @@ sub __run_function__ {
 
     my $retval = eval {
         die("Function $name not found") unless defined $$coderef;
-        $$coderef->__call__(undef, ( map { ${ Python2::Internals::convert_to_python_type($_) } } @{ $args } ), {});
+        $$coderef->__call__(( map { ${ Python2::Internals::convert_to_python_type($_) } } @{ $args } ), {});
     };
 
     $self->__handle_exception__($@) if $@;
@@ -55,7 +55,7 @@ sub __run_function__ {
 }
 
 sub __getattr__ {
-    my ($self, $pstack, $attribute_name) = @_;
+    my ($self, $attribute_name) = @_;
 
     die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
@@ -64,7 +64,7 @@ sub __getattr__ {
 }
 
 sub __hasattr__ {
-    my ($self, $pstack, $attribute_name) = @_;
+    my ($self, $attribute_name) = @_;
 
     die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');

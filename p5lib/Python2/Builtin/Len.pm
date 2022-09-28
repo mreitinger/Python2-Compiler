@@ -7,7 +7,6 @@ use strict;
 sub __name__ { 'len' }
 sub __call__ {
     shift @_; # $self - unused
-    shift @_; # parent stack - unused
     pop   @_; # default named arguments hash - unused
 
     shift->__len__;

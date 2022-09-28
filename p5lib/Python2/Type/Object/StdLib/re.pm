@@ -26,7 +26,7 @@ sub new {
 }
 
 sub compile {
-    my ($self, $pstack, $regex, $named_args) = @_;
+    my ($self, $regex, $named_args) = @_;
 
     my $flags = '';
 
@@ -46,7 +46,7 @@ sub compile {
 }
 
 sub sub {
-    my ($self, $pstack, $regex, $newtext, $value, $named_args) = @_;
+    my ($self, $regex, $newtext, $value, $named_args) = @_;
 
     my $flags = '';
 
@@ -70,7 +70,7 @@ sub sub {
 
 sub match {
     pop(@_); #default named args hash
-    my ($self, $pstack, $regex, $string) = @_;
+    my ($self, $regex, $string) = @_;
     my $r = $regex->__tonative__;
 
     # match.group(0) contains the outer match, so we simply wrap () around the expression

@@ -19,7 +19,7 @@ sub new {
 }
 
 sub match {
-    my ($self, $pstack, $value) = @_;
+    my ($self, $value) = @_;
 
     die Python2::Type::Exception->new('TypeError', 'match() expected string, got ' . $value->__type__)
         unless $value->__type__ eq 'str';

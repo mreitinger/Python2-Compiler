@@ -38,19 +38,19 @@ sub getvar {
     $name = Python2::Type::Scalar::String->new($name);
 
     # if recursion is disabled (for variable assignment) don't travel upwards on the stack
-    return $stack->__getattr__(undef, $name)
+    return $stack->__getattr__($name)
         unless $recurse;
 
     # recursion enabled - look upwards to find the variable
     my $call_frame = $stack;
 
-    until (${ $call_frame->__hasattr__(undef, $name) }->__tonative__ or not defined $call_frame->__parent__) {
+    until (${ $call_frame->__hasattr__($name) }->__tonative__ or not defined $call_frame->__parent__) {
         $call_frame = $call_frame->__parent__;
     }
 
-    return ${ $call_frame->__hasattr__(undef, $name) }->__tonative__
-        ? $call_frame->__getattr__(undef, $name)
-        : $stack->__getattr__(undef, $name);
+    return ${ $call_frame->__hasattr__($name) }->__tonative__
+        ? $call_frame->__getattr__($name)
+        : $stack->__getattr__($name);
 }
 
 sub apply_base_class {
@@ -59,7 +59,7 @@ sub apply_base_class {
     my $base_class   = shift;       # the base class to be inherited
 
     # attempt to find the base class in our parent stack
-    $base_class = getvar($pstack, 1, $base_class);
+    $base_class = getvar(1, $base_class);
 
     # check if it really exists
     $$base_class // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");
@@ -322,7 +322,7 @@ sub raise {
         unless $exception->__type__ eq 'exception';
 
     die defined $message
-        ? ${ $exception->__call__(undef, $message->__tonative__) }
+        ? ${ $exception->__call__($message->__tonative__) }
         : $exception;
 }
 
@@ -390,7 +390,7 @@ sub convert_to_python_type {
             $k = ${ convert_to_python_type($k) };
             $v = ${ convert_to_python_type($v) };
 
-            $dict->__setitem__(undef, $k, $v);
+            $dict->__setitem__($k, $v);
         }
 
         return \$dict;

@@ -21,28 +21,28 @@ sub new {
 }
 
 sub remove {
-    my ($self, $pstack, $path) = @_;
+    my ($self, $path) = @_;
     unlink $path or die Python2::Type::Exception->new('OSError',
         "Could not remove $path: $!");
     return Python2::Type::Scalar::None->new();
 }
 
 sub mkdir {
-    my ($self, $pstack, $path, $mode) = @_;
+    my ($self, $path, $mode) = @_;
     mkdir $path or die Python2::Type::Exception->new('OSError',
         "Could not create directory $path: $!");
     return Python2::Type::Scalar::Bool->new(1);
 }
 
 sub rmdir {
-    my ($self, $pstack, $path, $mode) = @_;
+    my ($self, $path, $mode) = @_;
     rmdir $path or die Python2::Type::Exception->new('OSError',
         "Could not remove directory $path: $!");
     return Python2::Type::Scalar::Bool->new(1);
 }
 
 sub stat {
-    my ($self, $pstack, $path) = @_;
+    my ($self, $path) = @_;
 
     # TODO: implement other attributes / posix.stat_result? not needed so far
 

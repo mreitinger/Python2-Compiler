@@ -5,13 +5,13 @@ use warnings;
 use strict;
 
 use Python2::Internals;
+use Clone qw/ clone /;
+
 
 sub new {
-    my ($self) = @_;
+    my ($self, $pstack) = @_;
 
-    my $object = bless([], $self);
-
-    return $object;
+    return bless([Python2::Stack->new($pstack)], $self);
 }
 
 sub __call__ { ...; }
@@ -34,7 +34,7 @@ sub __tonative__ {
             $argument = ${ Python2::Internals::convert_to_python_type($argument) };
         }
 
-        my $retval = $self->__call__(undef, @argument_list);
+        my $retval = $self->__call__(@argument_list);
         return ${ $retval }->__tonative__;
     };
 

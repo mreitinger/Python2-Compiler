@@ -18,7 +18,7 @@ sub new {
 
 sub quote {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $string, $safe) = @_;
+    my ($self, $string, $safe) = @_;
     # TODO: handle safe characters? (no usage so far)
     # this might get complicated, uri_escape takes the opposite
     my $unsafe = "^A-Za-z0-9\-\._";
@@ -29,7 +29,7 @@ sub quote {
 
 sub quote_plus {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $string, $safe) = @_;
+    my ($self, $string, $safe) = @_;
     # TODO: handle safe characters? (no usage so far)
     # this might get complicated, uri_escape takes the opposite
     my $unsafe = "^A-Za-z0-9\-\._ ";

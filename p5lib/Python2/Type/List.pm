@@ -28,18 +28,16 @@ sub __str__ {
 
 sub __iadd__ {
     my $self = shift;
-    shift; # unused parent stack
     push(@$self, shift);
 }
 
 sub append   {
     my $self = shift;
-    shift; # unused parent stack
     push(@$self, shift);
 }
 
 sub __getitem__ {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
 
     return \$self->[$key->__tonative__];
 }
@@ -47,7 +45,7 @@ sub __getitem__ {
 sub __iter__ { \Python2::Type::List::Iterator->new(shift); }
 
 sub __getslice__ {
-    my ($self, $pstack, $key, $target) = @_;
+    my ($self, $key, $target) = @_;
 
     $key     = $key->__tonative__;
     $target  = $target->__tonative__;
@@ -71,7 +69,7 @@ sub __len__ {
 }
 
 sub __setitem__ {
-    my ($self, $pstack, $key, $value) = @_;
+    my ($self, $key, $value) = @_;
 
     $self->[$key->__tonative__] = $value;
 }
@@ -88,12 +86,12 @@ sub __tonative__ {
 sub __type__ { return 'list'; }
 
 sub __hasattr__ {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 
 sub __eq__      {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     # if it's the same element it must match
     return \Python2::Type::Scalar::Bool->new(1)
@@ -115,8 +113,8 @@ sub __eq__      {
     foreach (0 .. ${ $self->__len__ }->__tonative__ -1) {
         return \Python2::Type::Scalar::Bool->new(0)
             unless  ${
-                ${ $self->__getitem__(undef, Python2::Type::Scalar::Num->new($_) ) }
-                    ->__eq__(undef, ${ $other->__getitem__(undef, Python2::Type::Scalar::Num->new($_)) });
+                ${ $self->__getitem__(Python2::Type::Scalar::Num->new($_) ) }
+                    ->__eq__(${ $other->__getitem__(Python2::Type::Scalar::Num->new($_)) });
             }->__tonative__;
     }
 
@@ -125,11 +123,11 @@ sub __eq__      {
 }
 
 sub __contains__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     foreach my $item (@$self) {
         return \Python2::Type::Scalar::Bool->new(1)
-            if ${ $item->__eq__(undef, $other) }->__tonative__;
+            if ${ $item->__eq__($other) }->__tonative__;
     }
 
     return \Python2::Type::Scalar::Bool->new(0);
@@ -137,7 +135,6 @@ sub __contains__ {
 
 sub __call__ {
     shift @_; # $self - unused
-    shift @_; # parent stack - unused
     pop   @_; # default named arguments hash - unused
 
     my $value = $_[0] // Python2::Type::List->new();

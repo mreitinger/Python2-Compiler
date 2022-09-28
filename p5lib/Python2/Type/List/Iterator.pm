@@ -11,10 +11,9 @@ sub new {
 
 sub __next__ {
     my $self = shift;
-    shift; # parent stack, unused
 
     # TODO implement StopIteration exception
-    return $self->[1]->__getitem__(undef, Python2::Type::Scalar::Num->new($self->[0]++) );
+    return $self->[1]->__getitem__(Python2::Type::Scalar::Num->new($self->[0]++) );
 }
 
 1;

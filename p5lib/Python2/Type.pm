@@ -18,7 +18,6 @@ sub __str__     { die Python2::Type::Exception->new('NotImplementedError', '__st
 
 sub __dump__ {
     my $self   = shift @_;
-    shift  @_; # parent stack - unused
     pop   @_; # default named arguments hash - unused
 
     my $depth = $_[0] // Python2::Type::Scalar::Num->new(3);
@@ -40,16 +39,16 @@ sub __eq__      { die Python2::Type::Exception->new('NotImplementedError', '__eq
 # we implement this using __hasattr__ instead of (ab)using __getattr__ in case we need more
 # fine control when interfacing with perl 5 objects.
 sub __hasattr__ {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
 
     die Python2::Type::Exception->new('NotImplementedError', '__hasattr__ for ' . $_[0]->__type__);
 }
 
 # !=
 sub __ne__      {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
-    return ${ $self->__eq__(undef, $other) }->__tonative__
+    return ${ $self->__eq__($other) }->__tonative__
         ? \Python2::Type::Scalar::Bool->new(0)
         : \Python2::Type::Scalar::Bool->new(1);
 }
@@ -68,7 +67,7 @@ sub __len__         { die Python2::Type::Exception->new('NotImplementedError', '
 
 # is - used for our X is Y implementation, python2 has no explicit __is__
 sub __is__  {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     if (refaddr($self) == refaddr($other)) {
         return \Python2::Type::Scalar::Bool->new(1);

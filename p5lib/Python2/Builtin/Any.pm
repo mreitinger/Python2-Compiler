@@ -7,7 +7,6 @@ use strict;
 sub __name__ { 'any' }
 sub __call__ {
     shift @_; # $self - unused
-    shift @_; # parent stack - unused
     pop @_;   # named arguments hash
 
     my $iterable = shift @_;

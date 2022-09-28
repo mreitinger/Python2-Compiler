@@ -23,7 +23,7 @@ sub new {
 
 sub parse {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $source, $parser) = @_;
+    my ($self, $source, $parser) = @_;
 
     die Python2::Type::Exception->new('OSError', 'No such file or directory: ' . $source)
         unless (-e $source);

@@ -6,8 +6,7 @@ use strict;
 
 sub __name__ { 'dumpstack' }
 sub __call__ {
-    shift @_; # $self - unused
-    my $pstack = shift  @_; # parent stack - unused
+    my $self = shift @_; # $self - unused
     pop   @_; # default named arguments hash - unused
 
     my $depth = $_[0] // Python2::Type::Scalar::Num->new(3);
@@ -15,7 +14,8 @@ sub __call__ {
     die Python2::Type::Exception->new('TypeError', 'dumpstack expects a integer as depth, got ' . $depth->__type__)
         unless ($depth->__type__ eq 'int');
 
-    my $dumper = Data::Dumper->new([$pstack]);
+    my $dumper = Data::Dumper->new($self->[0]);
+
     $dumper->Maxdepth($depth->__tonative__);
     return \Python2::Type::Scalar::String->new($dumper->Dump());
 };

@@ -9,7 +9,6 @@ use List::Util qw(max);
 sub __name__ { 'map' }
 sub __call__ {
     shift @_; # $self - unused
-    shift @_; # parent stack - unused
 
     # second argument is the function to call
     my $function        = shift @_;
@@ -29,10 +28,10 @@ sub __call__ {
     for (my $i = 0; $i < $iterable_item_count; $i++) {
         # iterables to be passed to $function. first one gets modified
         my @iterables = map {
-            ${$_[$_]->__getitem__(undef, Python2::Type::Scalar::Num->new($i), {}) }
+            ${$_[$_]->__getitem__(Python2::Type::Scalar::Num->new($i), {}) }
         } (0 .. $argument_count-1 );
 
-        $result->__setitem__(undef, Python2::Type::Scalar::Num->new($i), ${ $function->__call__(undef, @iterables, {}) });
+        $result->__setitem__(Python2::Type::Scalar::Num->new($i), ${ $function->__call__(@iterables, {}) });
     }
 
     return \$result;

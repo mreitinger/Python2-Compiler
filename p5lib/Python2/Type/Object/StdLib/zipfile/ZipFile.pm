@@ -24,7 +24,7 @@ sub new {
 sub open {
     # https://docs.python.org/2.7/library/zipfile.html#zipfile.ZipFile.open
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $path, $mode, $pwd) = @_;
+    my ($self, $path, $mode, $pwd) = @_;
     $self->{path} = $path->__tonative__;
     $self->{mode} = $mode && $mode->__tonative__ || 'r';
 
@@ -50,7 +50,7 @@ sub close {
 }
 
 sub write {
-    my ($self, $pstack, $path, $arcname) = @_;
+    my ($self, $path, $arcname) = @_;
 
     die Python2::Type::Exception->new('RuntimeError', 'write() requires mode "w" or "a"')
         if ($self->{mode} eq 'r');
@@ -64,7 +64,7 @@ sub write {
 }
 
 sub __enter__ {
-    my ($self, $pstack, $path, $mode) = @_;
+    my ($self, $path, $mode) = @_;
     return \$self;
 }
 
@@ -76,8 +76,8 @@ sub __exit__ {
 
 sub __call__ {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $path, $mode) = @_;
-    $self->open($pstack, $path, $mode, undef, undef);
+    my ($self, $path, $mode) = @_;
+    $self->open($path, $mode, undef, undef);
     return \$self;
 }
 

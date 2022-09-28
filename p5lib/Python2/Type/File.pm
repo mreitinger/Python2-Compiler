@@ -32,7 +32,7 @@ sub __exit__ {
 sub read {
     pop(@_); #default named args hash
 
-    my ($self, $pstack, $bytes) = @_;
+    my ($self, $bytes) = @_;
 
     die Python2::Type::Exception->new('ValueError', "I/O operation on closed file")
         unless defined openhandle($self->[0]);
@@ -51,7 +51,7 @@ sub read {
 sub write {
     pop(@_); #default named args hash
 
-    my ($self, $pstack, $string) = @_;
+    my ($self, $string) = @_;
 
     die Python2::Type::Exception->new('ValueError', "I/O operation on closed file")
         unless defined openhandle($self->[0]);

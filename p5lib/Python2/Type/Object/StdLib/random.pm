@@ -21,7 +21,7 @@ sub new {
 
 sub seed {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $seed) = @_;
+    my ($self, $seed) = @_;
     $rseed = $seed;
     srand($rseed);
     return \Python2::Type::Scalar::None->new();
@@ -29,7 +29,7 @@ sub seed {
 
 sub choice {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $sequence) = @_;
+    my ($self, $sequence) = @_;
 
     die Python2::Type::Exception->("IndexError", "sequence with length 0 given")
         unless scalar @{ $sequence } > 0;
@@ -51,7 +51,7 @@ sub choice {
 
 sub shuffle {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $sequence, $random) = @_;
+    my ($self, $sequence, $random) = @_;
 
     # this is not 100% correct as python allows other types under certain circumstances
     # but good enough for our application

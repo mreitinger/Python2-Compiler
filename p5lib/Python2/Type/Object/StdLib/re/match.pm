@@ -19,7 +19,7 @@ sub new {
 
 sub group {
     pop(@_); #default named args hash
-    my ($self, $pstack, $index) = @_;
+    my ($self, $index) = @_;
 
     my $i = $index->__tonative__;
     die Python2::Type::Exception->new('IndexError', 'no such group: ' . $i)

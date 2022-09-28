@@ -10,7 +10,7 @@ sub new {
 }
 
 sub __getattr__ {
-    my ($self, $pstack, $attribute_name) = @_;
+    my ($self, $attribute_name) = @_;
 
     die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
@@ -19,7 +19,7 @@ sub __getattr__ {
 }
 
 sub __hasattr__ {
-    my ($self, $pstack, $attribute_name) = @_;
+    my ($self, $attribute_name) = @_;
 
     die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');

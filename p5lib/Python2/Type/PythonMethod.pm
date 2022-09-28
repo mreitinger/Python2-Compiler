@@ -24,9 +24,9 @@ sub new {
 }
 
 sub __call__ {
-    my ($self, $pstack, @argument_list) = @_;
+    my ($self, @argument_list) = @_;
 
-    return $self->[0]->($self->[1], $pstack, @argument_list);
+    return $self->[0]->($self->[1], @argument_list);
 }
 
 sub __str__ {

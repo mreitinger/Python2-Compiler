@@ -18,7 +18,7 @@ sub new {
 }
 
 sub exists {
-    my ($self, $pstack, $path) = @_;
+    my ($self, $path) = @_;
     return \Python2::Type::Scalar::Bool->new(-e $path)
 }
 

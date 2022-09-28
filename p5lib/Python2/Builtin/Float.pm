@@ -9,7 +9,6 @@ use Scalar::Util qw/ looks_like_number /;
 sub __name__ { 'float' }
 sub __call__ {
     shift @_; # $self - unused
-    shift @_; # parent stack - unused
 
     my $val = $_[0]->__tonative__;
     # insert leading zero as python does, if needed

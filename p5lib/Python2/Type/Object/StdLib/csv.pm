@@ -20,7 +20,7 @@ sub new {
 }
 
 sub reader {
-    my ($self, $pstack, $csvfile, $named_args) = @_;
+    my ($self, $csvfile, $named_args) = @_;
 
     # TODO: implement other options? not needed so far
     my $delimiter = $named_args->{delimiter} ? ${ $named_args->{delimiter} } : ',';

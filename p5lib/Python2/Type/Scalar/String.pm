@@ -13,7 +13,7 @@ sub __is_py_true__  { length(shift->{value}) > 0 ? 1 : 0; }
 
 sub split {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $separator, $maxsplit) = @_;
+    my ($self, $separator, $maxsplit) = @_;
 
     my $joiner = $separator; # original separator - used to join in case we use maxsplit below
 
@@ -62,7 +62,7 @@ sub strip {
 }
 
 sub join {
-    my ($self, $pstack, $iterable) = @_;
+    my ($self, $iterable) = @_;
 
     die Python2::Type::Exception->new('TypeError', sprintf("join() expects a iterable but got '%s'", $iterable->__type__))
         unless ($iterable->__type__ eq 'list');
@@ -77,7 +77,7 @@ sub join {
 
 sub replace {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $old, $new, $count) = @_;
+    my ($self, $old, $new, $count) = @_;
 
     die Python2::Type::Exception->new('TypeError',
         sprintf(
@@ -105,7 +105,7 @@ sub replace {
 
 sub splitlines {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $keepends) = @_;
+    my ($self, $keepends) = @_;
 
     $keepends //= Python2::Type::Scalar::Bool->new(0);
 
@@ -135,7 +135,6 @@ sub upper {
 
 sub __call__ {
     shift @_; # $self - unused
-    shift @_; # parent stack - unused
 
     # TODO - this attempts to convert way more than python
     \Python2::Type::Scalar::String->new($_[0]->__tonative__);
@@ -143,7 +142,7 @@ sub __call__ {
 
 sub count {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $sub, $start, $end) = @_;
+    my ($self, $sub, $start, $end) = @_;
 
     $sub = $sub->__tonative__;
 
@@ -163,7 +162,7 @@ sub count {
 
 sub find {
     pop(@_); # default named arguments hash
-    my($self, $pstack, $sub, $start, $end) = @_;
+    my($self, $sub, $start, $end) = @_;
 
     die Python2::Type::Exception->new('TypeError',
         sprintf("find() expects a string as substring, got %s", $sub->__type__))
@@ -185,7 +184,7 @@ sub find {
 
 sub rfind {
     pop(@_); # default named arguments hash
-    my($self, $pstack, $sub, $start, $end) = @_;
+    my($self, $sub, $start, $end) = @_;
 
     die Python2::Type::Exception->new('TypeError',
         sprintf("find() expects a string as substring, got %s", $sub->__type__))
@@ -207,7 +206,7 @@ sub rfind {
 
 sub startswith {
     pop(@_); # default named arguments hash
-    my($self, $pstack, $sub, $start, $end) = @_;
+    my($self, $sub, $start, $end) = @_;
 
     die Python2::Type::Exception->new('TypeError',
         sprintf("startswith() expects a string or tuple of strings as substring(s), got %s", $sub->__type__))
@@ -243,7 +242,7 @@ sub startswith {
 
 
 sub __getslice__ {
-    my ($self, $pstack, $start, $target) = @_;
+    my ($self, $start, $target) = @_;
 
     $start   = $start->__tonative__;
     $target  = $target->__tonative__;
@@ -257,7 +256,7 @@ sub __getslice__ {
 
 sub encode {
     pop(@_); # default named arguments hash
-    my($self, $pstack, $encoding, $errors) = @_;
+    my($self, $encoding, $errors) = @_;
 
     my $str = $self->__tonative__;
     if ($encoding =~ m/utf-?8/) {
@@ -273,7 +272,7 @@ sub encode {
 
 sub decode {
     pop(@_); # default named arguments hash
-    my($self, $pstack, $encoding, $errors) = @_;
+    my($self, $encoding, $errors) = @_;
 
     my $str = $self->__tonative__;
     if ($encoding =~ m/utf-?8/) {
@@ -288,7 +287,7 @@ sub decode {
 }
 
 sub __gt__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ gt $other->__tonative__)
         if ($other->__type__ eq 'str');
@@ -297,7 +296,7 @@ sub __gt__ {
 }
 
 sub __lt__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ lt $other->__tonative__)
         if ($other->__type__ eq 'str');
@@ -306,7 +305,7 @@ sub __lt__ {
 }
 
 sub __ge__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ ge $other->__tonative__)
         if ($other->__type__ eq 'str');
@@ -315,7 +314,7 @@ sub __ge__ {
 }
 
 sub __le__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ le $other->__tonative__)
         if ($other->__type__ eq 'str');
@@ -324,7 +323,7 @@ sub __le__ {
 }
 
 sub __contains__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     die Python2::Type::Exception->new('TypeError', sprintf("in <string> requires string as left operand, got %s", $other->__type__))
         unless ($other->__type__ eq 'str');

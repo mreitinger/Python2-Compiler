@@ -20,7 +20,7 @@ sub new {
 
 sub urlopen {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $url, $data, $timeout, $cafile, $capath, $cadefault, $context) = @_;
+    my ($self, $url, $data, $timeout, $cafile, $capath, $cadefault, $context) = @_;
 
     # very simple url open ignoring all parameters as long they're not needed
     my $ua = LWP::UserAgent->new(timeout => 10);

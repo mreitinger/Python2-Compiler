@@ -18,7 +18,7 @@ sub new {
 
 sub dumps {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $obj, $skipkey, $ensure_ascii, $check_circular, $allow_nan,
+    my ($self, $obj, $skipkey, $ensure_ascii, $check_circular, $allow_nan,
         $cls, $indent, $separators, $encoding, $default, $sort_keys) = @_;
 
     die Python2::Type::Exception->new('TypeError',

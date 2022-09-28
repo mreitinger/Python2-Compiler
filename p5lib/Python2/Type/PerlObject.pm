@@ -18,7 +18,7 @@ sub new {
     # this does not cover the 'class uses new for somthing thats not a constructor' case.
 
     if (ref $self) {
-        my ($pstack, @argument_list) = @_;
+        my (@argument_list) = @_;
         return $self->CALL_METHOD('new', @argument_list);
     }
 
@@ -72,7 +72,7 @@ sub __str__ {
 sub __tonative__ { return shift->{object}; }
 
 sub __eq__ {
-    my ($self, $pstack, $other) = @_;
+    my ($self, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new(1)
         if (refaddr($other) eq refaddr($self));
@@ -87,14 +87,13 @@ sub __call__ {
 }
 
 sub __hasattr__ {
-    my ($self, $pstack, $key) = @_;
+    my ($self, $key) = @_;
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 
 # called for every unknown method
 sub AUTOLOAD {
-    # we get the parent stack as $pstack but we don't pass it on
-    my ($self, $pstack, @argument_list) = @_;
+    my ($self, @argument_list) = @_;
 
     # figure out the requested method
     our $AUTOLOAD;

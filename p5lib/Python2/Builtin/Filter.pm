@@ -7,7 +7,6 @@ use strict;
 sub __name__ { 'filter' }
 sub __call__ {
     shift @_; # $self - unused
-    shift @_; # parent stack - unused
 
     my ($filter, $list) = @_;
 
@@ -15,12 +14,12 @@ sub __call__ {
 
     if ($filter->__type__ eq 'none') {
         foreach(@$list) {
-            $result->__iadd__(undef, $_) if $_->__tonative__;
+            $result->__iadd__($_) if $_->__tonative__;
         }
     }
     elsif ($filter->__type__ eq 'function') {
         foreach(@$list) {
-            $result->__iadd__(undef, $_) if ${ $filter->__call__(undef, $_, {}) }->__is_py_true__;
+            $result->__iadd__($_) if ${ $filter->__call__($_, {}) }->__is_py_true__;
         }
     }
     else {
