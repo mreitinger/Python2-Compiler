@@ -1,7 +1,7 @@
 use Python2::AST;
 use Data::Dump;
 
-class Python2::Actions::Expressions {
+role Python2::Actions::Expressions {
     # token expression {
     #     <xor-expresion> [ <.ws> '|' <.ws> <xor-expression> ]*
     # }

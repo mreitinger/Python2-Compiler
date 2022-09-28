@@ -67,6 +67,27 @@ class Python2::Backend::Perl5 {
         Python2::Type::Class::main_%s->new()->__run__();
         END
 
+    # Wrapper used for expressions
+    has Str $!expression-wrapper = q:to/END/;
+        package Python2::Type::CodeObject::%s {
+
+            use base 'Python2::Type::CodeObject';
+
+            # return the source of the original python expression
+            sub __source__ {
+        return <<'PythonInput%s';
+        %s
+        PythonInput%s
+            }
+
+            sub __call__ {
+                my $stack = $self->[0];
+
+                %s
+            }
+        }
+        END
+
     # code to auto-execute our main block. used for script execution and skipped when embedding
     has Str $!autoexec = q:to/END/;
         my $py2main = Python2::Type::Class::main_%s->new();
@@ -84,7 +105,12 @@ class Python2::Backend::Perl5 {
     #]
 
     # root node: iteral over all statements and create perl code for them
-    multi method e(Python2::AST::Node::Root $node, Bool :$module where { not $_ }, Str :$embedded) {
+    multi method e(
+        Python2::AST::Node::Root $node,
+        Bool :$module where { not $_ },
+        Bool :$expression where { not $_ },
+        Str :$embedded
+    ) {
         for ($node.nodes) {
             $!o ~= $.e($_);
         }
@@ -108,6 +134,34 @@ class Python2::Backend::Perl5 {
         unless ($embedded) {
             $output ~= sprintf($!autoexec, $class_sha1_hash);
         }
+
+        return $output;
+    }
+
+    # compile a single expression
+    multi method e(
+        Python2::AST::Node::Root $node,
+        Bool :$expression where { $_ },
+        Str  :$embedded!
+    ) {
+        for ($node.nodes) {
+            $!o ~= $.e($_);
+        }
+
+        # sha1 hash of our input - used for heredoc delimiter
+        my Str $class_sha1_hash = sha1-hex($node.input);
+
+        my Str $output = sprintf(
+            $!expression-wrapper,           # wrapper / sprintf definition
+
+            # name of the class, will be Python2::Type::CodeObject::$embedded
+            $embedded,
+
+            $class_sha1_hash,   # sha1 hash for source heredoc start
+            $node.input,        # python2 source code for exception handling
+            $class_sha1_hash,   # sha1 hash for source heredoc end
+            $!o,                # block of main body
+        );
 
         return $output;
     }
@@ -791,7 +845,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Power $node) {
         my @elements = ($node.atom, $node.trailers).flat;
 
-        my Str $p5 = 'my $p = undef;';
+        my Str $p5 = 'my $p = undef; shift;';
 
         # single atom
         if (@elements.elems == 1) {

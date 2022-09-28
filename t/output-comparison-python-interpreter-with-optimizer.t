@@ -34,8 +34,8 @@ for $testcase_directory.dir -> $testcase {
         my $perl5_output;
 
         subtest "Parser for $testcase" => sub {
-            $parsed-optimized = $compiler-optimized.parser.parse($testcase.slurp, actions => Python2::Actions);
-            $parsed-unoptimized = $compiler-unoptimized.parser.parse($testcase.slurp, actions => Python2::Actions);
+            $parsed-optimized = $compiler-optimized.parser.parse($testcase.slurp, actions => Python2::Actions::Complete);
+            $parsed-unoptimized = $compiler-unoptimized.parser.parse($testcase.slurp, actions => Python2::Actions::Complete);
         };
         $parsed-optimized or flunk("Parser-optimized failed for $testcase");
         $parsed-unoptimized or flunk("Parser-optimized failed for $testcase");

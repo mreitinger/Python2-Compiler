@@ -24,7 +24,7 @@ for $testcase_directory.dir -> $testcase {
         my $ast = Nil;
 
         subtest "Parser for $testcase" => sub {
-            $parsed = Python2::Grammar.parse($testcase.slurp, actions => Python2::Actions);
+            $parsed = Python2::Grammar::Complete.parse($testcase.slurp, actions => Python2::Actions::Complete);
         };
         $parsed or flunk("Parser failed for $testcase");
 

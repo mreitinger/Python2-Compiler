@@ -13,9 +13,11 @@ class Python2::Compiler {
         :compiler(self),
     );
 
-    has $.parser        = Python2::Grammar.new();
-    has $.optimizer     = Python2::Optimizer.new();
-    has $.actions       = Python2::Actions.new();
+    has $.parser                = Python2::Grammar::Complete.new();
+    has $.expression-parser     = Python2::Grammar::ExpressionsOnly.new();
+    has $.actions               = Python2::Actions::Complete.new();
+    has $.expression-actions    = Python2::Actions::ExpressionsOnly.new();
+    has $.optimizer             = Python2::Optimizer.new();
 
     method compile (
             Str $input,             # Python 2 source code
@@ -61,6 +63,33 @@ class Python2::Compiler {
         }
 
         return $!backend.e($root, :$module, :$embedded, :@import-names);
+    }
+
+    method compile-expression (Str $input!, Str :$embedded!) {
+        my $ast = $.expression-parser.parse($input, actions => $!expression-actions);
+
+        CATCH {
+            # generic parser error
+            when X::Syntax::Confused {
+                self.handle-parse-fail(:$input, :pos($_.pos));
+            }
+
+            # our custom exceptions
+            when Python2::ParseFail {
+                self.handle-parse-fail(:$input, :pos($_.pos), :what($_.what));
+            }
+        }
+
+        my $root = $ast.made.clone;
+
+        $!optimizer.t($root) if $.optimize;
+
+        if ($.dumpast)  {
+            note Dump($root, :no-postfix, :skip-methods);
+            exit 0;
+        }
+
+        return $!backend.e($root, :expression(True), :$embedded);
     }
 
     method handle-parse-fail(Str :$input, Int :$pos is copy, Str :$what?) {

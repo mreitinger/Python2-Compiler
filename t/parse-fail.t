@@ -15,7 +15,7 @@ for $testcase_directory.dir -> $testcase {
     subtest $testcase => sub {
         subtest 'parser' => sub {
             fails-like {
-                Python2::Grammar.parse($testcase.slurp, actions => Python2::Actions)
+                Python2::Grammar::Complete.parse($testcase.slurp, actions => Python2::Actions::Complete)
             }, 'Confused', 'parser refused invalid code'
         };
 

@@ -361,6 +361,4 @@ subtest "embedding - __hasattr__ for PerlObject" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
-
-
 done-testing();

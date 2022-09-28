@@ -1,7 +1,7 @@
 use Python2::AST;
 use Data::Dump;
 
-class Python2::Actions::Statements {
+role Python2::Actions::Statements {
     method statement ($/) {
         die("Statement Action expects exactly one child but we got { $/.values.elems }")
             unless $/.values.elems == 1;
@@ -356,5 +356,29 @@ class Python2::Actions::Statements {
         }
 
         $/.make($block);
+    }
+
+    method scope-decrease ($/) {
+        # dummy
+    }
+
+    method non-code($/) {
+        make $<comment>.made if $<comment>;
+    }
+
+    method comment($/) {
+        make Python2::AST::Node::Comment.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            comment         => $0.Str
+        );
+    }
+
+    method end-of-line-comment($/) {
+        make Python2::AST::Node::Comment.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            comment         => $0.Str
+        );
     }
 }
