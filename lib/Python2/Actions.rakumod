@@ -66,7 +66,7 @@ package Python2::Actions {
         method TOP ($/) {
             my $root = Python2::AST::Node::Root.new(
                 input => $/.orig,
-                nodes => $/<expression>.made,
+                nodes => $/<test>.made,
             );
 
             $/.make($root);

@@ -184,6 +184,48 @@ role Python2::Grammar::Expressions {
         )
     }
 
+    token test-list {
+        <test>+ %% <list-delimiter>
+    }
+
+    token test {
+        | <lambda-definition>
+        | <or_test> [ <.dws>+ 'if' <.dws>+ <or_test> <.dws>+ 'else' <.dws>+ <test> ]?
+    }
+
+    token or_test {
+        <and_test> [ <.dws>+ 'or' <.dws>+ <and_test> ]*
+    }
+
+    token and_test {
+        <not_test> [ <.dws>+ 'and' <.dws>+ <not_test> ]*
+    }
+
+    token not_test {
+        | 'not' <.dws>+ <not_test>
+        | <comparison>
+    }
+
+    token comparison {
+        [
+            | <expression> <.dws>* <comparison-operator> <.dws>* <expression>
+            | <expression>
+        ]
+    }
+
+    token comparison-operator {
+        ||  '=='
+        ||  '!='
+        ||  '>='
+        ||  '<='
+        ||  '>'
+        ||  '<'
+        ||  'is not'
+        ||  'is'
+        ||  'in'
+        ||  'not in'
+    }
+
     token number            {
         | <float>
         | <integer>

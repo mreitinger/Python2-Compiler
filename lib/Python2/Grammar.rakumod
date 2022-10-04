@@ -95,7 +95,7 @@ package Python2::Grammar {
         token TOP {
             :my $*WHITE-SPACE = rx/[\h|"\\\n"]/;
             \s* # allow leading whitespace
-            <expression>
+            <test>
             \s* # allow trailing whitespace
         }
 

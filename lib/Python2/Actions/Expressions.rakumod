@@ -402,4 +402,101 @@ role Python2::Actions::Expressions {
             splat           => $/<splat> ?? True !! False,
         ));
     }
+
+    multi method test($/ where $/<lambda-definition>) {
+        $/.make(Python2::AST::Node::Test.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            left        => $<lambda-definition>.made,
+            right       => Nil,
+            condition   => Nil,
+        ));
+    }
+
+    multi method test($/) {
+        $/.make(Python2::AST::Node::Test.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            left            => $<or_test>[0].made,
+            right           => $<test>          ?? $<test>.made       !! Nil,
+            condition       => $<or_test>[1]    ?? $<or_test>[1].made !! Nil,
+        ));
+    }
+
+    method or_test($/) {
+        $/.make(Python2::AST::Node::Test::Logical.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            values          => $<and_test>.map({ $_.made }),
+
+            # if we have more than one value set the condition - otherwise set it to Nil
+            # so we can optimize it out later
+            condition       => $<and_test>[1]
+                ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'or')
+                !! Nil,
+        ));
+    }
+
+    method and_test($/) {
+        $/.make(Python2::AST::Node::Test::Logical.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            values          => $<not_test>.map({ $_.made }),
+
+            # if we have more than one value set the condition - otherwise set it to Nil
+            # so we can optimize it out later
+            condition       => $<not_test>[1]
+                ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'and')
+                !! Nil,
+        ));
+    }
+
+    multi method not_test($/ where $/<comparison>) {
+        $/.make($/<comparison>.made);
+    }
+
+    multi method not_test($/ where $/<not_test>) {
+        $/.make(Python2::AST::Node::Test::Logical.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            values          => ( $<not_test>.made ),
+            condition       => Python2::AST::Node::Test::LogicalCondition.new(condition => 'not'),
+        ));
+    }
+
+    method comparison ($/) {
+        my $comparison-operator = $/<comparison-operator>
+            ?? $/<comparison-operator>.Str
+            !! '';
+
+        my %operators =
+            '=='        => '__eq__',
+            '!='        => '__ne__',
+            '<'         => '__lt__',
+            '>'         => '__gt__',
+            '<='        => '__le__',
+            '>='        => '__ge__',
+            'is'        => '__is__',
+            'is not'    => '__is__',
+            'in'        => '__contains__',
+            'not in'    => '__contains__';
+
+        $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
+            start-position  	=> $/.from,
+            end-position    	=> $/.to,
+
+            # 'not in' is handled as a dedicated operator
+            negate              => $comparison-operator (elem) ('not in', 'is not'),
+
+            left                => $/<expression>[0].made,
+
+            right               => $/<expression>[1]
+                ?? $/<expression>[1].made
+                !! Nil,
+
+            comparison-operator => $comparison-operator.chars > 0
+                ?? %operators{$comparison-operator}
+                !! Nil,
+        ));
+    }
 }
