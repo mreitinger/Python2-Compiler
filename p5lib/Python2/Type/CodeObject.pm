@@ -12,7 +12,7 @@ use Clone qw/ clone /;
 
 
 sub new {
-    my ($self, $pstack) = @_;
+    my ($self, $pstack, $locals) = @_;
 
     return bless([Python2::Stack->new($Python2::builtins)], $self);
 }

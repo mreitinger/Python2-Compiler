@@ -33,7 +33,7 @@ class Python2::Backend::Perl5 {
 
             sub __block__ {
                 my ($self, $args) = @_;
-                my $stack = $self;
+                my $stack = $self->[0];
 
                 %s
             }
@@ -57,7 +57,7 @@ class Python2::Backend::Perl5 {
 
             sub __block__ {
                 my ($self, $args) = @_;
-                my $stack = $self;
+                my $stack = $self->[0];
 
                 %s
             }
@@ -81,7 +81,12 @@ class Python2::Backend::Perl5 {
             }
 
             sub __call__ {
-                my $stack = $self->[0];
+                my ($self, $locals, $parent) = @_;
+
+                my $stack = Python2::Stack->new(
+                    Python2::Stack->new($Python2::builtins, $parent),
+                    $locals
+                );
 
                 %s
             }
@@ -762,7 +767,7 @@ class Python2::Backend::Perl5 {
         # everything in %!modules will be placed at the beginning of the code
         %!modules{$perl5_class_name} = sprintf(
             # we inject the base class at runtime by setting up @Package::ISA
-            'package %s { %s sub __build__ { my $self = shift; $self->SUPER::__build__(); my $stack = $self; %s; return $self; } }',
+            'package %s { %s sub __build__ { my $self = $_[0]; $self->SUPER::__build__(); my $stack = $self->[0]; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
             $.e($node.block)
@@ -863,6 +868,7 @@ class Python2::Backend::Perl5 {
             my $current-element = @elements.shift;
             my $next-element = @elements.first;
 
+            # function call
             if $current-element ~~ Python2::AST::Node::Atom and $next-element ~~ Python2::AST::Node::ArgumentList {
                     my $argument-list = @elements.shift;
 
@@ -873,6 +879,8 @@ class Python2::Backend::Perl5 {
 
                     $p5 ~= sprintf('$p = $$p->__call__(%s);', $.e($argument-list));
             }
+
+            # method call
             elsif $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
                 my $argument-list = @elements.shift;
 
@@ -884,6 +892,9 @@ class Python2::Backend::Perl5 {
 
                 $p5 ~= '} else {';
 
+                # keep track of the object so we can pass it as self
+                $p5 ~= 'my $o = $p;';
+
                 # no p5-style method, give the object a chance to return a Function object via the __getattr__ fallback
                 $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new('%s'), {});|, $current-element.name);
 
@@ -891,10 +902,12 @@ class Python2::Backend::Perl5 {
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('AttributeError', ref($$p) . " instance has no attribute '%s'");|, $current-element.name);
 
                 # got a python-style method, call it
-                $p5 ~= sprintf(q|$p = $$p->__call__(%s);|, $.e($argument-list));
+                $p5 ~= sprintf(q|$p = $$p->__call__($$o, %s);|, $.e($argument-list));
 
                 $p5 ~= '}';
             }
+
+            # subscript
             elsif $current-element ~~ Python2::AST::Node::Subscript {
                 if $current-element.target {
                     $p5 ~= sprintf('$p = ${$p}->__getslice__(%s, {});', $.e($current-element)) # array slice
@@ -906,19 +919,24 @@ class Python2::Backend::Perl5 {
                         if $node.must-resolve;
                 }
             }
+
+            # attribute access
             elsif $current-element ~~ Python2::AST::Node::Name {
                 $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
             }
+
+            # single name
             else {
+                #die;
                 $p5 ~= sprintf('$p = %s;', $.e($current-element));
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element.expression ~~ Python2::AST::Node::Name);
             }
         }
 
-        return sprintf('sub{%s; return $p; }->()', $p5);
+        return sprintf('sub{ %s; return $p; }->()', $p5);
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {

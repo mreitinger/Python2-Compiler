@@ -4,6 +4,7 @@ use v5.26.0;
 use warnings;
 use strict;
 
+use Python2::Stack;
 use Python2::Internals;
 use Clone qw/ clone /;
 

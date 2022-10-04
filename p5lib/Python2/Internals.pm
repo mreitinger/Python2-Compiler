@@ -15,19 +15,22 @@ use constant {
     ITEMS   => 1,
 };
 
-# set a variable on our stack
+# set a variable on our stack, only used for internals
+# everything else must assign to the ref returned by getvar
 sub setvar {
     my ($stack, $name, $value) = @_;
 
-    $stack->[ITEMS]->{$name} = $value;
+    ${ $stack->get($name) } = $value;
 }
 
 # delete a variable on our stack
 sub delvar {
     my ($stack, $name) = @_;
 
-    defined $stack->[ITEMS]->{$name}
-        ? delete $stack->[ITEMS]->{$name}
+    if ($stack->has($name)) { warn 'has' . $stack->has($name); }
+
+    $stack->has($name)
+        ? $stack->delete($name)
         : die Python2::Type::Exception->new('NameError', "name '$name' not defined");
 }
 
@@ -35,22 +38,22 @@ sub delvar {
 sub getvar {
     my ($stack, $recurse, $name) = @_;
 
-    $name = Python2::Type::Scalar::String->new($name);
-
     # if recursion is disabled (for variable assignment) don't travel upwards on the stack
-    return $stack->__getattr__($name)
+    return $stack->get($name)
         unless $recurse;
 
     # recursion enabled - look upwards to find the variable
     my $call_frame = $stack;
 
-    until (${ $call_frame->__hasattr__($name) }->__tonative__ or not defined $call_frame->__parent__) {
-        $call_frame = $call_frame->__parent__;
+    until ($call_frame->has($name) or not defined $call_frame->parent) {
+        $call_frame = $call_frame->parent;
     }
 
-    return ${ $call_frame->__hasattr__($name) }->__tonative__
-        ? $call_frame->__getattr__($name)
-        : $stack->__getattr__($name);
+    my $retval = $call_frame->has($name)
+        ? $call_frame->get($name)
+        : $stack->get($name);
+
+    return $retval;
 }
 
 sub apply_base_class {
