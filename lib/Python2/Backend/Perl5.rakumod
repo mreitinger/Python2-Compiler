@@ -69,6 +69,8 @@ class Python2::Backend::Perl5 {
 
     # Wrapper used for expressions
     has Str $!expression-wrapper = q:to/END/;
+        %s
+
         package Python2::Type::CodeObject::%s {
 
             use base 'Python2::Type::CodeObject';
@@ -158,6 +160,8 @@ class Python2::Backend::Perl5 {
 
         my Str $output = sprintf(
             $!expression-wrapper,           # wrapper / sprintf definition
+
+            %!modules.values.join("\n"),    # class definitions, in expressions only used for lambdas
 
             # name of the class, will be Python2::Type::CodeObject::$embedded
             $embedded,
