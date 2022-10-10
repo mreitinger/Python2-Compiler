@@ -240,6 +240,22 @@ sub startswith {
     return \Python2::Type::Scalar::Bool->new(0);
 }
 
+sub __getitem__ {
+    my ($self, $key) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("string slice expects an integer, got %s", $key->__type__))
+        unless $key->__type__ eq 'int';
+
+    my $position = $key->__tonative__;
+    my $string   = $self->__tonative__;
+
+    die Python2::Type::Exception->new('IndexError', 'string index out of range')
+        if ($position < 0 ? $position*-1 : $position+1) > length($string);
+
+    return \Python2::Type::Scalar::String->new(
+        substr($string, $position, 1)
+    );
+}
 
 sub __getslice__ {
     my ($self, $start, $target) = @_;
