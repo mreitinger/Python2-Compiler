@@ -213,6 +213,14 @@ role Python2::Grammar::Expressions {
         ]
     }
 
+    token function-definition-argument-list {
+        <function-definition-argument>* %% <list-delimiter>
+    }
+
+    token function-definition-argument {
+        <name> [<.dws>* '=' <.dws>* <test>]?
+    }
+
     token comparison-operator {
         ||  '=='
         ||  '!='

@@ -197,12 +197,4 @@ role Python2::Grammar::Statements {
     token class-definition {
         'class' <.dws>+ <name> [ '(' <.dws>* <name> <.dws>* ')' ]? <.dws>* ':' <block>
     }
-
-    token function-definition-argument-list {
-        <function-definition-argument>* %% <list-delimiter>
-    }
-
-    token function-definition-argument {
-        <name> [<.dws>* '=' <.dws>* <test>]?
-    }
 }

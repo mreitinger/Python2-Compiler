@@ -228,26 +228,6 @@ role Python2::Actions::Statements {
         ))
     }
 
-    # TODO we should do a a AST intermediate here to provide more data for further optimization
-    method function-definition-argument-list($/) {
-        my Python2::AST::Node::Statement::FunctionDefinition::Argument @argument-list;
-
-        for $/<function-definition-argument> -> $argument {
-            @argument-list.push($argument.made);
-        }
-
-        $/.make(@argument-list);
-    }
-
-    method function-definition-argument($/) {
-        $/.make(Python2::AST::Node::Statement::FunctionDefinition::Argument.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            name            => $/<name>.made,
-            default-value   => $/<test> ?? $/<test>.made !! Nil,
-        ));
-    }
-
     multi method block($/ where $<statement>) {
         my $block = Python2::AST::Node::Block.new(
             start-position  => $/.from,

@@ -499,4 +499,23 @@ role Python2::Actions::Expressions {
                 !! Nil,
         ));
     }
+
+    method function-definition-argument-list($/) {
+        my Python2::AST::Node::Statement::FunctionDefinition::Argument @argument-list;
+
+        for $/<function-definition-argument> -> $argument {
+            @argument-list.push($argument.made);
+        }
+
+        $/.make(@argument-list);
+    }
+
+    method function-definition-argument($/) {
+        $/.make(Python2::AST::Node::Statement::FunctionDefinition::Argument.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $/<name>.made,
+            default-value   => $/<test> ?? $/<test>.made !! Nil,
+        ));
+    }
 }
