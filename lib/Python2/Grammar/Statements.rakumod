@@ -152,13 +152,6 @@ role Python2::Grammar::Statements {
         <level> 'except' [<.dws>+ <name> [<.dws>* [','|'as'] <.dws>* <name>]?]? <.dws>* ':' <block>
     }
 
-    token extended-test-list {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
-        <.dws>*
-        <test>+ %% <list-delimiter>
-        <.dws>*
-    }
-
     # power ain't right here it would allow too much in the future like
     # '(a if 1 else b) = 3'. not sure if we can prevent this here of if we do some post
     # processing?

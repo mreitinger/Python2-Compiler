@@ -221,6 +221,13 @@ role Python2::Grammar::Expressions {
         <name> [<.dws>* '=' <.dws>* <test>]?
     }
 
+    token extended-test-list {
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        <.dws>*
+        <test>+ %% <list-delimiter>
+        <.dws>*
+    }
+
     token comparison-operator {
         ||  '=='
         ||  '!='
