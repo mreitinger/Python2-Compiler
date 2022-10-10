@@ -6,7 +6,6 @@ use strict;
 
 use Python2::Stack;
 use Python2::Internals;
-use Clone qw/ clone /;
 
 
 sub new {

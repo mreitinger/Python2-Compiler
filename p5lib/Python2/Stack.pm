@@ -48,6 +48,12 @@ sub delete {
     $self->[1]->__delattr__($name);
 }
 
+# 'clear' the all local elements (for example at the beginning of every function body)
+sub clear {
+    my $self = shift;
+    $self->[1] = Python2::Stack::Frame->new(undef);
+}
+
 sub parent { return shift->[0]; }
 
 1;

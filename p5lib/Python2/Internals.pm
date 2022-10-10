@@ -6,7 +6,6 @@ use List::Util::XS; # ensure we use the ::XS version
 use Data::Dumper;
 
 use Scalar::Util qw/ looks_like_number blessed /;
-use Clone qw/ clone /;
 use Carp qw/ confess /;
 use Module::Load;
 

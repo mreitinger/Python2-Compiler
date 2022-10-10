@@ -697,7 +697,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $self = shift; my $stack = clone $self->[0];';
+        $block ~= 'my $self = shift; my $stack = $self->[0]; $stack->clear;';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';

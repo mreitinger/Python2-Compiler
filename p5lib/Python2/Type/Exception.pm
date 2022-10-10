@@ -4,7 +4,6 @@ use warnings;
 use strict;
 
 use Devel::StackTrace;
-use Clone qw/ clone /;
 
 use overload
     '""' => '__str__',
@@ -70,10 +69,10 @@ sub new {
 }
 
 sub __call__ {
-    my $object          = clone(shift @_);
-    my $message         = shift @_;
+    my ($self, $message) = @_;
 
-    $object->[1] = $message;
+    my $object          = Python2::Type::Exception->new($self->[0], $message);
+
     $object->[2] = Devel::StackTrace->new(),
 
     return \$object;

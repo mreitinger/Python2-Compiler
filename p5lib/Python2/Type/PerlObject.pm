@@ -9,7 +9,6 @@ use Python2::Type::PerlSub;
 use Module::Load;
 
 use Scalar::Util qw/ blessed refaddr /;
-use Clone qw/ clone /;
 
 sub new {
     my $self = shift;
@@ -81,8 +80,10 @@ sub __eq__ {
 }
 
 sub __call__ {
-    my $object = clone(shift);
-    $object->{object} = $object->{class}->new();
+    my $self = shift;
+
+    my $object = Python2::Type::PerlObject->new($self->{class});
+    $object->{object} = $self->{class}->new();
     return \$object;
 }
 

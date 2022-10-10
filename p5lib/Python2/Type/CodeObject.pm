@@ -8,8 +8,6 @@ use strict;
 
 use Python2;
 use Python2::Internals;
-use Clone qw/ clone /;
-
 
 sub new {
     my ($self, $pstack, $locals) = @_;
