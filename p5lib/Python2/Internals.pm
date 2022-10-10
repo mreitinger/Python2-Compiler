@@ -56,26 +56,6 @@ sub getvar {
     return $retval;
 }
 
-sub apply_base_class {
-    my $stack        = shift;       # the stack of the object we just created
-    my $pstack       = shift;       # the stack of our caller
-    my $base_class   = shift;       # the base class to be inherited
-
-    # attempt to find the base class in our parent stack
-    $base_class = getvar(1, $base_class);
-
-    # check if it really exists
-    $$base_class // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");
-
-    # create a instance of our base class
-    # TODO we might get by with just calling $base__class::__build__(...)
-    # TODO and pass our own object
-    my $base_object = $$base_class->__build__($pstack);
-
-    # replace the stack of our object with the stack of our parent class
-    @$stack = @{ clone $$base_class->{stack} };
-}
-
 sub import_module {
     my ($stack, $import_definition) = @_;
 
