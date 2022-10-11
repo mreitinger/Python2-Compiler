@@ -240,6 +240,45 @@ sub startswith {
     return \Python2::Type::Scalar::Bool->new(0);
 }
 
+sub endswith {
+    pop(@_); # default named arguments hash
+    my($self, $sub, $start, $end) = @_;
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf("endswith() expects a string or tuple of strings as substring(s), got %s", $sub->__type__))
+        unless ($sub->__type__ eq 'str' or $sub->__type__ eq 'tuple');
+
+    my @subs;
+    if ($sub->__type__ eq 'tuple') {
+        @subs = map {
+            die Python2::Type::Exception->new('TypeError', 'endswith() found invalid list element: ' . $_->__type__)
+                unless ($_->__class__ eq 'Python2::Type::Scalar::String');
+
+            $_->__tonative__;
+        } @$sub;
+    } else {
+        @subs = ($sub->__tonative__);
+    }
+
+    $start  ||= Python2::Type::Scalar::Num->new(0);
+    $end    ||= Python2::Type::Scalar::Num->new(length($self->__tonative__));
+
+    die Python2::Type::Exception->new('TypeError',
+        sprintf("endswith() expects integers as slice parameters, got %s and %s", $start->__type__, $end->__type__))
+        unless ($start->__type__ eq 'int' and $end->__type__ eq 'int');
+
+    my $offset  = $end->__tonative__ - $start->__tonative__;
+    my $s       = substr $self->__tonative__, $start->__tonative__, $offset;
+
+    for $sub (@subs) {
+        return \Python2::Type::Scalar::Bool->new(1) if $sub eq substr($s, -length($sub));
+    }
+
+    return \Python2::Type::Scalar::Bool->new(0);
+}
+
+
+
 sub __getitem__ {
     my ($self, $key) = @_;
 
