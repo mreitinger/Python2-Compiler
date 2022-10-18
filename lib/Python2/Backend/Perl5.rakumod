@@ -837,20 +837,6 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
-    # this implementation does not account for some of the more complex constructs like chaining function calls
-    # to call returned references to functions:
-    #
-    # def foo():
-    #     def bar():
-    #         print 1
-    #
-    # return bar
-    #
-    # foo()()
-    #
-    # to handle this way more complicated code needs to be generated, see this method around b76c82b3ff351510adb9d7de3da34bc630ea55cc
-    # which did not handle calling methods on perl objects.
-
     multi method e(Python2::AST::Node::Power $node) {
         my @elements = ($node.atom, $node.trailers).flat;
 
@@ -929,6 +915,11 @@ class Python2::Backend::Perl5 {
                 $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
                     if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
+            }
+
+            # function call to returned element ("x[0]()" and similar)
+            elsif $current-element ~~ Python2::AST::Node::ArgumentList {
+                $p5 ~= sprintf(q|$p = $$p->__call__(%s);|, $.e($current-element));
             }
 
             # single name
