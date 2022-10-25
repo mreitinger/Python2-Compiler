@@ -743,8 +743,8 @@ class Python2::Backend::Perl5 {
 
         my Str $block;
 
-        # local stack frame for this function
-        $block ~= 'my $stack = Python2::Stack->new($Python2::builtins);';
+        # local stack frame for this lambda
+        $block ~= 'my $self = shift; my $stack = $self->[0]; $stack->clear;';
 
         # get arguments
         for $node.argument-list -> $argument {
@@ -754,14 +754,13 @@ class Python2::Backend::Perl5 {
         # the actual function body
         $block ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
 
-        # the call to shift get rid of $self  which we don't need in this case.
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { shift; %s } }',
+            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { %s } }',
             $perl5_class_name,
             $block,
         );
 
-        return sprintf('\%s->new()', $perl5_class_name);
+        return sprintf('\%s->new($stack)', $perl5_class_name);
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
@@ -865,7 +864,7 @@ class Python2::Backend::Perl5 {
                     $p5 ~= sprintf('$p = %s;', $.e($current-element));
 
                     $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
-                        if $node.must-resolve;
+                        if ($current-element.expression ~~ Python2::AST::Node::Name) and $node.must-resolve;
 
                     $p5 ~= sprintf('$p = $$p->__call__(%s);', $.e($argument-list));
             }
