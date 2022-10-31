@@ -5,6 +5,8 @@ print type(1.1)
 print type('foo')
 print type(())
 
+print type([]).__name__
+
 try:
     type()
 except TypeError:
