@@ -1026,14 +1026,28 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::TestList $node) {
-        # if a tuple would only contain a single element python disregards the parenthesis
         # TODO python allowes the creation of single-element tuples by adding a comma "(1,)"
 
-        return  $node.tests.elems > 1
-                    ??  sprintf('\Python2::Type::Tuple->new(%s)',
-                            $node.tests.map({ '${' ~ self.e($_) ~ '}' }).join(', ')
-                        )
-                    !!  sprintf('%s', $.e($node.tests[0]));
+        # empty tuple "x = ()" becomes an empty tuple
+        if ($node.tests.elems == 0) {
+            return '\Python2::Type::Tuple->new()';
+        }
+
+        # tuple with multiple values "x = (1, 2, 3)" - regular tuple
+        elsif $node.tests.elems > 1 {
+            return sprintf('\Python2::Type::Tuple->new(%s)',
+                $node.tests.map({ '${' ~ self.e($_) ~ '}' }).join(', ')
+            );
+        }
+
+        elsif $node.tests.elems == 1 {
+            # if a tuple would only contain a single element python disregards the parenthesis
+            return sprintf('%s', $.e($node.tests[0]));
+        }
+
+        else {
+            die("Invalid TestList"); # should be unreachable
+        }
     }
 
     # dictionary handling

@@ -224,7 +224,7 @@ role Python2::Grammar::Expressions {
     token extended-test-list {
         :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
         <.dws>*
-        <test>+ %% <list-delimiter>
+        <test>* %% <list-delimiter>
         <.dws>*
     }
 
