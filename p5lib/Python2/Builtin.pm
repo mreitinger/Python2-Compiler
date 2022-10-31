@@ -21,5 +21,6 @@ use Python2::Builtin::Set;
 use Python2::Builtin::Dumpstack;
 use Python2::Builtin::Any;
 use Python2::Builtin::Isinstance;
+use Python2::Builtin::Type;
 
 1;

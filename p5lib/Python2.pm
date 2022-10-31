@@ -46,6 +46,7 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'dumpstack'     => Python2::Builtin::Dumpstack->new(),
     'any'           => Python2::Builtin::Any->new(),
     'isinstance'    => Python2::Builtin::Isinstance->new(),
+    'type'          => Python2::Builtin::Type->new(),
 
     'list'          => Python2::Type::List->new(),
     'dict'          => Python2::Type::Dict->new(),
