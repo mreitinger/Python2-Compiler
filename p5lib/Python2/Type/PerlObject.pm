@@ -52,6 +52,7 @@ sub can {
     my ($self, $method_name) = @_;
 
     return 1 if $method_name eq 'new';
+    return 1 if $method_name eq '__tonative__';
 
     if ($self->{class}->can($method_name)) {
         return 1;
