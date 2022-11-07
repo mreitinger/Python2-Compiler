@@ -364,7 +364,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
-        return sprintf('Python2::Internals::py2print(${ %s }, {})', $.e($node.value));
+        my Str $p5 = $node.values.map({ '${' ~ $.e($_) ~ '}' }).join(',');
+
+        return sprintf('Python2::Internals::py2print(%s, {})', $p5);
     }
 
     multi method e(Python2::AST::Node::Statement::Del $node) {

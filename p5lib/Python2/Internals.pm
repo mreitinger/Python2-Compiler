@@ -103,7 +103,9 @@ sub unsplat {
 
 sub py2print {
     pop(@_); # named arguments hash
-    print $_->__print__ foreach(@_);
+    my @values = @_;
+
+    print join(' ', map { $_->__print__ } @values);
     print "\n";
 }
 

@@ -74,7 +74,7 @@ role Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::Print.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/.values[0].made
+            values          => $/<test>.map({ $_.made }),
         ));
     }
 

@@ -57,7 +57,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-print {
-        'print' <.dws>* <test>
+        'print' <.dws>* <test>+ %% <list-delimiter>
         <.end-of-statement>
     }
 

@@ -157,7 +157,7 @@ class Python2::AST {
     }
 
     class Node::Statement::Print is Node {
-        has $.value is required is rw;
+        has @.values is required is rw;
     }
 
     class Node::Statement::Continue is Node {}
