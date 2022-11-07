@@ -137,7 +137,12 @@ sub __call__ {
     shift @_; # $self - unused
 
     # TODO - this attempts to convert way more than python
-    \Python2::Type::Scalar::String->new($_[0]->__tonative__);
+
+    return $_[0]->__type__ eq 'str'
+        # __str__ for string returns "'str'" - workaround
+        # so we get matching output to python2
+        ?  \Python2::Type::Scalar::String->new($_[0]->__tonative__)
+        :  \Python2::Type::Scalar::String->new($_[0]->__str__);
 }
 
 sub count {
