@@ -83,9 +83,45 @@ sub __eq__ {
 sub __call__ {
     my $self = shift;
 
-    my $object = Python2::Type::PerlObject->new($self->{class});
-    $object->{object} = $self->{class}->new();
-    return \$object;
+    my @argument_list = @_;
+
+    # last argument is the hashref with named arguments
+    my $named_arguments = pop(@argument_list);
+
+    # convert all 'Python' objects to native representations
+    eval {
+        foreach my $argument (@argument_list) {
+            die "Unblessed argument " . Dumper($argument)
+                unless ref($argument);
+
+            die "Argument without tonative " . Dumper($argument)
+                unless $argument->can('__tonative__');
+
+            $argument = $argument->__tonative__;
+        }
+    };
+
+    if ($@) {
+        warn "EXCEPTION $@";
+    }
+
+    # compatiblity for the existing Inline::Python2 based DTML/python-expression compiler
+    if (defined $self->{object} and $self->{class} eq 'DTML::Runtime::Method') {
+        return Python2::Internals::convert_to_python_type( $self->{object}->__call__(@argument_list) );
+    }
+    else {
+        my $object = Python2::Type::PerlObject->new($self->{class});
+        eval {
+            #$object->{object} = $self->{class}->new(@argument_list);
+            $object->{object} = $self->{class}->new();
+        };
+
+        if ($@) {
+            die Python2::Type::Exception->new('Exception', $@);
+        }
+
+        return \$object;
+    }
 }
 
 sub __hasattr__ {
