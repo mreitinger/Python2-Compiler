@@ -119,8 +119,7 @@ sub __call__ {
     else {
         my $object = Python2::Type::PerlObject->new($self->{class});
         eval {
-            #$object->{object} = $self->{class}->new(@argument_list);
-            $object->{object} = $self->{class}->new();
+            $object->{object} = $self->{class}->new(@argument_list);
         };
 
         if ($@) {
