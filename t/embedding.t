@@ -422,5 +422,67 @@ subtest "embedding - __str__ for PerlObject" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - __len__ for PerlObject" => sub {
+    my Str $input = q:to/END/;
+    def foo(a, b):
+        print len(a)
+
+        try:
+            print len(b)
+        except NotImplementedError:
+            print "Got NotImplementedError for object without __str__, as expected"
+        except:
+            print "Got other exception, failure."
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        {
+            package PerlObjectTestWithStr;
+
+            sub __str__ { '__str__-called' }
+
+            sub new { return bless([], shift); }
+
+            1;
+        }
+
+        {
+            package PerlObjectTestWithoutStr;
+
+            sub new { return bless([], shift); }
+
+            1;
+        }
+
+        my $with    = PerlObjectTestWithStr->new();
+        my $without = PerlObjectTestWithoutStr->new();
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        $p5->__run_function__('foo', [$with, $without]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected
+        = "14\nGot NotImplementedError for object without __str__, as expected\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
+
+
 
 done-testing();

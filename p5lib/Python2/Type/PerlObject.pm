@@ -135,6 +135,15 @@ sub __hasattr__ {
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 
+sub __len__ {
+    my ($self) = @_;
+
+    die Python2::Type::Exception->new('NotImplementedError', 'PerlObject of class \'' . ref($self->{object}) . "' does not implement __str__, unable to handle __len__")
+        unless $self->{object}->can('__str__');
+
+    return \Python2::Type::Scalar::Num->new(length $self->{object}->__str__);
+}
+
 # called for every unknown method
 sub AUTOLOAD {
     my ($self, @argument_list) = @_;
