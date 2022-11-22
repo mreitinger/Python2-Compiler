@@ -353,7 +353,7 @@ sub convert_to_python_type {
     return \Python2::Type::Scalar::None->new() unless defined $value;
 
     # if it's already a native type just return it
-    if (blessed($value) and (blessed($value) =~ m/^Python2::Type::/)) {
+    if (blessed($value) and $value->isa('Python2::Type')) {
         return \$value;
     }
 
