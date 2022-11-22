@@ -64,15 +64,17 @@ sub strip {
 sub join {
     my ($self, $iterable) = @_;
 
-    die Python2::Type::Exception->new('TypeError', sprintf("join() expects a iterable but got '%s'", $iterable->__type__))
-        unless ($iterable->__type__ eq 'list');
+    die Python2::Type::Exception->new('TypeError', sprintf("join() expects a string or iterable but got '%s'", $iterable->__type__))
+        unless ($iterable->__type__ =~ m/^(list|str)$/);
 
-    return \Python2::Type::Scalar::String->new(join($self->__tonative__, map {
-        die Python2::Type::Exception->new('TypeError', sprintf("expected string but found '%s' in iterable", $_->__type__))
-            unless $_->__type__ eq 'str';
+    return $iterable->__type__ eq 'list'
+        ?   \Python2::Type::Scalar::String->new(join($self->__tonative__, map {
+                die Python2::Type::Exception->new('TypeError', sprintf("expected string but found '%s' in iterable", $_->__type__))
+                    unless $_->__type__ eq 'str';
 
-        $_->__tonative__;
-    } @$iterable ));
+                $_->__tonative__;
+            } @$iterable ))
+        :   \Python2::Type::Scalar::String->new(join($self->__tonative__, split(//, $iterable->__tonative__)));
 }
 
 sub replace {
