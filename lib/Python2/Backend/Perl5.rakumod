@@ -12,6 +12,7 @@ class Python2::Backend::Perl5 {
     # Wrapper used for complete scripts
     has Str $!script-wrapper = q:to/END/;
         use v5.26.0;
+        use utf8;
         use strict;
         use lib qw( p5lib );
 
@@ -69,6 +70,11 @@ class Python2::Backend::Perl5 {
 
     # Wrapper used for expressions
     has Str $!expression-wrapper = q:to/END/;
+        use v5.26.0;
+        use utf8;
+        use strict;
+        use lib qw( p5lib );
+
         %s
 
         package Python2::Type::CodeObject::%s {
