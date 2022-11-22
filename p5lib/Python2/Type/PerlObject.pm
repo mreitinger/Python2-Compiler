@@ -66,8 +66,15 @@ sub can {
 sub __str__ {
     my $self = shift;
 
-    return sprintf('<PerlObject %s at %s>', ref($self->{object}), refaddr($self));
+    die Python2::Type::Exception->new('NotImplementedError', 'PerlObject of class \'' . ref($self->{object}) . "' does not implement __str__")
+        unless $self->{object}->can('__str__');
+
+    return \Python2::Type::Scalar::String->new(
+        $self->{object}->__str__
+    );
 }
+
+sub __print__ { ${ shift->__str__ }; }
 
 sub __tonative__ { return shift->{object}; }
 
