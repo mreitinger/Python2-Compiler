@@ -55,6 +55,15 @@ sub __str__ {
 
 sub __tonative__ { ...; }
 
+sub __getattr__ {
+    my ($self, $attr) = @_;
+
+    die Python2::Type::Exception->new(
+        'NotImplementedError',
+        "__getattr__('$attr') not implemented for PerlSub"
+    );
+}
+
 sub __type__ { return 'perlsub'; }
 
 1;
