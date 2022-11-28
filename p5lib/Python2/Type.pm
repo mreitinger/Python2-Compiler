@@ -63,6 +63,19 @@ sub __le__          { die Python2::Type::Exception->new('NotImplementedError', '
 sub __ge__          { die Python2::Type::Exception->new('NotImplementedError', '__ge__ between ' . $_[0]->__type__ . ' and ' . $_[1]->__type__);; } # >=
 sub __contains__    { die Python2::Type::Exception->new('NotImplementedError', '__contains__ between ' . $_[0]->__type__ . ' and ' . $_[1]->__type__);; } # in
 sub __len__         { die Python2::Type::Exception->new('NotImplementedError', '__len__ for ' . $_[0]->__type__) };
+sub __getattr__     {
+    pop @_; # unused named attribute hash
+
+    my ($self, $attr) = @_;
+
+    die Python2::Type::Exception->new('TypeError', '__getattr__ expected a attribute to fetch, got none.')
+        unless defined $attr;
+
+    die Python2::Type::Exception->new(
+        'AttributeError',
+        sprintf("'%s' object has no attribute '%s'", $self->__type__, $attr)
+    );
+}
 
 
 # is - used for our X is Y implementation, python2 has no explicit __is__
