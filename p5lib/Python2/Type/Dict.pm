@@ -88,6 +88,21 @@ sub has_key {
     return \Python2::Type::Scalar::Bool->new(exists $self->{$key});
 }
 
+sub update {
+    my ($self, $dict) = @_;
+
+    # TODO python is less strict here
+    die Python2::Type::Exception->new('TypeError', 'update() expected a single dict as argument, got nothing')
+        unless defined $dict;
+
+    die Python2::Type::Exception->new('TypeError', 'Expected update() expected dict but got ' . $dict->__type__)
+        unless $dict->__type__ eq 'dict';
+
+    while (my ($key, $value) = each %$dict ) {
+        $self->__setitem__($key, $value);
+    }
+}
+
 
 sub __setitem__ {
     my ($self, $key, $value) = @_;
