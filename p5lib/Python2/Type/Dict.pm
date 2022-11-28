@@ -105,6 +105,18 @@ sub update {
     return \Python2::Type::Scalar::None->new();
 }
 
+sub items {
+    my ($self) = @_;
+
+    my $list = Python2::Type::List->new();
+
+    foreach my $key (sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %$self) {
+        $list->append(Python2::Type::Tuple->new($key, $self->{$key}));
+    }
+
+    return \$list;
+}
+
 
 sub __setitem__ {
     my ($self, $key, $value) = @_;
