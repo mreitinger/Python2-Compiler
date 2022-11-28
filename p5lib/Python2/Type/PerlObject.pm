@@ -132,6 +132,27 @@ sub __call__ {
 
 sub __hasattr__ {
     my ($self, $key) = @_;
+
+    # our wrapped object implements __hasattr__ itself, pass the request on
+    return \Python2::Type::Scalar::Bool->new($self->{object}->__hasattr__($key->__tonative__))
+        if ($self->{object}->can('__hasattr__'));
+
+    # our wrapped object does not support __hasattr__ fall back to method check
+    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+}
+
+sub __getattr__ {
+    my ($self, $key) = @_;
+
+    # our wrapped object implements __getattr__ itself, pass the request on
+    return Python2::Internals::convert_to_python_type( $self->{object}->__getattr__($key->__tonative__));
+
+    die Python2::Type::Exception->new(
+        'NotImplementedError',
+        sprintf('PerlObject of class \'' . ref($self->{object}) . "' does not implement __getattr__, unable to handle __getattr__('%s')", $key->__tonative__)
+    ) unless $self->{object}->can('__getattr__');
+
+    # our wrapped object does not support __hasattr__ fall back to method check
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 

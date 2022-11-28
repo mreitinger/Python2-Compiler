@@ -317,9 +317,11 @@ subtest "embedding - return-values" => sub {
 
 subtest "embedding - __hasattr__ for PerlObject" => sub {
     my Str $input = q:to/END/;
-    def foo(a):
+    def foo(a, b):
         print hasattr(a, 'test_true')
         print hasattr(a, 'test_false')
+        print hasattr(b, 'test_true')
+        print hasattr(b, 'test_false')
     END
 
     my $compiler = Python2::Compiler.new();
@@ -337,10 +339,26 @@ subtest "embedding - __hasattr__ for PerlObject" => sub {
             1;
         }
 
+        {
+            package PerlObjectTestWithHasAttr;
+
+            sub __hasattr__ {
+                my ($self, $attr) = @_;
+
+                return 1 if $attr eq 'test_true';
+                return 0;
+            }
+
+            sub new { return bless([], shift); }
+
+            1;
+        }
+
         my $obj = PerlObjectTest->new();
+        my $obj_implementing_hasattr = PerlObjectTestWithHasAttr->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$obj]);
+        $p5->__run_function__('foo', [$obj, $obj_implementing_hasattr]);
     END
 
     my $perl5;
@@ -356,7 +374,7 @@ subtest "embedding - __hasattr__ for PerlObject" => sub {
         unless $perl5.exitcode == 0;
 
     my $expected;
-    $expected ~= "True\nFalse\n";
+    $expected ~= "True\nFalse\nTrue\nFalse\n";
 
     is $perl5_output, $expected, 'output matches';
 };
