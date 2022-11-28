@@ -101,6 +101,8 @@ sub update {
     while (my ($key, $value) = each %$dict ) {
         $self->__setitem__($key, $value);
     }
+
+    return \Python2::Type::Scalar::None->new();
 }
 
 

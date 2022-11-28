@@ -9,3 +9,6 @@ print mydict
 
 mydict.update({ 'e': 'f' })
 print mydict
+
+# check that we return None
+print mydict.update({ 'g': 'h' })
