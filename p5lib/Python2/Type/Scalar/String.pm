@@ -321,8 +321,11 @@ sub encode {
     my($self, $encoding, $errors) = @_;
 
     my $str = $self->__tonative__;
-    if ($encoding =~ m/utf-?8/) {
-        utf8::encode($str);
+    if ($encoding =~ m/utf\-?8/) {
+        warn sprintf(
+            "noop encode('utf-8') used for string: '%s<truncated>'. UTF-8 is now assumed everywhere.",
+            substr($str, 0, 10)
+        );
     } elsif ($encoding eq 'base64') {
         $str = encode_base64($str);
     } else {
@@ -337,8 +340,11 @@ sub decode {
     my($self, $encoding, $errors) = @_;
 
     my $str = $self->__tonative__;
-    if ($encoding =~ m/utf-?8/) {
-        utf8::decode($str);
+    if ($encoding =~ m/utf\-?8/) {
+        warn sprintf(
+            "noop decode('utf-8') used for string: '%s<truncated>'. UTF-8 is now assumed everywhere.",
+            substr($str, 0, 10)
+        );
     } elsif ($encoding eq 'base64') {
         $str = decode_base64($str);
     } else {

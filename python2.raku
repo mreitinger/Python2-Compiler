@@ -28,7 +28,7 @@ multi sub MAIN (
 }
 
 multi sub MAIN (Bool :$no-optimize = False, Bool :$dumpast = False, Str :$embedded) {
-    my Str $input = $*IN.slurp;
+    my Str $input = $*IN.slurp :enc('utf-8');
 
     my $compiler = Python2::Compiler.new(
         optimize => $no-optimize ?? False !! True,
@@ -38,11 +38,13 @@ multi sub MAIN (Bool :$no-optimize = False, Bool :$dumpast = False, Str :$embedd
     say $compiler.compile($input, :$embedded);
 }
 
-multi sub MAIN (Bool :$no-optimize = False, Bool :$dumpast = False, Str :$embedded!, Str :$expression!) {
+multi sub MAIN (Bool :$no-optimize = False, Bool :$dumpast = False, Str :$embedded!, Bool :$expression!) {
+    my Str $input = $*IN.slurp :enc('utf-8');
+
     my $compiler = Python2::Compiler.new(
         optimize => $no-optimize ?? False !! True,
         dumpast  => $dumpast,
     );
 
-    say $compiler.compile-expression($expression, :$embedded);
+    say $compiler.compile-expression($input, :$embedded);
 }
