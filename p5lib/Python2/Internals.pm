@@ -365,19 +365,7 @@ sub convert_to_python_type {
 
     # perl5 hashref
     if (ref($value) eq 'HASH') {
-        # TODO since perl does not support objects as hash keyes this can be optimized a lot by
-        # TODO creating a dedicated "PerlDict" class and skipping all of the object-as-dict-key
-        # implementation.
-        my $dict = Python2::Type::Dict->new();
-
-        while (my ($k, $v) = each(%$value)) {
-            $k = ${ convert_to_python_type($k) };
-            $v = ${ convert_to_python_type($v) };
-
-            $dict->__setitem__($k, $v);
-        }
-
-        return \$dict;
+        return \Python2::Type::PerlHash->new(\$value);
     }
 
     # perl5 array

@@ -25,6 +25,7 @@ use Python2::Type::Scalar::None;
 use Python2::Type::PerlObject;
 use Python2::Type::Exception;
 use Python2::Type::Function;
+use Python2::Type::PerlHash;
 
 # builtins is used as our top level stack so it must look like one
 our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({

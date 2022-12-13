@@ -20,6 +20,8 @@ class Python2::AST {
         # even if false everything but the last element (atom and/or trailers) must resolve.
         has Bool $.must-resolve is rw = True;
 
+        has Node $.assignment is rw;
+
         has Node $.atom     is required is rw;
         has Node @.trailers is required is rw;
     }

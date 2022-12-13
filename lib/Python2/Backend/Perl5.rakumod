@@ -415,11 +415,10 @@ class Python2::Backend::Perl5 {
 
         # simple '1:1' assignment
         if ($node.targets.elems == 1) {
+            $node.targets[0].assignment = $node.expression;
+
             return ((not $node.name-filter) or $node.name-filter.grep($node.targets[0].atom.expression.name))
-                ??  sprintf('${%s} = ${%s}',
-                        $.e($node.targets[0]),
-                        $.e($node.expression)
-                    )
+                ??  $.e($node.targets[0])
                 !!  '';
         }
 
@@ -856,7 +855,9 @@ class Python2::Backend::Perl5 {
             $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
                 if ($node.must-resolve and @elements[0].expression ~~ Python2::AST::Node::Name);
 
-            return sprintf('sub{ %s; return $p; }->()', $p5);
+            return $node.assignment
+                ?? sprintf('${ sub{ %s; return $p; }->() } = ${ %s }', $p5, $.e($node.assignment))
+                !! sprintf('sub{ %s; return $p; }->()', $p5);
         }
 
 
@@ -907,21 +908,34 @@ class Python2::Backend::Perl5 {
             # subscript
             elsif $current-element ~~ Python2::AST::Node::Subscript {
                 if $current-element.target {
+                    die("Variable Assignment to Slice not supported") if $node.assignment;
+
                     $p5 ~= sprintf('$p = ${$p}->__getslice__(%s, {});', $.e($current-element)) # array slice
                 }
                 else {
-                    $p5 ~= sprintf('$p = ${$p}->__getitem__(%s, {});', $.e($current-element));
+                    if ($node.assignment and @elements.elems == 0) {
+                        $p5 ~= sprintf('$p = ${$p}->__setitem__(%s, ${ %s }, {});', $.e($current-element), $.e($node.assignment));
+                    }
+                    else {
+                        $p5 ~= sprintf('$p = ${$p}->__getitem__(%s, {});', $.e($current-element));
 
-                    $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . %s);|, $.e($current-element))
-                        if $node.must-resolve;
+                        $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . %s);|, $.e($current-element))
+                            if $node.must-resolve;
+                    }
                 }
             }
 
             # attribute access
             elsif $current-element ~~ Python2::AST::Node::Name {
-                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
-                $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
-                    if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
+                if ($node.assignment and @elements.elems == 0) {
+                    $p5 ~= sprintf(q|$p = ${$p}->__setattr__(Python2::Type::Scalar::String->new(%s), ${ %s }, {});|, $.e($current-element), $.e($node.assignment));
+                }
+                else {
+                    $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
+
+                    $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
+                        if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
+                }
             }
 
             # function call to returned element ("x[0]()" and similar)

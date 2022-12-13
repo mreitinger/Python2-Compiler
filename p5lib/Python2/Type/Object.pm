@@ -36,6 +36,19 @@ sub __getattr__ {
     return $self->[0]->get($attribute_name->__tonative__);
 }
 
+sub __setattr__ {
+    pop @_; # unused named arguments
+    my ($self, $attribute_name, $value) = @_;
+
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    die Python2::Type::Exception->new('TypeError', '__setattr__() expects a value to assign, got ' . $attribute_name->__type__)
+        unless defined $value;
+
+    ${ $self->[0]->get($attribute_name->__tonative__) } = $value;
+}
+
 sub __hasattr__ {
     my ($self, $attribute_name) = @_;
 

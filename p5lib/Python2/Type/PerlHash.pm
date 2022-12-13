@@ -1,34 +1,32 @@
-package Python2::Type::Dict;
+# wraps a perl hashref directly, if the dictionary gets modified so does the perl hash.
+# used by convert_to_python_type to wrap perl hashrefs.
+package Python2::Type::PerlHash;
 
 use v5.26.0;
-use base qw/ Python2::Type /;
+use base qw/ Python2::Type::Dict /;
 
 use warnings;
 use strict;
 
-use Scalar::Util qw/ refaddr /;
-use Tie::PythonDict;
-
 sub new {
-    # initial arugments must be a array so we don't loose objects once they become hash keys
-    my ($class, @initial_elements) = @_;
+    my ($class, $hashref) = @_;
 
-    tie my %elements, 'Tie::PythonDict';
+    die Python2::Type::Exception->new('TypeError', 'Python2::Type::PerlHash expects a HASH, got nothing')
+        unless defined $hashref;
 
-    my $self = bless(\%elements, $class);
-
-    while (my $key = shift @initial_elements) {
-        my $value = shift @initial_elements;
-
-        $self->__setitem__($key, $value);
-    }
+    my $self = bless($hashref, $class);
 
     return $self;
 }
 
 sub keys {
     my $self = shift;
-    return \Python2::Type::List->new(keys %$self);
+
+    my $keys = Python2::Type::List->new();
+
+    $keys->append(${ Python2::Internals::convert_to_python_type($_) }) foreach keys %$$self;
+
+    return \$keys;
 }
 
 sub clear {
@@ -38,7 +36,12 @@ sub clear {
 
 sub values {
     my $self = shift;
-    return \Python2::Type::List->new(values %$self);
+
+    my $values = Python2::Type::List->new();
+
+    $values->append(${ Python2::Internals::convert_to_python_type($_) }) foreach values %$$self;
+
+    return \$values;
 }
 
 sub __str__ {
@@ -47,10 +50,10 @@ sub __str__ {
     return "{" .
         join (', ',
             map {
-                $_->__str__ .
+                ($_ =~ m/^(\d+|\d+\.\d+)$/ ? $_ : "'$_'") .
                 ': ' .
-                $self->{$_}->__str__
-            } sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %$self
+                ($$self->{$_} =~ m/^(\d+|\d+\.\d+)$/ ? $$self->{$_} : "'" . $$self->{$_} . "'")
+            } sort { $a cmp $b } CORE::keys %$$self
         ) .
     "}";
 }
@@ -58,7 +61,7 @@ sub __str__ {
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %$self);
+    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %$$self);
 }
 
 sub __getitem__ {
@@ -67,7 +70,7 @@ sub __getitem__ {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return \$self->{$key};
+    return Python2::Internals::convert_to_python_type($$self->{$key});
 }
 
 sub get {
@@ -76,7 +79,9 @@ sub get {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return exists $self->{$key} ? \$self->{$key} : \Python2::Type::Scalar::None->new(0);
+    return exists $self->{$key}
+        ? Python2::Internals::convert_to_python_type($$self->{$key})
+        : \Python2::Type::Scalar::None->new(0);
 }
 
 sub has_key {
@@ -85,7 +90,7 @@ sub has_key {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return \Python2::Type::Scalar::Bool->new(exists $self->{$key});
+    return \Python2::Type::Scalar::Bool->new(exists $$self->{$key});
 }
 
 sub update {
@@ -110,8 +115,11 @@ sub items {
 
     my $list = Python2::Type::List->new();
 
-    foreach my $key (sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %$self) {
-        $list->append(Python2::Type::Tuple->new($key, $self->{$key}));
+    while (my ($key, $value) = each %$$self ) {
+        $list->append(Python2::Type::Tuple->new(
+            ${ Python2::Internals::convert_to_python_type($key) },
+            ${ Python2::Internals::convert_to_python_type($value) }
+        ));
     }
 
     return \$list;
@@ -130,25 +138,19 @@ sub __setitem__ {
     die("PythonDict expects as Python2::Type as value but got " . ref($value))
         unless (ref($value) =~ m/^Python2::Type::/);
 
-    $self->{$key} = $value;
+    $$self->{$key->__tonative__} = $value->__tonative__;
 }
 
 # convert to a 'native' perl5 hashref
 sub __tonative__ {
     my $self = shift;
 
-    my $retvar = {};
-
-    while (my ($key, $value) = each(%$self)) {
-        $retvar->{$key->__tonative__} = ref($value) ? $value->__tonative__ : $value;
-    }
-
-    return $retvar;
+    return $$self;
 }
 
 sub __is_py_true__  {
     my $self = shift;
-    return scalar CORE::keys %$self > 0 ? 1 : 0;
+    return scalar CORE::keys %$$self > 0 ? 1 : 0;
 }
 
 sub __type__ { return 'dict'; }
