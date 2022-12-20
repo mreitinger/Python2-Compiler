@@ -8,6 +8,7 @@ use Python2::Type::PerlSub;
 
 use Module::Load;
 
+use Data::Dumper;
 use Scalar::Util qw/ blessed refaddr /;
 
 sub new {
@@ -39,6 +40,10 @@ sub new {
 
 sub new_from_object {
     my ($self, $object) = @_;
+
+    local $Data::Dumper::Maxdepth = 1;
+    die "Unblessed object passed to new_from_object: " . Dumper($object)
+        unless blessed($object);
 
     return bless({
         class  => ref($object),
@@ -99,7 +104,7 @@ sub __call__ {
     eval {
         foreach my $argument (@argument_list) {
             die "Unblessed argument " . Dumper($argument)
-                unless ref($argument);
+                unless blessed($argument);
 
             die "Argument without tonative " . Dumper($argument)
                 unless $argument->can('__tonative__');
