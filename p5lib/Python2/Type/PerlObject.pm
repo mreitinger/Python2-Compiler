@@ -82,7 +82,7 @@ sub __eq__ {
     my ($self, $other) = @_;
 
     return \Python2::Type::Scalar::Bool->new(1)
-        if (refaddr($other) eq refaddr($self));
+        if $self->REFADDR eq $other->REFADDR;
 
     return \Python2::Type::Scalar::Bool->new(0)
 }
@@ -154,6 +154,15 @@ sub __getattr__ {
 
     # our wrapped object does not support __hasattr__ fall back to method check
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+}
+
+# we might have multiple instances of PerlObject around but the all reference the same
+# actual perl object. return the refaddr of the wrapped object so comparisons (A == B) work as
+# expected.
+sub REFADDR {
+    my ($self, $key) = @_;
+
+    return refaddr($self->{object});
 }
 
 sub __len__ {

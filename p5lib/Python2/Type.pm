@@ -90,6 +90,11 @@ sub __is__  {
     }
 }
 
+sub REFADDR {
+    my $self = shift;
+    return refaddr($self);
+}
+
 sub AUTOLOAD {
     my $self = shift;
 
