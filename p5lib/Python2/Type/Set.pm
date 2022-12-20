@@ -82,6 +82,12 @@ sub __tonative__ {
     ];
 }
 
+sub ELEMENTS {
+    my $self = shift;
+
+    return @$self;
+}
+
 sub __type__ { return 'set'; }
 
 sub __eq__      {

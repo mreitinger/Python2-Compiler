@@ -544,6 +544,49 @@ subtest "embedding - update external hash" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - update external list" => sub {
+    my Str $input = q:to/END/;
+    def foo(a):
+        a[0] = 'new value'
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        my $list = ['initial value'];
+
+        # initial value
+        say $list->[0];
+
+        # must update the 'external' hash (= get wrapped intl a PerlHash not Dict object)
+        $p5->__run_function__('foo', [$list]);
+
+        # updated value
+        say $list->[0];
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected
+        = "initial value\nnew value\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
+
 
 
 done-testing();

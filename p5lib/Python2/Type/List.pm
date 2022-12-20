@@ -164,4 +164,10 @@ sub __call__ {
     return \Python2::Type::List->new(@{ $value });
 };
 
+sub ELEMENTS {
+    my ($self) = @_;
+
+    return @$self;
+}
+
 1;

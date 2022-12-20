@@ -120,7 +120,7 @@ my $arithmetic_operations = {
             return \Python2::Type::Scalar::Num->new($left->__tonative__ + $right->__tonative__);
         }
         elsif (($left->__type__ eq 'list') and ($right->__type__ eq 'list')) {
-            return \Python2::Type::List->new(@$left, @$right)
+            return \Python2::Type::List->new($left->ELEMENTS, $right->ELEMENTS);
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
@@ -370,9 +370,7 @@ sub convert_to_python_type {
 
     # perl5 array
     if (ref($value) eq 'ARRAY') {
-        return \Python2::Type::List->new(
-            map { ${ convert_to_python_type($_) } } @$value
-        );
+        return \Python2::Type::PerlArray->new(\$value);
     }
 
     if (ref($value) eq 'CODE') {

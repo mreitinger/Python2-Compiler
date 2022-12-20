@@ -8,7 +8,7 @@ sub __name__ { 'sorted' }
 sub __call__ {
     shift @_; # $self - unused
 
-    \Python2::Type::List->new( sort { $a->__tonative__ cmp $b->__tonative__ } (@{ $_[0] }) );
+    \Python2::Type::List->new( sort { $a->__tonative__ cmp $b->__tonative__ } $_[0]->ELEMENTS );
 };
 
 1;
