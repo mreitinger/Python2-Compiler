@@ -37,6 +37,23 @@ sub append   {
     return \Python2::Type::Scalar::None->new();
 }
 
+sub extend {
+    pop @_;
+    my ($self, $value) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'extend() expects a list, got nothing')
+        unless defined $value;
+
+    die Python2::Type::Exception->new('TypeError', 'extend() expects a list, got ' . $value->__type__)
+        unless $value->__type__ eq 'list';
+
+    foreach(@$value) {
+        $self->append($_);
+    }
+
+    return \Python2::Type::Scalar::None->new();
+}
+
 sub __getitem__ {
     my ($self, $key) = @_;
 
