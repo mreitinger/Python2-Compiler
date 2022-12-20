@@ -34,6 +34,7 @@ sub __iadd__ {
 sub append   {
     my $self = shift;
     push(@$self, shift);
+    return \Python2::Type::Scalar::None->new();
 }
 
 sub __getitem__ {
