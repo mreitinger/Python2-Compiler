@@ -67,13 +67,15 @@ sub join {
     die Python2::Type::Exception->new('TypeError', sprintf("join() expects a string or iterable but got '%s'", $iterable->__type__))
         unless ($iterable->__type__ =~ m/^(list|str)$/);
 
-    return $iterable->__type__ eq 'list'
-        ?   \Python2::Type::Scalar::String->new(join($self->__tonative__, map {
-                die Python2::Type::Exception->new('TypeError', sprintf("expected string but found '%s' in iterable", $_->__type__))
-                    unless $_->__type__ eq 'str';
+    if ($iterable->__type__ eq 'list') {
+        foreach ($iterable->ELEMENTS) {
+            die Python2::Type::Exception->new('TypeError', sprintf("invalid element in iterable passed to join(): '%s'", $_->__type__))
+                unless $_->__type__ eq 'str';
+        }
+    }
 
-                $_->__tonative__;
-            } @$iterable ))
+    return $iterable->__type__ eq 'list'
+        ?   \Python2::Type::Scalar::String->new(join($self->__tonative__, @{ $iterable->__tonative__ } ))
         :   \Python2::Type::Scalar::String->new(join($self->__tonative__, split(//, $iterable->__tonative__)));
 }
 
