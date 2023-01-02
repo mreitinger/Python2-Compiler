@@ -472,7 +472,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::LoopFor $node) {
         my Str $p5;
 
-        $p5 ~= sprintf('my $i = ${ %s };', $.e($node.iterable));
+        $p5 ~= sprintf('{ my $i = ${ %s };', $.e($node.iterable));
 
         if ($node.names.elems > 1) {
             # TODO should support all iterables
@@ -506,14 +506,12 @@ class Python2::Backend::Perl5 {
         }
         else {
             # single name, raw values from a list/tuple
-            $p5 ~= 'foreach my $var (@{$i}) {';
+            $p5 ~= 'foreach my $var ($i->ELEMENTS) {';
             $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.names[0]));
             $p5 ~= sprintf('%s }', $.e($node.block));
         }
 
-
-
-        return $p5;
+        return $p5 ~ ' } ';
     }
 
 
