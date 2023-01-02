@@ -11,6 +11,7 @@ use Data::Dumper;
 use Ref::Util::XS qw/ is_arrayref is_hashref is_coderef /;
 use Python2;
 use Python2::Internals;
+use Carp qw/ confess /;
 
 sub new {
     return bless([Python2::Stack->new($Python2::builtins)], shift);
@@ -135,6 +136,10 @@ sub __handle_exception__ {
     ) if defined $input_as_lines[$failed_at_line - 0];
 
     $output .= "\n";
+
+    # some error that contained a valid position but is not a Python 2 exception.
+    # most of those are implementaiton bugs ("Not an ARRAY reference at ___position_1228_1253___ line 999.")
+    confess $output unless ref($error) eq 'Python2::Type::Exception';
 
     $output .= "Internal stack trace:\n";
 
