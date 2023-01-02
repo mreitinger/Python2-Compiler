@@ -8,6 +8,7 @@ use Scalar::Util qw/ refaddr /;
 use List::Util qw/ min max /;
 
 use Python2::Type::Tuple::Iterator;
+use Tie::Tuple;
 
 sub __str__ {
     my $self = shift;
@@ -41,6 +42,14 @@ sub __len__ {
 }
 
 # convert to a 'native' perl5 arrayref
+sub __tonative__ {
+    my $self = shift;
+
+    tie my @array, 'Tie::Tuple';
+    @array = map { $_->__tonative__ } @$self;
+    return \@array;
+}
+
 sub __type__ { return 'tuple'; }
 
 sub __eq__      {
