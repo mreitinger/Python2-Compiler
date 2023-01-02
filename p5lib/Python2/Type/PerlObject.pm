@@ -149,16 +149,28 @@ sub __hasattr__ {
 sub __getattr__ {
     my ($self, $key) = @_;
 
-    # our wrapped object implements __getattr__ itself, pass the request on
-    return Python2::Internals::convert_to_python_type( $self->{object}->__getattr__($key->__tonative__));
+    die Python2::Type::Exception->new(
+        'AttributeError',
+        '__getattr__() called on net yet instanciated object'
+    ) unless defined $self->{object};
 
+    # our wrapped object implements __getattr__
+    if ($self->{object}->can('__getattr__')) {
+        my $retval = $self->{object}->__getattr__($key->__tonative__);
+
+        die Python2::Type::Exception->new(
+            'AttributeError',
+            sprintf("Attribute '%s' not found.", $key->__tonative__)
+        ) unless defined $retval;
+
+        return Python2::Internals::convert_to_python_type( $retval );
+    }
+
+    # our wrapped object does not implement __getattr__ protocol
     die Python2::Type::Exception->new(
         'NotImplementedError',
         sprintf('PerlObject of class \'' . ref($self->{object}) . "' does not implement __getattr__, unable to handle __getattr__('%s')", $key->__tonative__)
     ) unless $self->{object}->can('__getattr__');
-
-    # our wrapped object does not support __hasattr__ fall back to method check
-    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 
 # we might have multiple instances of PerlObject around but the all reference the same
