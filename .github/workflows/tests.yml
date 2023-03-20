@@ -42,7 +42,7 @@ jobs:
         run: |
           mkdir -p ~/perl5lib
           sudo apt-get install libarchive-zip-perl
-          curl -L https://cpanmin.us | perl - -l ~/perl5lib -n Scalar::Util Clone Ref::Util Carp::Always Devel::StackTrace Module::Load Text::CSV_XS XML::Parser DateTime::Format::Strptime
+          curl -L https://cpanmin.us | perl - -l ~/perl5lib -n Scalar::Util Clone Ref::Util Carp::Always Devel::StackTrace Module::Load Text::CSV_XS XML::Parser DateTime::Format::Strptime List::Util
 
 
       - name: Run tests
