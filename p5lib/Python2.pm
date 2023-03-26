@@ -12,6 +12,8 @@ use Carp qw/ confess /;
 use Python2::Builtin;
 use Python2::Stack::Frame;
 
+use Python2::PerlWrapper;
+
 use Python2::Type::List;
 use Python2::Type::Set;
 use Python2::Type::Enumerate;
@@ -54,6 +56,8 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'list'          => Python2::Type::List->new(),
     'dict'          => Python2::Type::Dict->new(),
     'str'           => Python2::Type::Scalar::String->new(),
+
+    'perl'          => Python2::PerlWrapper->new(),
 
     'None'          => Python2::Type::Scalar::None->new(),
     'True'          => Python2::Type::Scalar::Bool->new(1),
