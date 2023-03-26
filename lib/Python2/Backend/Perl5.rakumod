@@ -531,7 +531,9 @@ class Python2::Backend::Perl5 {
         $p5 ~= sprintf('sub { my $i = ${ %s };', $.e($node.iterable));
         $p5 ~= 'my $r = Python2::Type::List->new();';
 
-        $p5 ~= 'foreach my $var (@{$i}) {';
+        $p5 ~= 'die Python2::Type::Exception->new("TypeError", "expected iterable but got " . $i->__type__) unless ($i->__type__ =~ m/^list|tuple$/);';
+
+        $p5 ~= 'foreach my $var ($i->ELEMENTS) {';
         $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.name));
 
         $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.condition))
