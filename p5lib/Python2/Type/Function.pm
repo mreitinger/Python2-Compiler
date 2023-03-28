@@ -12,7 +12,9 @@ use Scalar::Util qw/ refaddr /;
 sub new {
     my ($self, $pstack) = @_;
 
-    return bless([Python2::Stack->new($pstack)], $self);
+    return bless({
+        stack => Python2::Stack->new($pstack)
+    }, $self);
 }
 
 sub __call__ { ...; }

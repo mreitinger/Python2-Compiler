@@ -708,7 +708,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $self = shift; my $stack = $self->[0]; $stack->clear;';
+        $block ~= 'my $self = shift; my $stack = $self->{stack}; $stack->clear;';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
@@ -751,7 +751,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this lambda
-        $block ~= 'my $self = shift; my $stack = $self->[0]; $stack->clear;';
+        $block ~= 'my $self = shift; my $stack = $self->{stack}; $stack->clear;';
 
         # get arguments
         for $node.argument-list -> $argument {
@@ -777,7 +777,7 @@ class Python2::Backend::Perl5 {
         # everything in %!modules will be placed at the beginning of the code
         %!modules{$perl5_class_name} = sprintf(
             # we inject the base class at runtime by setting up @Package::ISA
-            'package %s { %s sub __build__ { my $self = $_[0]; $self->SUPER::__build__(); my $stack = $self->[0]; %s; return $self; } }',
+            'package %s { %s sub __build__ { my $self = $_[0]; $self->SUPER::__build__(); my $stack = $self->{stack}; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
             $.e($node.block)
