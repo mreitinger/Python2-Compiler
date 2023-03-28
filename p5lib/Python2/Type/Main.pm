@@ -141,10 +141,12 @@ sub __handle_exception__ {
     # most of those are implementaiton bugs ("Not an ARRAY reference at ___position_1228_1253___ line 999.")
     confess $output unless ref($error) eq 'Python2::Type::Exception';
 
-    $output .= "Internal stack trace:\n";
+    if (exists $ENV{ENABLE_PYTHON2_INTERNAL_STACK_TRACE}) {
+     $output .= "Internal stack trace:\n";
 
-    while (my $frame = $error->__trace__->next_frame) {
-        $output .= sprintf(" - %s(%s)\n", $frame->subroutine, join(', ', map { substr( defined $_ ? $_ : 'undef', 0, 20 ) } $frame->args));
+        while (my $frame = $error->__trace__->next_frame) {
+            $output .= sprintf(" - %s(%s)\n", $frame->subroutine, join(', ', map { substr( defined $_ ? $_ : 'undef', 0, 20 ) } $frame->args));
+        }
     }
 
     die $output;

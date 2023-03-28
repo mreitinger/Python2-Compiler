@@ -327,7 +327,7 @@ sub encode {
         warn sprintf(
             "noop encode('utf-8') used for string: '%s<truncated>'. UTF-8 is now assumed everywhere.",
             substr($str, 0, 10)
-        );
+        ) unless exists $ENV{PYTHON_2_COMPILER_NO_ENCODE_WARNINGS};
     } elsif ($encoding eq 'base64') {
         $str = encode_base64($str);
     } else {
@@ -346,7 +346,7 @@ sub decode {
         warn sprintf(
             "noop decode('utf-8') used for string: '%s<truncated>'. UTF-8 is now assumed everywhere.",
             substr($str, 0, 10)
-        );
+        ) unless exists $ENV{PYTHON_2_COMPILER_NO_ENCODE_WARNINGS};
     } elsif ($encoding eq 'base64') {
         $str = decode_base64($str);
     } else {
