@@ -370,7 +370,7 @@ sub convert_to_python_type {
 
     # perl5 array
     if (ref($value) eq 'ARRAY') {
-        return \Python2::Type::PerlArray->new(\$value);
+        return \Python2::Type::PerlArray->new($value);
     }
 
     if (ref($value) eq 'CODE') {
