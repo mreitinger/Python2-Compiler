@@ -365,7 +365,7 @@ sub convert_to_python_type {
 
     # perl5 hashref
     if (ref($value) eq 'HASH') {
-        return \Python2::Type::PerlHash->new(\$value);
+        return \Python2::Type::PerlHash->new($value);
     }
 
     # perl5 array
