@@ -154,5 +154,28 @@ sub __eq__      {
     return \Python2::Type::Scalar::Bool->new(1);
 }
 
+sub __getslice__ {
+    my ($self, $key, $target) = @_;
+
+    my $perl_array_length = scalar @{ $self->[0] };
+
+    $key     = $key->__tonative__;
+    $target  = $target->__tonative__;
+
+    if ($target == '-1') {
+        $target = $perl_array_length;
+    }
+
+    # if the target is longer than the list cap it
+    if ($target > $perl_array_length ) {
+        $target = $perl_array_length;
+    }
+
+    return \Python2::Type::List->new(
+        map { ${ Python2::Internals::convert_to_python_type($_) } }
+        @{ $self->[0] } [$key .. $target - 1]
+    );
+}
+
 
 1;
