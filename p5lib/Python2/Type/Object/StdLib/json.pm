@@ -33,4 +33,18 @@ sub dumps {
     return \Python2::Type::Scalar::String->new($json_str);
 }
 
+sub loads {
+    pop(@_); # default named arguments hash
+    my ($self, $string) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("expected 'str' got ". $string->__type__))
+        unless $string->__type__ eq 'str';
+
+    return Python2::Internals::convert_to_python_type(
+        JSON->new->decode($string->__tonative__)
+    );
+}
+
+
+
 1;
