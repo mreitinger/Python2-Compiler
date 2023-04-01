@@ -54,11 +54,22 @@ role Python2::Grammar::Expressions {
     }
 
     token arithmetic-operator-high-precedence {
-        <.dws>* ['*' | '/' | '%'] <.dws>*
+        <.dws>* <high-precedence-operator> <.dws>*
     }
 
     token arithmetic-operator-low-precedence  {
-        <.dws>* [|'+'|'-'] <.dws>*
+        <.dws>* <low-precedence-operator> <.dws>*
+    }
+
+    token low-precedence-operator {
+        | '+'
+        | '-'
+    }
+
+    token high-precedence-operator {
+        | '*'
+        | '/'
+        | '%'
     }
 
 

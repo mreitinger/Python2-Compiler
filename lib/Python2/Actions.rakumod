@@ -17,6 +17,7 @@ package Python2::Actions {
                 double-quoted-string         single-quoted-string
                 string-literal-double-quoted string-literal-single-quoted
                 triple-single-quoted-string         triple-double-quoted-string
+                low-precedence-operator high-precedence-operator
                 string-literal-triple-single-quoted string-literal-triple-double-quoted
                 list-delimiter
                 dictionary-entry set-entry

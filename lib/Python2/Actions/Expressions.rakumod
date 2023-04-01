@@ -178,7 +178,7 @@ role Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            arithmetic-operator => $/.Str.trim, #TODO not sure why whitespace gets captured here?
+            arithmetic-operator => $/<high-precedence-operator>.Str,
         ));
     }
 
@@ -186,7 +186,7 @@ role Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::ArithmeticOperator.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            arithmetic-operator => $/.Str.trim, #TODO not sure why whitespace gets captured here?
+            arithmetic-operator => $/<low-precedence-operator>.Str,
         ));
     }
 
