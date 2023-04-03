@@ -9,6 +9,7 @@ use strict;
 
 use Scalar::Util qw/ refaddr /;
 use List::Util qw/ min max /;
+use Scalar::Util qw/ refaddr /;
 
 use Python2::Internals;
 
@@ -79,7 +80,7 @@ sub __hasattr__ {
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar @$self);
+    return \Python2::Type::Scalar::Num->new(scalar @{ $self->[0] });
 }
 
 sub __is_py_true__ {
@@ -127,25 +128,25 @@ sub __eq__      {
 
     # if it's the same element it must match
     return \Python2::Type::Scalar::Bool->new(1)
-        if $self->[0]->REFADDR eq $other->REFADDR;
+        if $self->REFADDR eq $other->REFADDR;
 
     # if it's not a list just abort right here no need to compare
     return \Python2::Type::Scalar::Bool->new(0)
-        unless $other->__type__ eq 'Python2::Type::PerlArray';
+        unless $other->__type__ eq 'list';
 
     # if it's not at least the same size we don't need to compare any further
     return \Python2::Type::Scalar::Bool->new(0)
-        unless ${ $self->[0]->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__;
+        unless ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__;
 
     # we are comparing empty lists so they are identical
     return \Python2::Type::Scalar::Bool->new(1)
-        if ${ $self->[0]->__len__ }->__tonative__ == 0;
+        if ${ $self->__len__ }->__tonative__ == 0;
 
     # compare all elements and return false if anything doesn't match
-    foreach (0 .. ${ $self->[0]->__len__ }->__tonative__ -1) {
+    foreach (0 .. ${ $self->__len__ }->__tonative__ -1) {
         return \Python2::Type::Scalar::Bool->new(0)
             unless  ${
-                ${ $self->[0]->__getitem__(Python2::Type::Scalar::Num->new($_) ) }
+                ${ $self->__getitem__(Python2::Type::Scalar::Num->new($_) ) }
                     ->__eq__(${ $other->__getitem__(Python2::Type::Scalar::Num->new($_)) });
             }->__tonative__;
     }
@@ -177,5 +178,9 @@ sub __getslice__ {
     );
 }
 
+sub REFADDR {
+    my ($self) = @_;
+    return refaddr($self->[0]);
+}
 
 1;

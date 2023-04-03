@@ -666,7 +666,49 @@ subtest "embedding - PerlArray __getslice__" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - PerlArray __eq__" => sub {
+    my Str $input = q:to/END/;
+    def eq1(a, b):
+        print(a == b)
 
+    def eq2(a):
+        b = [1, 2, 3]
+        print(a == b)
+    END
 
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        my $list = ['1', '2', '3'];
+        my $list2 = ['1', '2', '3'];
+        my $list3 = ['4', '5', '6'];
+
+        $p5->__run_function__('eq1', [$list, $list]);
+        $p5->__run_function__('eq1', [$list, $list2]);
+        $p5->__run_function__('eq1', [$list, $list3]);
+        $p5->__run_function__('eq2', [$list]);
+        $p5->__run_function__('eq2', [$list3]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected = "True\nTrue\nFalse\nTrue\nFalse\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
 
 done-testing();
