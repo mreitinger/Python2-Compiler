@@ -19,7 +19,8 @@ sub __call__ {
     }
     elsif ($filter->__type__ eq 'function') {
         foreach ($list->ELEMENTS) {
-            $result->__iadd__($_) if ${ $filter->__call__($_, {}) }->__is_py_true__;
+            $result->__iadd__($_)
+                 if ${ $filter->__call__($_, bless({}, 'Python2::NamedArgumentsHash')) }->__is_py_true__;
         }
     }
     else {

@@ -11,6 +11,8 @@ use strict;
 
 use Python2::Internals;
 
+use Carp qw/ confess /;
+
 sub new {
     my ($self, $coderef, $object, $method_name) = @_;
 
@@ -25,33 +27,26 @@ sub __call__ {
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
 
-    # we don't support named arguments but still expect the empty hash - just here to catch bugs
-    die Python2::Type::Exception->new('NotImplementedError', "expected named arguments hash when calling perl5 method " . $self->[2] . " on " . ref($self->{object}))
-        unless ref($named_arguments) eq 'HASH';
+    confess("Python2::NamedArgumentsHash missing when calling perl5 method " . $self->[2] . " on " . ref($self->{object}))
+        unless ref($named_arguments) eq 'Python2::NamedArgumentsHash';
+
+    die Python2::Type::Exception->new('NotImplementedError', "named arguments not supported when calling perl5 method " . $self->[2] . " on " . ref($self->{object}))
+        if scalar keys %$named_arguments;
 
     # convert all 'Python' objects to native representations
     foreach my $argument (@argument_list) {
         $argument = $argument->__tonative__;
     }
 
-    foreach my $argument (keys %$named_arguments) {
-        $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
-    }
-
-    # This matches the calling conventions for Inline::Python so Perl code written to work with
-    # Inline::Python can keep working as-is.
-
     my @retval;
 
     eval {
-        @retval = scalar keys %$named_arguments
-            ? $self->[0]->($self->[1], [@argument_list], $named_arguments)
-            : $self->[0]->($self->[1], @argument_list);
+        @retval = $self->[0]->($self->[1], @argument_list);
     };
 
-    if ($@) {
-        die Python2::Type::Exception->new('Exception', $@);
-    }
+    # If execution of the method returned errors wrap it into a Python2 style Exception
+    # so the error location is correctly shown.
+    die Python2::Type::Exception->new('Exception', $@) if $@;
 
     if (scalar(@retval) > 1) {
         return Python2::Internals::convert_to_python_type([@retval]);

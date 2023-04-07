@@ -48,7 +48,10 @@ subtest "embedding - run function" => sub {
 
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
-        $p5->__run_function__('foo', [[1, 2, 3, 4], {1 => 2}, 'a', 2]);
+        $p5->__run_function__('foo', [
+            [1, 2, 3, 4], {1 => 2}, 'a', 2,
+            bless({}, 'Python2::NamedArgumentsHash')
+        ]);
     END
 
     my $perl5;
@@ -78,7 +81,10 @@ subtest "embedding - lambda" => sub {
 
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
-        my $coderef = $p5->__run_function__('get_lambda_addition');
+        my $coderef = $p5->__run_function__(
+            'get_lambda_addition',
+            [ bless({}, 'Python2::NamedArgumentsHash') ]
+        );
 
         # returns our function wrapper - see Function::__tonative__
         $coderef = $$coderef->__tonative__;
@@ -126,7 +132,7 @@ subtest "embedding - __getattr__ fallback" => sub {
         my $obj = GetAttrTest->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$obj]);
+        $p5->__run_function__('foo', [$obj, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -183,7 +189,7 @@ subtest "embedding - coderef wrapper" => sub {
         my $obj = GetCodeRefTest->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$obj]);
+        $p5->__run_function__('foo', [$obj, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -244,7 +250,7 @@ subtest "embedding - perlobject" => sub {
         my $obj = PerlObjectTest->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$obj]);
+        $p5->__run_function__('foo', [$obj, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -294,7 +300,7 @@ subtest "embedding - return-values" => sub {
         my $obj = PerlObjectTest->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$obj]);
+        $p5->__run_function__('foo', [$obj, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -358,7 +364,10 @@ subtest "embedding - __hasattr__ for PerlObject" => sub {
         my $obj_implementing_hasattr = PerlObjectTestWithHasAttr->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$obj, $obj_implementing_hasattr]);
+        $p5->__run_function__('foo', [
+            $obj, $obj_implementing_hasattr,
+            bless({}, 'Python2::NamedArgumentsHash')
+        ]);
     END
 
     my $perl5;
@@ -419,7 +428,7 @@ subtest "embedding - __str__ for PerlObject" => sub {
         my $without = PerlObjectTestWithoutStr->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$with, $without]);
+        $p5->__run_function__('foo', [$with, $without, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -480,7 +489,7 @@ subtest "embedding - __len__ for PerlObject" => sub {
         my $without = PerlObjectTestWithoutStr->new();
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        $p5->__run_function__('foo', [$with, $without]);
+        $p5->__run_function__('foo', [$with, $without, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -520,7 +529,7 @@ subtest "embedding - update external hash" => sub {
         say $hash->{key};
 
         # must update the 'external' hash (= get wrapped intl a PerlHash not Dict object)
-        $p5->__run_function__('foo', [$hash]);
+        $p5->__run_function__('foo', [$hash, bless({}, 'Python2::NamedArgumentsHash')]);
 
         # updated value
         say $hash->{key};
@@ -563,7 +572,7 @@ subtest "embedding - update external list" => sub {
         say $list->[0];
 
         # must update the 'external' hash (= get wrapped intl a PerlHash not Dict object)
-        $p5->__run_function__('foo', [$list]);
+        $p5->__run_function__('foo', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
 
         # updated value
         say $list->[0];
@@ -605,7 +614,7 @@ subtest "embedding - PerlArray list comprehension" => sub {
 
         my $list = ['value 1', 'value 2', 'value 3'];
 
-        $p5->__run_function__('foo', [$list]);
+        $p5->__run_function__('foo', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -646,7 +655,7 @@ subtest "embedding - PerlArray __getslice__" => sub {
 
         my $list = ['1', '2', '3'];
 
-        $p5->__run_function__('foo', [$list]);
+        $p5->__run_function__('foo', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -687,11 +696,11 @@ subtest "embedding - PerlArray __eq__" => sub {
         my $list2 = ['1', '2', '3'];
         my $list3 = ['4', '5', '6'];
 
-        $p5->__run_function__('eq1', [$list, $list]);
-        $p5->__run_function__('eq1', [$list, $list2]);
-        $p5->__run_function__('eq1', [$list, $list3]);
-        $p5->__run_function__('eq2', [$list]);
-        $p5->__run_function__('eq2', [$list3]);
+        $p5->__run_function__('eq1', [$list, $list, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('eq1', [$list, $list2, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('eq1', [$list, $list3, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('eq2', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('eq2', [$list3, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;

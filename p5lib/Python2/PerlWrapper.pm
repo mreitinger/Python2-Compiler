@@ -60,7 +60,7 @@ sub __call__ {
 
     # we don't support named arguments but still expect the empty hash - just here to catch bugs
     die Python2::Type::Exception->new('ValueError', "expected named arguments hash when calling perl5 method $requested_method on $module_name")
-        unless ref($named_arguments) eq 'HASH';
+        unless ref($named_arguments) eq 'Python2::NamedArgumentsHash';
 
     # regular perl modules don't have a distinction between regular and named arguments
     die Python2::Type::Exception->new('NotImplementedError', "named arguments not supported when calling perl5 method $requested_method on $module_name")

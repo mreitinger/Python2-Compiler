@@ -353,7 +353,7 @@ class Python2::Backend::Perl5 {
 
         # named arguments get passed as a hashref to the perl method. this is allways passed as the
         # last argument and will be pop()'d before processing any other arguments.
-        $p5 ~= '{' ~ @named-arguments.map({ $.e($_.name) ~ ' => ' ~ $.e($_.value) }).join(',') ~ '}';
+        $p5 ~= 'bless({' ~ @named-arguments.map({ $.e($_.name) ~ ' => ' ~ $.e($_.value) }).join(',') ~ '}, "Python2::NamedArgumentsHash")';
 
         return $p5;
     }
@@ -619,7 +619,7 @@ class Python2::Backend::Perl5 {
         $p5 ~= sprintf('my $o = %s;', $.e($node.test));
 
         # call __enter__ which must return the variable to be assigned
-        $p5 ~= 'my $p = $$o->__enter__($stack, {});';
+        $p5 ~= q|my $p = $$o->__enter__($stack, bless({}, 'Python2::NamedArgumentsHash'));|;
 
         # assign to <variable>
         $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $$p);', $.e($node.name));
@@ -628,7 +628,7 @@ class Python2::Backend::Perl5 {
         $p5 ~= $.e($node.block);
 
         # TODO - we don't implement python's arguments to __exit__
-        $p5 ~= '$$o->__exit__($stack, Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), {});';
+        $p5 ~= q|$$o->__exit__($stack, Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), bless({}, 'Python2::NamedArgumentsHash'));|;
 
         # end of self-contained block to ensoure $p does not conflict
         $p5 ~= '}';

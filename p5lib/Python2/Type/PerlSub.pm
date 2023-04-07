@@ -20,10 +20,8 @@ sub __call__ {
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
 
-    # we don't support named arguments but still expect the empty hash - just here to catch bugs
-    die Python2::Type::Exception->new('NotImplementedError', "expected named arguments hash when calling perl5 coderef")
-        unless ref($named_arguments) eq 'HASH';
-
+    die Python2::Type::Exception->new('TypeError', "expected named arguments hash when calling perl5 coderef")
+        unless ref($named_arguments) eq 'Python2::NamedArgumentsHash';
 
     # convert all 'Python' objects to native representations
     foreach my $argument (@argument_list) {

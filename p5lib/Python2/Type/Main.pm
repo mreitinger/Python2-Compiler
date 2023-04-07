@@ -34,10 +34,26 @@ sub __run__ {
 
 # execute our main block with error handler
 sub __run_function__ {
-    my ($self, $name, $args) = @_;
+    my ($self, $name, $argument_list) = @_;
+
+    confess("Python2::NamedArgumentsHash missing in call to __run_function__")
+        unless ref($argument_list->[-1]) eq 'Python2::NamedArgumentsHash';
+
+    my $named_arguments = pop @$argument_list;
+
+    # convert named arguments to python types
+    foreach my $argument (keys %$named_arguments) {
+        $named_arguments->{$argument} = Python2::Internals::convert_to_python_type( $named_arguments->{$argument} );
+    }
+
+
+    # convert positionals to python types
+    foreach my $argument (@$argument_list) {
+        $argument = ${ Python2::Internals::convert_to_python_type( $argument ) };
+    }
 
     # exec the main block so we get all function definitions
-    eval { $self->__block__($args); };
+    eval { $self->__block__(); };
     $self->__handle_exception__($@) if $@;
 
     # get our function from the stack and disable recursion
@@ -45,7 +61,7 @@ sub __run_function__ {
 
     my $retval = eval {
         die("Function $name not found") unless defined $$coderef;
-        $$coderef->__call__(( map { ${ Python2::Internals::convert_to_python_type($_) } } @{ $args } ), {});
+        $$coderef->__call__(@$argument_list, $named_arguments)
     };
 
     $self->__handle_exception__($@) if $@;

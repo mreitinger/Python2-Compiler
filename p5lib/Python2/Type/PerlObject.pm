@@ -113,9 +113,9 @@ sub __call__ {
         }
     };
 
-    if ($@) {
-        warn "EXCEPTION $@";
-    }
+    # If execution of the method returned errors wrap it into a Python2 style Exception
+    # so the error location is correctly shown.
+    die Python2::Type::Exception->new('Exception', $@) if ($@);
 
     # compatiblity for the existing Inline::Python2 based DTML/python-expression compiler
     if (defined $self->{object} and $self->{class} eq 'DTML::Runtime::Method') {
@@ -173,6 +173,36 @@ sub __getattr__ {
     ) unless $self->{object}->can('__getattr__');
 }
 
+sub __getitem__ {
+   my ($self, $key) = @_;
+
+   die Python2::Type::Exception->new(
+       'AttributeError',
+       '__getitem__() called on net yet instanciated object'
+   ) unless defined $self->{object};
+
+   # our wrapped object implements __getitem__
+   if ($self->{object}->can('__getitem__')) {
+       say STDERR "X__getitem__(" . $key->__tonative__ . ") on " . ref($self->{object});
+       my $retval = $self->{object}->__getitem__($key->__tonative__);
+
+       die Python2::Type::Exception->new(
+           'AttributeError',
+           sprintf("Attribute '%s' not found on '%s'.", $key->__tonative__, ref($self->{object}))
+       ) unless defined $retval;
+
+       return Python2::Internals::convert_to_python_type( $retval );
+   }
+
+   # our wrapped object does not implement __getitem__
+   die Python2::Type::Exception->new(
+       'NotImplementedError',
+       sprintf('PerlObject of class \'' . ref($self->{object}) . "' does not implement __getitem__, unable to handle __getitem__('%s')", $key->__tonative__)
+   );
+}
+
+
+
 # we might have multiple instances of PerlObject around but the all reference the same
 # actual perl object. return the refaddr of the wrapped object so comparisons (A == B) work as
 # expected.
@@ -225,9 +255,8 @@ sub CALL_METHOD {
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
 
-    # we don't support named arguments but still expect the empty hash - just here to catch bugs
-    die Python2::Type::Exception->new('NotImplementedError', "expected named arguments hash when calling perl5 method $requested_method on " . ref($self->{object}))
-        unless ref($named_arguments) eq 'HASH';
+    confess("Python2::NamedArgumentsHash missing when calling perl5 method $requested_method on " . ref($self->{object}))
+        unless ref($named_arguments) eq 'Python2::NamedArgumentsHash';
 
     # convert all 'Python' objects to native representations
     foreach my $argument (@argument_list) {

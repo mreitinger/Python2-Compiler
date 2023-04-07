@@ -318,7 +318,8 @@ sub getopt {
     # with any other arguments.
     my $named_arguments = pop(@arguments);
 
-    confess unless ref($named_arguments) eq 'HASH';
+    confess('Python2::NamedArgumentsHash missing in call to getopt()')
+        unless ref($named_arguments) eq 'Python2::NamedArgumentsHash';
 
     foreach my $argument (@$argument_definition) {
         my $name    = $argument->[0]; # name of this argument.

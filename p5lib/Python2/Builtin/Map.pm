@@ -31,7 +31,10 @@ sub __call__ {
             ${$_[$_]->__getitem__(Python2::Type::Scalar::Num->new($i), {}) }
         } (0 .. $argument_count-1 );
 
-        $result->__setitem__(Python2::Type::Scalar::Num->new($i), ${ $function->__call__(@iterables, {}) });
+        $result->__setitem__(
+            Python2::Type::Scalar::Num->new($i),
+            ${ $function->__call__(@iterables, bless({}, 'Python2::NamedArgumentsHash')) }
+        );
     }
 
     return \$result;

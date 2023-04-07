@@ -54,13 +54,13 @@ sub close {
 }
 
 sub write {
-    my ($self, $path, $arcname) = @_;
+    my ($self, $path, $named_arguments) = @_;
 
     die Python2::Type::Exception->new('RuntimeError', 'write() requires mode "w" or "a"')
         if ($self->[1]->{mode} eq 'r');
 
     # arcname might be given as named argument
-    $arcname = ${ $arcname->{arcname} } if (ref($arcname) eq 'HASH');
+    my $arcname = ${ $named_arguments->{arcname} } if exists $named_arguments->{arcname};
 
     my $member = $self->[1]->{zip}->addFile($path->__tonative__, $arcname->__tonative__);
 
