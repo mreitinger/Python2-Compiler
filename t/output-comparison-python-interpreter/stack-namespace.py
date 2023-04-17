@@ -20,14 +20,8 @@ foo()
 
 
 foo = 'variable x'
-
-try:
-    foo()
-except:
-    print 'call to foo failed, it is now a variable'
-
+print type(foo)
 print foo
-
 
 def foo():
     print "function foo() called"
