@@ -27,21 +27,26 @@ sub __call__ {
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
 
-    confess("Python2::NamedArgumentsHash missing when calling perl5 method " . $self->[2] . " on " . ref($self->{object}))
+    confess("Python2::NamedArgumentsHash missing when calling perl5 method " . $self->[2] . " on " . ref($self->[1]))
         unless ref($named_arguments) eq 'Python2::NamedArgumentsHash';
-
-    die Python2::Type::Exception->new('NotImplementedError', "named arguments not supported when calling perl5 method " . $self->[2] . " on " . ref($self->{object}))
-        if scalar keys %$named_arguments;
 
     # convert all 'Python' objects to native representations
     foreach my $argument (@argument_list) {
         $argument = $argument->__tonative__;
     }
 
+    foreach my $argument (keys %$named_arguments) {
+        $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
+    }
+
     my @retval;
 
     eval {
-        @retval = $self->[0]->($self->[1], @argument_list);
+        # This matches the calling conventions for Inline::Python so Perl code written to work with
+        # Inline::Python in mind can keep working as-is.
+        @retval = scalar keys %$named_arguments
+            ? $self->[0]->($self->[1], [@argument_list], $named_arguments)
+            : $self->[0]->($self->[1], @argument_list);
     };
 
     # If execution of the method returned errors wrap it into a Python2 style Exception
