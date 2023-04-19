@@ -41,12 +41,12 @@ sub __str__ {
 sub __iadd__ {
     my $self = shift;
 
-    push(@$self, shift->__tonative__);
+    push(@{ $self->[0] }, shift->__tonative__);
 }
 
 sub append   {
     my $self = shift;
-    push(@$self, shift->__tonative__);
+    push(@{ $self->[0] }, shift->__tonative__);
     return \Python2::Type::Scalar::None->new();
 }
 
@@ -85,7 +85,7 @@ sub __len__ {
 
 sub __is_py_true__ {
     my $self = shift;
-    return scalar @$self;
+    return scalar @{ $self->[0] };
 }
 
 sub extend {
@@ -98,8 +98,8 @@ sub extend {
     die Python2::Type::Exception->new('TypeError', 'extend() expects a list, got ' . $value->__type__)
         unless $value->__type__ eq 'list';
 
-    foreach(@$value) {
-        $self->[0]->append($_);
+    foreach($value->ELEMENTS) {
+        push(@{ $self->[0] }, $_->__tonative__);
     }
 
     return \Python2::Type::Scalar::None->new();
@@ -108,7 +108,7 @@ sub extend {
 sub __contains__ {
     my ($self, $other) = @_;
 
-    foreach my $item (@$self) {
+    foreach my $item (@{ $self->[0] }) {
         $item = ${ Python2::Internals::convert_to_python_type($item) };
         return \Python2::Type::Scalar::Bool->new(1)
             if ${ $item->__eq__($other) }->__tonative__;

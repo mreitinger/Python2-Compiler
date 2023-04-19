@@ -24,14 +24,14 @@ sub keys {
 
     my $keys = Python2::Type::List->new();
 
-    $keys->append(${ Python2::Internals::convert_to_python_type($_) }) foreach keys %{ $self->[0]->[0] };
+    $keys->append(${ Python2::Internals::convert_to_python_type($_) }) foreach keys %{ $self->[0] };
 
     return \$keys;
 }
 
 sub clear {
     my $self = shift;
-    %{ $self->[0]->[0] } = ();
+    %{ $self->[0] } = ();
 }
 
 sub values {
@@ -39,7 +39,7 @@ sub values {
 
     my $values = Python2::Type::List->new();
 
-    $values->append(${ Python2::Internals::convert_to_python_type($_) }) foreach values %{ $self->[0]->[0] };
+    $values->append(${ Python2::Internals::convert_to_python_type($_) }) foreach values %{ $self->[0] };
 
     return \$values;
 }
@@ -104,7 +104,9 @@ sub update {
         unless $dict->__type__ eq 'dict';
 
     while (my ($key, $value) = each %$dict ) {
-        $self->[0]->__setitem__($key, $value);
+        $key   = $key->__tonative__;
+        $value = $value->__tonative__;
+        $self->[0]->{$key} = $value;
     }
 
     return \Python2::Type::Scalar::None->new();
@@ -115,7 +117,7 @@ sub items {
 
     my $list = Python2::Type::List->new();
 
-    while (my ($key, $value) = each %{ $self->[0]->[0] } ) {
+    while (my ($key, $value) = each %{ $self->[0] } ) {
         $list->append(Python2::Type::Tuple->new(
             ${ Python2::Internals::convert_to_python_type($key) },
             ${ Python2::Internals::convert_to_python_type($value) }
@@ -145,12 +147,12 @@ sub __setitem__ {
 sub __tonative__ {
     my $self = shift;
 
-    return $self;
+    return $self->[0];
 }
 
 sub __is_py_true__  {
     my $self = shift;
-    return scalar CORE::keys %{ $self->[0]->[0] } > 0 ? 1 : 0;
+    return scalar CORE::keys %{ $self->[0] } > 0 ? 1 : 0;
 }
 
 sub __type__ { return 'dict'; }
