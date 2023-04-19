@@ -32,13 +32,18 @@ sub __call__ {
         $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
     }
 
+    my @retval;
+    eval {
+        # This matches the calling conventions for Inline::Python so Perl code written to work with
+        # Inline::Python can keep working as-is.
+        @retval = scalar keys %$named_arguments
+            ? $self->[0]->([@argument_list], $named_arguments)
+            : $self->[0]->(@argument_list);
+    };
 
-    # TODO: this needs to handle way more cases like a list getting returned
-    # This matches the calling conventions for Inline::Python so Perl code written to work with
-    # Inline::Python can keep working as-is.
-    my @retval = scalar keys %$named_arguments
-        ? $self->[0]->([@argument_list], $named_arguments)
-        : $self->[0]->(@argument_list);
+    # If execution of the method returned errors wrap it into a Python2 style Exception
+    # so the error location is correctly shown.
+    die Python2::Type::Exception->new('Exception', $@) if $@;
 
     die Python2::Type::Exception->new('NotImplementedError', "Got invalid return value with multiple values when calling perl5 coderef")
         if scalar(@retval) > 1;
