@@ -52,6 +52,8 @@ my $valid_exceptions = {
 sub new {
     my ($self, $type, $message) = @_;
 
+    return $message if ref($message) eq 'Catalyst::Exception::Detach';
+
     die Python2::Type::Exception->new('Exception', "Invalid exception type '$type'")
         unless exists $valid_exceptions->{$type};
 
