@@ -13,7 +13,7 @@ sub __call__ {
     my $result = Python2::Type::List->new();
 
     if ($filter->__type__ eq 'none') {
-        foreach(@$list) {
+        foreach($list->ELEMENTS) {
             $result->__iadd__($_) if $_->__tonative__;
         }
     }
