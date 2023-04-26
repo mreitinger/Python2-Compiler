@@ -57,6 +57,10 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'dict'          => Python2::Type::Dict->new(),
     'str'           => Python2::Type::Scalar::String->new(),
 
+    # Somewhat ugly: we don't have a separate unicode string and this allowes more than
+    # Python does. Currently this is only used for isinstance() checks - good enough here.
+    'basestring'    => Python2::Type::Scalar::String->new(),
+
     'perl'          => Python2::PerlWrapper->new(),
 
     'None'          => Python2::Type::Scalar::None->new(),
