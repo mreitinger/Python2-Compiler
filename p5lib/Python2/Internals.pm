@@ -150,11 +150,18 @@ my $arithmetic_operations = {
     '*' => sub {
         my ($left, $right) = @_;
 
-        $left  = $left->__tonative__;
-        $right = $right->__tonative__;
+        if ($left->isa('Python2::Type::Scalar::Num') and $right->isa('Python2::Type::Scalar::Num')) {
+            return \Python2::Type::Scalar::Num->new($left->__tonative__ * $right->__tonative__);
+        } elsif (($left->__type__ eq 'list') and ($right->__type__ eq 'int')) {
+            my $count = $right->__tonative__;
+            $count = 0 if $count < 0;
+            my $target = Python2::Type::List->new();
 
-        if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left * $right);
+            for (1 .. $right) {
+                $target->append($_) foreach $left->ELEMENTS;
+            }
+
+            return \$target;
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand *', $left->__type__, $right->__type__));
         }
