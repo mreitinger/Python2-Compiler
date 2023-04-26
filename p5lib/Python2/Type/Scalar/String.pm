@@ -52,6 +52,54 @@ sub split {
     return \Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } @result);
 }
 
+sub rsplit {
+    pop(@_); # default named arguments hash
+    my ($self, $separator, $maxsplit) = @_;
+    $maxsplit = $maxsplit->__tonative__ if $maxsplit;
+
+    # mimic pythons behaviour
+    $maxsplit = undef if defined $maxsplit and $maxsplit < 0;
+
+    return \Python2::Type::List->new(
+        Python2::Type::Scalar::String->new( $self->{value} )
+    ) if defined $maxsplit and $maxsplit == 0;
+
+    my $joiner = $separator; # original separator - used to join in case we use maxsplit below
+
+    if ($separator) {
+        die("Expected a scalar as seperator")
+            unless $separator->__type__ eq 'str';
+
+        $separator = $separator->__tonative__;
+        $separator = "\Q$separator\E";
+    }
+    else {
+        $separator = '\s+';
+    }
+
+    my @result = split($separator, join('', reverse split(//, $self->{value})));
+
+    if ($maxsplit) {
+        my $result_size = scalar(@result);
+
+        # clamp to result size
+        $maxsplit = $result_size if $maxsplit > $result_size;
+
+        my $ret = \Python2::Type::List->new(
+            map { Python2::Type::Scalar::String->new($_) } reverse @result[0 .. $maxsplit-1],
+            (
+                ($result_size-$maxsplit > 0)
+                    ? join($joiner->__tonative__, reverse @result[$maxsplit .. $result_size-1])
+                    : ()
+            )
+        );
+
+        return $ret;
+    }
+
+    return \Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } reverse @result);
+}
+
 sub strip {
     my $string = shift->{value};
 
