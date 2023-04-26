@@ -183,7 +183,6 @@ sub __getitem__ {
 
    # our wrapped object implements __getitem__
    if ($self->{object}->can('__getitem__')) {
-       say STDERR "X__getitem__(" . $key->__tonative__ . ") on " . ref($self->{object});
        my $retval = $self->{object}->__getitem__($key->__tonative__);
 
        die Python2::Type::Exception->new(
