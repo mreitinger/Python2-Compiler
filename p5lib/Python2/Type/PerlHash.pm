@@ -214,4 +214,11 @@ sub __lt__ {
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->[0]->__type__ . ' and ' . $other->__type__);
 }
 
+sub __contains__ {
+    my ($self, $key) = @_;
+
+    return \Python2::Type::Scalar::Bool->new(exists $self->[0]->{$key});
+}
+
+
 1;
