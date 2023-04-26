@@ -187,6 +187,12 @@ sub __eq__      {
     return \Python2::Type::Scalar::Bool->new(1);
 }
 
+sub __contains__ {
+    my ($self, $key) = @_;
+
+    return \Python2::Type::Scalar::Bool->new(exists $self->{$key});
+}
+
 sub __hasattr__ {
     my ($self, $key) = @_;
     return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
