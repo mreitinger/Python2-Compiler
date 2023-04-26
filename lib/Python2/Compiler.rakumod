@@ -3,6 +3,7 @@ use Python2::Actions;
 use Python2::Backend::Perl5;
 use Python2::Optimizer;
 use Python2::ParseFail;
+use Python2::CompilationError;
 use Data::Dump;
 
 class Python2::Compiler {
@@ -93,6 +94,8 @@ class Python2::Compiler {
     }
 
     method handle-parse-fail(Str :$input, Int :$pos is copy, Str :$what?) {
+        my Str $message;
+
         $pos++; # TODO maybe ranges would work better (highlight from-to if appropriate)
 
         my @input-as-lines          = $input.lines;
@@ -111,34 +114,33 @@ class Python2::Compiler {
 
             !! $pos;
 
-        note "Parsing failed at line $failed-at-line:";
-        note '';
+        $message ~= "Parsing failed at line $failed-at-line:\n\n";
 
         # output preceeding line, if present
-        note sprintf("%5i | %s",
+        $message ~= sprintf("%5i | %s\n",
             $failed-at-line - 1,
             @input-as-lines[$failed-at-line - 2],
         ) if @input-as-lines[$failed-at-line - 2].defined;
 
         # output line with syntax error
-        note sprintf("%5i | %s",
+        $message ~= sprintf("%5i | %s\n",
             $failed-at-line,
             @input-as-lines[$failed-at-line - 1],
         );
 
         # output position of the parser failure and what we expected (if we know).
-        note $what.defined
-            ?? '       ' ~ ' ' x $failed-position-in-line ~ "^ -- $what"
-            !! '       ' ~ ' ' x $failed-position-in-line ~ '^ -- here';
+        $message ~= $what.defined
+            ?? '       ' ~ ' ' x $failed-position-in-line ~ "^ -- $what\n"
+            !! '       ' ~ ' ' x $failed-position-in-line ~ "^ -- here\n";
 
         # output subsequent line, if present
-        note sprintf("%5i | %s",
+        $message ~= sprintf("%5i | %s\n",
             $failed-at-line + 1,
             @input-as-lines[$failed-at-line - 0],
         ) if @input-as-lines[$failed-at-line - 0].defined;
 
-        note '';
+        $message ~= "\n";
 
-        exit 1;
+        Python2::CompilationError.new(:error($message)).throw();
     }
 }
