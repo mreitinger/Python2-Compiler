@@ -516,6 +516,7 @@ role Python2::Actions::Expressions {
             end-position    => $/.to,
             name            => $/<name>.made,
             default-value   => $/<test> ?? $/<test>.made !! Nil,
+            splat           => $/<splat> ?? True !! False,
         ));
     }
 }

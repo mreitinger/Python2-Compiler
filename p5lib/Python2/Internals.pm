@@ -331,6 +331,7 @@ sub getopt {
     foreach my $argument (@$argument_definition) {
         my $name    = $argument->[0]; # name of this argument.
         my $default = $argument->[1]; # default value of this argument. might be undef.
+        my $splat   = $argument->[2]; # 'splat' was specified (*args), grab all remaining args
 
         # we got a positional argument. check if it conflicts and use it otherwise.
         if (exists $arguments[0]) {
@@ -338,8 +339,14 @@ sub getopt {
             die Python2::Type::Exception->new('SyntaxError', "$function_name(): conflict between named/positional argument '$name'")
                 if exists $named_arguments->{$name};
 
-            setvar($stack, $name, shift(@arguments));
-            next;
+            if ($splat) {
+                setvar($stack, $name, Python2::Type::Tuple->new(@arguments));
+                last;
+            }
+            else {
+                setvar($stack, $name, shift(@arguments));
+                next;
+            }
         }
 
         # we got a named argument

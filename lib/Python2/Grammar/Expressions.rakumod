@@ -229,7 +229,7 @@ role Python2::Grammar::Expressions {
     }
 
     token function-definition-argument {
-        <name> [<.dws>* '=' <.dws>* <test>]?
+        <splat>? <name> [<.dws>* '=' <.dws>* <test>]?
     }
 
     token extended-test-list {

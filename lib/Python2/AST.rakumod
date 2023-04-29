@@ -264,6 +264,7 @@ class Python2::AST {
     class Node::Statement::FunctionDefinition::Argument is Node {
         has Node    $.name is required is rw;
         has Node    $.default-value is rw;
+        has Bool    $.splat;
     }
 
     class Node::Argument is Node {

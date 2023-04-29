@@ -703,6 +703,10 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
+        # *args must always be the last parameter, keep track if we have already seen it
+        # so we can abort if anything comes after.
+        my Bool $splat_seen = False;
+
         my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
 
         my Str $block;
@@ -713,10 +717,16 @@ class Python2::Backend::Perl5 {
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
         for $node.argument-list -> $argument {
-            $argument-definition  ~= sprintf('[ \'%s\', %s ],',
+            Python2::ParseFail.new(:pos($argument.start-position)).throw()
+                if $splat_seen;
+
+            $argument-definition  ~= sprintf('[ \'%s\', %s, %i ],',
                 $argument.name.name,
                 $argument.default-value ?? $.e($argument.default-value) !! 'undef',
+                $argument.splat ?? 1 !! 0,
             );
+
+            $splat_seen = True if $argument.splat;
         }
 
         # call Python2::Python2::Internals::getopt() to parse our arguments
