@@ -81,7 +81,7 @@ package Python2::Grammar {
         }
 
         token comment {
-            \h* '#' (\N+) "\n"?
+            \h* '#' (\N*) "\n"?
         }
     }
 
