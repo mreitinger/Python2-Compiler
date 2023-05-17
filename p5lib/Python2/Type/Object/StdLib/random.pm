@@ -31,10 +31,10 @@ sub choice {
     pop(@_); # default named arguments hash
     my ($self, $sequence) = @_;
 
-    die Python2::Type::Exception->("IndexError", "sequence with length 0 given")
+    die Python2::Type::Exception->new("IndexError", "sequence with length 0 given")
         unless scalar @{ $sequence } > 0;
 
-    die Python2::Type::Exception->(
+    die Python2::Type::Exception->new(
         "TypeError", $sequence->__type__ . ".choice() expecting list, got " . $sequence->__type__)
         unless ref($sequence) =~ m/^Python2::Type::List/;
 
@@ -55,7 +55,7 @@ sub shuffle {
 
     # this is not 100% correct as python allows other types under certain circumstances
     # but good enough for our application
-    die Python2::Type::Exception->(
+    die Python2::Type::Exception->new(
         "TypeError", $sequence->__type__ . ".choice() expecting list, got " . $sequence->__type__)
         unless ref($sequence) =~ m/^Python2::Type::List/;
 
