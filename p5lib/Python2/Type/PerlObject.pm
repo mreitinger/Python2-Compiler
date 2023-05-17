@@ -158,11 +158,6 @@ sub __getattr__ {
     if ($self->{object}->can('__getattr__')) {
         my $retval = $self->{object}->__getattr__($key->__tonative__);
 
-        die Python2::Type::Exception->new(
-            'AttributeError',
-            sprintf("Attribute '%s' not found.", $key->__tonative__)
-        ) unless defined $retval;
-
         return Python2::Internals::convert_to_python_type( $retval );
     }
 
@@ -184,11 +179,6 @@ sub __getitem__ {
    # our wrapped object implements __getitem__
    if ($self->{object}->can('__getitem__')) {
        my $retval = $self->{object}->__getitem__($key->__tonative__);
-
-       die Python2::Type::Exception->new(
-           'AttributeError',
-           sprintf("Attribute '%s' not found on '%s'.", $key->__tonative__, ref($self->{object}))
-       ) unless defined $retval;
 
        return Python2::Internals::convert_to_python_type( $retval );
    }
