@@ -1,0 +1,11 @@
+print "".islower()
+print "X".islower()
+print "XyZ".islower()
+print "xYz".islower()
+print "XXX".islower()
+print "y".islower()
+print "1A".islower()
+print "1a".islower()
+print "^a".islower()
+print "^A".islower()
+

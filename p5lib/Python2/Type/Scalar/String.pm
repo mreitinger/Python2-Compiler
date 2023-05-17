@@ -118,6 +118,15 @@ sub isupper {
     )
 }
 
+sub islower {
+    my $string = shift->{value};
+    $string =~ s/[^a-zA-Z]//ig;
+
+    return \Python2::Type::Scalar::Bool->new(
+        $string =~ m/^[a-z]+$/ ? 1 : 0
+    )
+}
+
 
 sub join {
     my ($self, $iterable) = @_;
