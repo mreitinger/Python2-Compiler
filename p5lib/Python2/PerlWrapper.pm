@@ -18,7 +18,7 @@ sub new {
     # re-dispatch to __call__.
     if (ref $self) {
         push(@{ $self->{path} }, 'new');
-        return $self->__call__(undef, @arguments);
+        return $self->__call__(@arguments);
     }
 
     my $object = bless({
@@ -36,7 +36,6 @@ sub __getattr__ {
 
 sub __call__ {
     my $self = shift;
-    shift; # get rid of the python 'self'
 
     # Arguments passed to the method
     my @argument_list = @_;

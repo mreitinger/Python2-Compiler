@@ -92,7 +92,7 @@ sub AUTOLOAD {
 
     my $method_ref = ${ $self->{stack}->get($requested_method) } // die("Unknown method $requested_method");
 
-    return $method_ref->__call__($self, @_);
+    return $method_ref->__call__(@_);
 }
 
 sub __type__ { return 'pyobject'; }

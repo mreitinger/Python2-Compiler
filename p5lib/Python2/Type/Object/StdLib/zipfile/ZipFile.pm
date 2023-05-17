@@ -83,8 +83,7 @@ sub __exit__ {
 sub __call__ {
     pop(@_); # default named arguments hash
 
-    # we care about the ZipFile instance not zipfile (naming is hard) hence the $dummy
-    my ($self, $dummy, $path, $mode) = @_;
+    my ($self, $path, $mode) = @_;
     $self->open($path, $mode, undef, undef);
     return \$self;
 }

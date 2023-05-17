@@ -41,7 +41,7 @@ sub __posix__ {
 
 sub __call__ {
     pop(@_); # default named arguments hash
-    my ($self, $pstack, $year, $month, $day, $hour, $minute, $second) = @_;
+    my ($self, $year, $month, $day, $hour, $minute, $second) = @_;
 
     die Python2::Type::Exception->new('TypeError', "Required argument 'year' (pos 1) not found")
         unless ($year && $year->__type__ eq 'int');

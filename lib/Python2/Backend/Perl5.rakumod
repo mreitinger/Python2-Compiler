@@ -364,9 +364,16 @@ class Python2::Backend::Perl5 {
 
     # Statements
     # statement 'container': if it's a statement append ; to make the perl parser happy
-    multi method e(Python2::AST::Node::Statement $node) {
+    multi method e(
+        Python2::AST::Node::Statement $node,
+
+        # If this Block belongs to a Class this will point to it. Used to differentiate between
+        # Functions and Methods.
+        Python2::AST::Node::Statement::ClassDefinition $class?
+    ) {
         my Str $p5  = qq|\n# line 999 "___position_{$node.start-position}_{$node.end-position}___"\n|;
-               $p5 ~= $.e($node.statement) ~ ";\n";
+               $p5 ~= $class ?? $.e($node.statement, $class) !! $.e($node.statement);
+               $p5 ~= ~ ";\n";
     }
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
@@ -702,7 +709,12 @@ class Python2::Backend::Perl5 {
         }
     }
 
-    multi method e(Python2::AST::Node::Statement::FunctionDefinition $node) {
+    multi method e(
+        Python2::AST::Node::Statement::FunctionDefinition $node,
+
+        # If this Function belongs to a Class this will point to it triggering Method generation
+        Python2::AST::Node::Statement::ClassDefinition    $class?
+    ) {
         # *args must always be the last parameter, keep track if we have already seen it
         # so we can abort if anything comes after.
         my Bool $splat_seen = False;
@@ -730,9 +742,10 @@ class Python2::Backend::Perl5 {
         }
 
         # call Python2::Python2::Internals::getopt() to parse our arguments
-        $block ~= sprintf('Python2::Internals::getopt($stack, \'%s\', [%s], @_);',
+        $block ~= sprintf('Python2::Internals::getopt($stack, \'%s\', [%s], %s);',
             $node.name.name.subst("'", "\\'", :g),
-            $argument-definition
+            $argument-definition,
+            $class ?? '$self->{object}, @_' !! '@_',
         );
 
         # the actual function body
@@ -743,15 +756,17 @@ class Python2::Backend::Perl5 {
 
         # the call to shift to get rid of $self which we don't need in this case.
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { %s }; sub __call__ { %s } }',
+            'package %s { use base qw/ Python2::Type::%s /; use Python2; sub __name__ { %s }; sub __call__ { %s } }',
             $perl5_class_name,
+            $class ?? 'Method' !! 'Function',
             $.e($node.name),
             $block,
         );
 
-        return sprintf('Python2::Internals::setvar($stack, %s, %s->new($stack));',
+        return sprintf('Python2::Internals::setvar($stack, %s, %s->new(%s));',
             $.e($node.name),
             $perl5_class_name,
+            $class ?? '$stack, $self' !! '$stack',
         );
     }
 
@@ -790,7 +805,7 @@ class Python2::Backend::Perl5 {
             'package %s { %s sub __build__ { my $self = $_[0]; $self->SUPER::__build__(); my $stack = $self->{stack}; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
-            $.e($node.block)
+            $.e($node.block, $node)
         );
 
         my Str $p5;
@@ -900,9 +915,6 @@ class Python2::Backend::Perl5 {
 
                 $p5 ~= '} else {';
 
-                # keep track of the object so we can pass it as self
-                $p5 ~= 'my $o = $p;';
-
                 # no p5-style method, give the object a chance to return a Function object via the __getattr__ fallback
                 $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new('%s'), {});|, $current-element.name);
 
@@ -910,7 +922,7 @@ class Python2::Backend::Perl5 {
                 $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('AttributeError', ref($$p) . " instance has no attribute '%s'");|, $current-element.name);
 
                 # got a python-style method, call it
-                $p5 ~= sprintf(q|$p = $$p->__call__($$o, %s);|, $.e($argument-list));
+                $p5 ~= sprintf(q|$p = $$p->__call__(%s);|, $.e($argument-list));
 
                 $p5 ~= '}';
             }
@@ -1100,9 +1112,20 @@ class Python2::Backend::Perl5 {
        );
     }
 
-    multi method e(Python2::AST::Node::Block $node) {
+    multi method e(
+        Python2::AST::Node::Block $node,
+
+        # If this Block belongs to a Class this will point to it. Used to differentiate between
+        # Functions and Methods.
+        Python2::AST::Node::Statement::ClassDefinition $class?
+    ) {
+        if $class {
+        }
         return sprintf('%s', $node.statements.map({
-            self.e($_)
+            # Pass the Class on to any FunctionDefinition to trigger Method creation.
+            ($_ ~~ Python2::AST::Node::Statement) and ($_.statement ~~ Python2::AST::Node::Statement::FunctionDefinition)
+                ?? self.e($_, $class)
+                !! self.e($_)
         }).join(''));
     }
 
