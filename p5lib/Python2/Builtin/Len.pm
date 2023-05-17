@@ -9,6 +9,9 @@ sub __call__ {
     shift @_; # $self - unused
     pop   @_; # default named arguments hash - unused
 
+    die Python2::Type::Exception->new('TypeError', 'len() takes exactly one argument, got ' . @_)
+        unless @_ == 1;
+
     shift->__len__;
 };
 
