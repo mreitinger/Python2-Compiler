@@ -127,6 +127,15 @@ sub islower {
     )
 }
 
+sub isdigit {
+    my $string = shift->{value};
+    $string =~ s/[^[:print:]]//ig;
+
+    return \Python2::Type::Scalar::Bool->new(
+        $string =~ m/^[0-9]+$/ ? 1 : 0
+    )
+}
+
 
 sub join {
     my ($self, $iterable) = @_;
