@@ -97,7 +97,12 @@ sub strptime {
     my ($self, $string, $format) = @_;
 
     my $parser = DateTime::Format::Strptime->new(
-        pattern => $format
+        pattern => $format,
+        on_error => sub {
+            my ($object, $message) = @_;
+
+            die Python2::Type::Exception->new('Exception', $message);
+        },
     );
     my $obj = $parser->parse_datetime($string)->{local_c};
 
