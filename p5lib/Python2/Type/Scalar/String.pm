@@ -109,6 +109,16 @@ sub strip {
     return \Python2::Type::Scalar::String->new($string);
 }
 
+sub isupper {
+    my $string = shift->{value};
+    $string =~ s/[^a-zA-Z]//ig;
+
+    return \Python2::Type::Scalar::Bool->new(
+        $string =~ m/^[A-Z]+$/ ? 1 : 0
+    )
+}
+
+
 sub join {
     my ($self, $iterable) = @_;
 

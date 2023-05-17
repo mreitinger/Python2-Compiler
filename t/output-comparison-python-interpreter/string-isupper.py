@@ -1,0 +1,11 @@
+print "".isupper()
+print "X".isupper()
+print "XyZ".isupper()
+print "xYz".isupper()
+print "XXX".isupper()
+print "y".isupper()
+print "1A".isupper()
+print "1a".isupper()
+print "^a".isupper()
+print "^A".isupper()
+
