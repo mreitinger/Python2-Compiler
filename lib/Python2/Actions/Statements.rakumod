@@ -114,7 +114,7 @@ role Python2::Actions::Statements {
             start-position  => $/.from,
             end-position    => $/.to,
             targets         => $/<power>.map({ $_.made }),
-            expression      => $/<test>.made
+            expression      => $/<test-list>.made
         ));
     }
 

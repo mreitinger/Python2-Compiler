@@ -156,7 +156,7 @@ role Python2::Grammar::Statements {
     # '(a if 1 else b) = 3'. not sure if we can prevent this here of if we do some post
     # processing?
     token variable-assignment {
-        <power> [ <.dws>* ',' <.dws>* <power>]*  <.dws>* '=' <.dws>* <test>
+        <power> [ <.dws>* ',' <.dws>* <power>]*  <.dws>* '=' <.dws>* <test-list>
     }
 
     token arithmetic-assignment {
