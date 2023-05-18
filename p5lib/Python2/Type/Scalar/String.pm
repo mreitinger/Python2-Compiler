@@ -443,6 +443,9 @@ sub __gt__ {
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ gt $other->__tonative__)
         if ($other->__type__ eq 'str');
 
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ref($other) eq 'Python2::Type::Scalar::Num';
+
     die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
@@ -451,6 +454,9 @@ sub __lt__ {
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ lt $other->__tonative__)
         if ($other->__type__ eq 'str');
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ref($other) eq 'Python2::Type::Scalar::Num';
 
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
