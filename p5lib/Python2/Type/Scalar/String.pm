@@ -6,6 +6,7 @@ use strict;
 
 use utf8;
 use MIME::Base64;
+use Encode qw();
 
 sub __str__  { return "'" . shift->{value} . "'"; }
 sub __type__ { 'str'; }
@@ -409,6 +410,8 @@ sub encode {
             "noop encode('utf-8') used for string: '%s<truncated>'. UTF-8 is now assumed everywhere.",
             substr($str, 0, 10)
         ) unless exists $ENV{PYTHON_2_COMPILER_NO_ENCODE_WARNINGS};
+    } elsif ($encoding eq 'cp1252') {
+        $str = Encode::encode('cp1252', $str);
     } elsif ($encoding eq 'base64') {
         $str = encode_base64($str);
     } else {
