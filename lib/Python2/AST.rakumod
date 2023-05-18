@@ -93,6 +93,7 @@ class Python2::AST {
 
     class Node::Expression::TestList is Node {
         has Node @.tests is rw;
+        has Bool $.trailing-comma is rw;
     }
 
     class Node::Expression::DictionaryDefinition is Node {

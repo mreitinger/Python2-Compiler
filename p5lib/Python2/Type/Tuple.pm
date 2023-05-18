@@ -13,7 +13,7 @@ use Tie::Tuple;
 sub __str__ {
     my $self = shift;
 
-    return '(' . join(', ', map { $_->__str__ } @$self) . ')';
+    return '(' . join(', ', map { $_->__str__ } @$self) . (@$self == 1 ? ',' : '') . ')';
 }
 
 sub __is_py_true__  {

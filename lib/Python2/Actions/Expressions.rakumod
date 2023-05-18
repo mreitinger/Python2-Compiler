@@ -291,7 +291,9 @@ role Python2::Actions::Expressions {
     }
 
     method test-list($/) {
-        my $test-list = Python2::AST::Node::Expression::TestList.new();
+        my $test-list = Python2::AST::Node::Expression::TestList.new(
+            trailing-comma => $/<trailing-comma>.so
+        );
 
         for $/<test> -> $test {
             $test-list.tests.push($test.made);
@@ -301,7 +303,9 @@ role Python2::Actions::Expressions {
     }
 
     method extended-test-list($/) {
-        my $test-list = Python2::AST::Node::Expression::TestList.new();
+        my $test-list = Python2::AST::Node::Expression::TestList.new(
+            trailing-comma => $/<trailing-comma>.so
+        );
 
         for $/<test> -> $test {
             $test-list.tests.push($test.made);

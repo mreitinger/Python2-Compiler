@@ -196,7 +196,8 @@ role Python2::Grammar::Expressions {
     }
 
     token test-list {
-        <test>+ %% <list-delimiter>
+        <test>+ % <list-delimiter>
+        <trailing-comma=.list-delimiter>?
     }
 
     token test {
@@ -235,7 +236,8 @@ role Python2::Grammar::Expressions {
     token extended-test-list {
         :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
         <.dws>*
-        <test>* %% <list-delimiter>
+        <test>* % <list-delimiter>
+        <trailing-comma=.list-delimiter>?
         <.dws>*
     }
 

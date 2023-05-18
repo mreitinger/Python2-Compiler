@@ -1070,15 +1070,13 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Expression::TestList $node) {
-        # TODO python allowes the creation of single-element tuples by adding a comma "(1,)"
-
         # empty tuple "x = ()" becomes an empty tuple
         if ($node.tests.elems == 0) {
             return '\Python2::Type::Tuple->new()';
         }
 
         # tuple with multiple values "x = (1, 2, 3)" - regular tuple
-        elsif $node.tests.elems > 1 {
+        elsif $node.tests.elems > ($node.trailing-comma ?? 0 !! 1) {
             return sprintf('\Python2::Type::Tuple->new(%s)',
                 $node.tests.map({ '${' ~ self.e($_) ~ '}' }).join(', ')
             );
