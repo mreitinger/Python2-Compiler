@@ -1101,6 +1101,32 @@ class Python2::Backend::Perl5 {
        );
     }
 
+    multi method e(Python2::AST::Node::DictComprehension $node) {
+        my Str $p5;
+
+        $p5 ~= sprintf('sub { my $i = ${ %s };', $.e($node.iterable));
+        $p5 ~= 'my $r = Python2::Type::Dict->new();';
+
+        $p5 ~= 'foreach my $var ($i->ELEMENTS) {';
+        # die if the object cannot provide a length
+        $p5 ~= sprintf(q|die Python2::Type::Exception->new('TypeError', 'Expected iterable, got ' . $var->__type__) unless $var->can('__len__');|);
+
+        # die if the elements in the object don't match the number of targets
+        $p5 ~= sprintf(q|die Python2::Type::Exception->new('ValueError', 'too many values to unpack') unless ${$var->__len__}->__tonative__ == %i;|, $node.names.elems);
+
+        for $node.names.kv -> $i, $target {
+            $p5 ~= sprintf(q|Python2::Internals::setvar($stack, %s, ${ $var->__getitem__(Python2::Type::Scalar::Num->new(%i)) });|, $.e($target), $i);
+        }
+
+        $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.condition))
+            if ($node.condition);
+
+        $p5 ~= sprintf('$r->__setitem__(${ %s }, ${ %s });', $.e($node.key), $.e($node.value));
+        $p5 ~= '}';
+
+        return $p5 ~ 'return \$r; }->()';
+    }
+
     # set handling
     multi method e(Python2::AST::Node::Expression::SetDefinition $node) {
         return sprintf('\Python2::Type::Set->new(%s)',

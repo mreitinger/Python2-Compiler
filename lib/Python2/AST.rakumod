@@ -100,6 +100,14 @@ class Python2::AST {
         has Pair @.entries is required is rw;
     }
 
+    class Node::DictComprehension is Node {
+        has Node    @.names         is required is rw;
+        has Node    $.iterable      is required is rw;
+        has Node    $.key           is required is rw;
+        has Node    $.value         is required is rw;
+        has Node    $.condition     is rw;
+    }
+
     class Node::Expression::SetDefinition is Node {
         has Node @.entries is required is rw;
     }

@@ -347,6 +347,18 @@ role Python2::Actions::Expressions {
         ));
     }
 
+    method dict-comprehension($/) {
+        $/.make(Python2::AST::Node::DictComprehension.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            names           => $/<name>.map(*.made),
+            iterable        => $/<iterable>.made,
+            key             => $/<key>.made,
+            value           => $/<value>.made,
+            condition       => $/<condition> ?? $/<condition>.made !! Nil,
+        ));
+    }
+
     # set handling
     method set-entry-list($/) {
         # get every set entry in the list. we just bypass the intermediate

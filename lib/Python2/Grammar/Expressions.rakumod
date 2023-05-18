@@ -106,6 +106,16 @@ role Python2::Grammar::Expressions {
         <.dws>* <test> <.dws>* ':' <.dws>* <test> <.dws>*
     }
 
+    token dict-comprehension {
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        <.dws>*
+        <key=.test> <.dws>* ':' <.dws>* <value=.test> <.dws>+
+        'for' <.dws>+ <name>+ % <list-delimiter> <.dws>
+        'in' <.dws>+ <iterable=.test>
+        [<.dws>+ 'if' <.dws>+ <condition=.test>]?
+        <.dws>*
+    }
+
 
     # set handling
     token set-entry-list {
