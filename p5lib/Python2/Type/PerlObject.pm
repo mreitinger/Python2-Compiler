@@ -149,6 +149,8 @@ sub __hasattr__ {
 sub __getattr__ {
     my ($self, $key) = @_;
 
+    $key = $key->__tonative__;
+
     die Python2::Type::Exception->new(
         'AttributeError',
         '__getattr__() called on net yet instanciated object'
@@ -156,16 +158,28 @@ sub __getattr__ {
 
     # our wrapped object implements __getattr__
     if ($self->{object}->can('__getattr__')) {
-        my $retval = $self->{object}->__getattr__($key->__tonative__);
+        my $retval = $self->{object}->__getattr__($key);
 
         return Python2::Internals::convert_to_python_type( $retval );
     }
 
-    # our wrapped object does not implement __getattr__ protocol
+    # fallback: our wrapped object has a corresponding method
+    if ($self->{object}->can($key)) {
+
+        return Python2::Internals::convert_to_python_type(
+            $self->{object}->$key()
+        );
+    }
+
+    # our wrapped object does not implement __getattr__ protocol and has no method
     die Python2::Type::Exception->new(
         'NotImplementedError',
-        sprintf('PerlObject of class \'' . ref($self->{object}) . "' does not implement __getattr__, unable to handle __getattr__('%s')", $key->__tonative__)
-    ) unless $self->{object}->can('__getattr__');
+        sprintf(
+            'PerlObject of class \'' . ref($self->{object}) . "' does not implement __getattr__ and has no method '%s', unable to handle __getattr__('%s')",
+            $key,
+            $key,
+        )
+    );
 }
 
 sub __getitem__ {

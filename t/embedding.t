@@ -213,6 +213,9 @@ subtest "embedding - perlobject" => sub {
         a.test_method_positional_only('positional-argument')
         a.test_method_named_only(named_key='named_value')
         a.test_method_combined('positional-argument', named_key='named_value')
+
+        # no function call!
+        print a.test_method_getattr_fallback
     END
 
     my $compiler = Python2::Compiler.new();
@@ -222,6 +225,10 @@ subtest "embedding - perlobject" => sub {
     $generated_perl5_code ~= q:to/END/;
         {
             package PerlObjectTest;
+
+            sub test_method_getattr_fallback {
+                return '__getattr__ fallback retval';
+            }
 
             sub test_method_positional_only {
                 my ($self, $positional) = @_;
@@ -270,6 +277,7 @@ subtest "embedding - perlobject" => sub {
     $expected ~= "B named: named_value\n";
     $expected ~= "C positional: positional-argument\n";
     $expected ~= "D named: named_value\n";
+    $expected ~= "__getattr__ fallback retval\n";
 
     is $perl5_output, $expected, 'output matches';
 };
