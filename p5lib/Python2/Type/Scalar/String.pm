@@ -16,6 +16,10 @@ sub split {
     pop(@_); # default named arguments hash
     my ($self, $separator, $maxsplit) = @_;
 
+    return \Python2::Type::List->new(
+        Python2::Type::Scalar::String->new('')
+    ) unless length $self->{value};
+
     my $joiner = $separator; # original separator - used to join in case we use maxsplit below
 
     if ($separator) {
