@@ -220,5 +220,15 @@ sub __contains__ {
     return \Python2::Type::Scalar::Bool->new(exists $self->[0]->{$key});
 }
 
+sub ELEMENTS {
+    my $self = shift;
+
+    return map
+        {
+            ${ Python2::Internals::convert_to_python_type($_) }
+        }
+        CORE::keys %{ $self->[0] };
+}
+
 
 1;

@@ -216,4 +216,9 @@ sub __lt__ {
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
+sub ELEMENTS {
+    my $self = shift;
+    return CORE::keys %$self;
+}
+
 1;

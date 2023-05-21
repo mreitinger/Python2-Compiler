@@ -767,6 +767,45 @@ subtest "embedding - PerlHash __contains__" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - PerlHash iteration" => sub {
+    my Str $input = q:to/END/;
+    def t(d):
+        for i in d:
+            print i
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        my $hash = {
+            'a' => 'b',
+            'c' => 'd'
+        };
+
+        $p5->__run_function__('t', [$hash, bless({}, 'Python2::NamedArgumentsHash')]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected = "a\nc\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
+
 
 
 done-testing();

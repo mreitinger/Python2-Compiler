@@ -47,7 +47,7 @@ sub extend {
     die Python2::Type::Exception->new('TypeError', 'extend() expects a list, got ' . $value->__type__)
         unless $value->__type__ eq 'list';
 
-    foreach(@$value) {
+    foreach($value->ELEMENTS) {
         $self->append($_);
     }
 
