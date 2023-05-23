@@ -121,6 +121,10 @@ sub __call__ {
     if (defined $self->{object} and $self->{class} eq 'DTML::Runtime::Method') {
         return Python2::Internals::convert_to_python_type( $self->{object}->__call__(@argument_list) );
     }
+    elsif (defined $self->{object} and $self->{object}->isa('ZMS::Object')) {
+        return \$self;
+    }
+
     else {
         my $object = Python2::Type::PerlObject->new($self->{class});
         eval {
