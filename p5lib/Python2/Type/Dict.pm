@@ -31,6 +31,13 @@ sub keys {
     return \Python2::Type::List->new(keys %$self);
 }
 
+sub iterkeys {
+    my $self = shift;
+    return Python2::Type::List->new(
+        sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %$self
+    )->__iter__;
+}
+
 sub clear {
     my $self = shift;
     %$self = ();
