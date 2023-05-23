@@ -8,7 +8,7 @@ sub __name__ { 'next' }
 sub __call__ {
     shift @_; # $self - unused
 
-    $_[0]->__next__();
+    $_[0]->next();
 };
 
 1;

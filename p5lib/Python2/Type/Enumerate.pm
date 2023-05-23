@@ -26,6 +26,27 @@ sub next {
     );
 }
 
+# returnes the *remaining* elements
+sub ELEMENTS {
+    my ($self) = @_;
+
+    my @elements = $self->[1]->ELEMENTS;
+
+    my @retval = @elements[$self->[0] .. @elements-1];
+    $self->[0] = @elements;
+
+    my $i = 0;
+    return map {
+        Python2::Type::Tuple->new(
+            Python2::Type::Scalar::Num->new($i++),
+            $_,
+        )
+    } @retval;
+
+}
+
+
+
 sub __type__ { 'enumerate' }
 
 1;

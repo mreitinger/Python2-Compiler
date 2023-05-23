@@ -6,4 +6,6 @@ use strict;
 
 use base qw/ Python2::Type::List::Iterator /;
 
+sub __type__ { 'tupleiterator' }
+
 1;
