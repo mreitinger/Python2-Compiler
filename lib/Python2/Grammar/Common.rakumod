@@ -2,6 +2,10 @@ role Python2::Grammar::Common {
     # Match function/variable/class names. Matches the NAME token in Python's grammar.
     token name  { [<lower>|<upper>|_][<lower>|<upper>|<digit>|_]* }
 
+    token locals {
+        'locals'
+    }
+
     # Match dotted_name in Python's grammar - used for module imports.
     token dotted-name  { <name> [ '.' <name> ]* }
 
@@ -16,6 +20,7 @@ role Python2::Grammar::Common {
         | '{' <dictionary-entry-list> '}'
         | '{' <dict-comprehension>    '}'
         | '{' <set-entry-list>        '}'
+        | <locals>
         | <name>
         | <number>
         | <string>

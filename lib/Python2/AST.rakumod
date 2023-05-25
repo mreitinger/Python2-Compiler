@@ -126,6 +126,8 @@ class Python2::AST {
         has Str $.name is required is rw;
     }
 
+    class Node::Locals is Node {}
+
 
     # Statements
     class Node::Statement::Pass is Node {}

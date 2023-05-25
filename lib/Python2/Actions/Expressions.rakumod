@@ -73,6 +73,13 @@ role Python2::Actions::Expressions {
         ))
     }
 
+    method locals ($/) {
+        $/.make(Python2::AST::Node::Locals.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+        ))
+    }
+
     method dotted-name ($/) {
         $/.make(Python2::AST::Node::Name.new(
             start-position  => $/.from,

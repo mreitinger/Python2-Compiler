@@ -255,6 +255,10 @@ class Python2::Backend::Perl5 {
         }
     }
 
+    multi method e(Python2::AST::Node::Locals $node) {
+        return q|\Python2::Builtin::Locals->new($stack)|;
+    }
+
     multi method e(Python2::AST::Node::Statement::P5Import $node) {
         return sprintf('Python2::Internals::setvar($stack, \'%s\', Python2::Type::PerlObject->new(\'%s\'));',
             $node.name,

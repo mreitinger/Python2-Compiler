@@ -24,5 +24,6 @@ use Python2::Builtin::Any;
 use Python2::Builtin::Isinstance;
 use Python2::Builtin::Type;
 use Python2::Builtin::Ord;
+use Python2::Builtin::Locals;
 
 1;
