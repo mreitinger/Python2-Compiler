@@ -35,8 +35,8 @@ sub choice {
         unless scalar @{ $sequence } > 0;
 
     die Python2::Type::Exception->new(
-        "TypeError", $sequence->__type__ . ".choice() expecting list, got " . $sequence->__type__)
-        unless ref($sequence) =~ m/^Python2::Type::List/;
+        "TypeError", "random.choice() expecting list, got " . $sequence->__type__)
+        unless $sequence->__type__ eq 'list';
 
     srand($rseed) if ($rseed);
 
@@ -56,8 +56,8 @@ sub shuffle {
     # this is not 100% correct as python allows other types under certain circumstances
     # but good enough for our application
     die Python2::Type::Exception->new(
-        "TypeError", $sequence->__type__ . ".choice() expecting list, got " . $sequence->__type__)
-        unless ref($sequence) =~ m/^Python2::Type::List/;
+        "TypeError", "random.shuffle() expecting list, got " . $sequence->__type__)
+        unless $sequence->__type__ eq 'list';
 
     srand($rseed) if ($rseed);
 
