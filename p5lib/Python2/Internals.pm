@@ -5,7 +5,7 @@ use strict;
 use List::Util::XS; # ensure we use the ::XS version
 use Data::Dumper;
 
-use Scalar::Util qw/ looks_like_number blessed /;
+use Scalar::Util qw/ looks_like_number blessed isdual /;
 use Carp qw/ confess /;
 use Module::Load;
 
@@ -390,6 +390,16 @@ sub convert_to_python_type {
 
     if (ref($value) eq 'CODE') {
         return \Python2::Type::PerlSub->new($value);
+    }
+
+    # A dualvar wich explicit numeric representation as returned by, for example, by
+    # `exists $hashref->{key} which returnes` an empty string with 0 as numeric
+    # representation. Without this the empty string would cause comparisons such as
+    # empty_string > 0 to return True instead of False (0 > 0).
+    #
+    # This matches Inline::Python so existing code can works as-is.
+    if (isdual($value)) {
+        return \Python2::Type::Scalar::Num->new($value + 0);
     }
 
     # anything else must be a plain scalar
