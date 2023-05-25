@@ -114,4 +114,15 @@ sub __rshift__ {
     return \Python2::Type::Scalar::Num->new(int($self->__tonative__) >> int($other->__tonative__));
 }
 
+sub __call__ {
+    my $self = shift;
+
+    # This is a very, very ugly hack for compatibility with ancient Zope/DTML templates.
+    # Some mechanism allowed values to be accessed as a Function Call: <dtml-var "my_number()">
+    return \$self;
+}
+
+
+
+
 1;
