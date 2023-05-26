@@ -27,6 +27,33 @@ sub seed {
     return \Python2::Type::Scalar::None->new();
 }
 
+sub sample {
+    pop(@_); # default named arguments hash
+    my ($self, $sequence, $count) = @_;
+
+    die Python2::Type::Exception->new(
+        "TypeError", "random.sample() expecting int as sample size, got " . $sequence->__type__)
+        unless $count->__type__ eq 'int';
+
+    die Python2::Type::Exception->new(
+        "TypeError", "random.sample() expecting list, got " . $sequence->__type__)
+        unless $sequence->__type__ eq 'list';
+
+    die Python2::Type::Exception->new(
+        "ValueError", "random.sample() sample size larger than population")
+        if $count->__tonative__ >= scalar $sequence->ELEMENTS;
+
+    die Python2::Type::Exception->new(
+        "ValueError", "random.sample() invalid sample size")
+        if $count->__tonative__ < 0;
+
+    return \Python2::Type::List->new(
+        List::Util::sample($count->__tonative__, $sequence->ELEMENTS)
+    );
+}
+
+
+
 sub choice {
     pop(@_); # default named arguments hash
     my ($self, $sequence) = @_;
