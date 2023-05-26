@@ -40,8 +40,8 @@ sub sample {
         unless $sequence->__type__ eq 'list';
 
     die Python2::Type::Exception->new(
-        "ValueError", "random.sample() sample size larger than population")
-        if $count->__tonative__ >= scalar $sequence->ELEMENTS;
+        "ValueError", sprintf("random.sample() sample size (%i) larger than population (%i)", $count->__tonative__, scalar $sequence->ELEMENTS))
+        if $count->__tonative__ > scalar $sequence->ELEMENTS;
 
     die Python2::Type::Exception->new(
         "ValueError", "random.sample() invalid sample size")
