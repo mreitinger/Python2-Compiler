@@ -52,6 +52,12 @@ package Python2::Grammar {
             <scope-decrease>
         }
 
+        # a block or statement
+        token blorst {
+            <block>
+            | <.dws>* <statement>
+        }
+
         token non-code {
             || <comment>
             || <.empty-lines>

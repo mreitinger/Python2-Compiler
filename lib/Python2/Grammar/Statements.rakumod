@@ -123,12 +123,11 @@ role Python2::Grammar::Statements {
     }
 
     token statement-if {
-        'if' <.dws>+ <test> <.dws>* ':' <block>
+        'if' <.dws>+ <test> <.dws>* ':' <if=.blorst>
         <statement-elif>*
         [<level> 'else' <.dws>* ':'
             [
-                | <block>
-                | <.dws>+ <statement>
+                <else=.blorst>
             ]
         ]?
     }
@@ -138,7 +137,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-elif {
-        <level> 'elif' <.dws>+ <test> <.dws>* ':' <block>
+        <level> 'elif' <.dws>+ <test> <.dws>* ':' <blorst>
     }
 
     token statement-try-except {

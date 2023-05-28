@@ -152,12 +152,9 @@ role Python2::Actions::Statements {
             start-position  => $/.from,
             end-position    => $/.to,
             test            => $/<test>.made,
-            block           => $/<block>[0].made,
+            block           => $/<if>.made,
             elifs           => $/<statement-elif>.List.map({ $_.made }),
-            else            =>
-                $/<block>[1]
-                    ?? $/<block>[1].made                            # complete block
-                    !! $/<statement> ?? $/<statement>.made !! Nil   # one-statement-shorthand
+            else            => $/<else>.made
         ));
     }
 
@@ -176,7 +173,7 @@ role Python2::Actions::Statements {
             start-position  => $/.from,
             end-position    => $/.to,
             test            => $/<test>.made,
-            block           => $/<block>.made,
+            block           => $/<blorst>.made,
         ));
     }
 
@@ -239,6 +236,10 @@ role Python2::Actions::Statements {
         }
 
         $/.make($block);
+    }
+
+    method blorst($/) {
+        make $<block> ?? $<block>.made !! $<statement>.made;
     }
 
     method scope-decrease ($/) {
