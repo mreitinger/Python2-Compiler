@@ -229,10 +229,7 @@ role Python2::Grammar::Expressions {
     }
 
     token comparison {
-        [
-            | <expression> <.dws>* <comparison-operator> <.dws>* <expression>
-            | <expression>
-        ]
+        <expression> [<.dws>* <comparison-operator> <.dws>* <expression>]*
     }
 
     token function-definition-argument-list {
@@ -252,16 +249,16 @@ role Python2::Grammar::Expressions {
     }
 
     token comparison-operator {
-        ||  '=='
-        ||  '!='
-        ||  '>='
-        ||  '<='
-        ||  '>'
-        ||  '<'
-        ||  'is not'
-        ||  'is'
-        ||  'in'
-        ||  'not in'
+        |  '=='
+        |  '!='
+        |  '>='
+        |  '<='
+        |  '>'
+        |  '<'
+        |  'is not'
+        |  'is'
+        |  'in'
+        |  'not in'
     }
 
     token number            {

@@ -260,10 +260,8 @@ class Python2::AST {
     class Node::Statement::Break is Node {}
 
     class Node::Statement::Test::Comparison is Node {
-        has Node $.left     is required is rw;
-        has Node $.right    is rw;
-        has Bool $.negate   is required;
-        has Str $.comparison-operator;
+        has Node @.operands is required is rw;
+        has Str @.operators is required is rw;
     }
 
     class Node::Statement::FunctionDefinition is Node {

@@ -488,39 +488,18 @@ role Python2::Actions::Expressions {
     }
 
     method comparison ($/) {
-        my $comparison-operator = $/<comparison-operator>
-            ?? $/<comparison-operator>.Str
-            !! '';
+        if $/<comparison-operator> {
+            make Python2::AST::Node::Statement::Test::Comparison.new(
+                start-position  	=> $/.from,
+                end-position    	=> $/.to,
 
-        my %operators =
-            '=='        => '__eq__',
-            '!='        => '__ne__',
-            '<'         => '__lt__',
-            '>'         => '__gt__',
-            '<='        => '__le__',
-            '>='        => '__ge__',
-            'is'        => '__is__',
-            'is not'    => '__is__',
-            'in'        => '__contains__',
-            'not in'    => '__contains__';
-
-        $/.make(Python2::AST::Node::Statement::Test::Comparison.new(
-            start-position  	=> $/.from,
-            end-position    	=> $/.to,
-
-            # 'not in' is handled as a dedicated operator
-            negate              => $comparison-operator (elem) ('not in', 'is not'),
-
-            left                => $/<expression>[0].made,
-
-            right               => $/<expression>[1]
-                ?? $/<expression>[1].made
-                !! Nil,
-
-            comparison-operator => $comparison-operator.chars > 0
-                ?? %operators{$comparison-operator}
-                !! Nil,
-        ));
+                operators => $<comparison-operator>.map(*.Str),
+                operands  => $<expression>.map(*.made),
+            );
+        }
+        else {
+            make $/<expression>[0].made;
+        }
     }
 
     method function-definition-argument-list($/) {

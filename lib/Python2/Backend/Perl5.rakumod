@@ -653,23 +653,49 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
-        if ($node.right) {
-            my $left    = $node.comparison-operator eq '__contains__' ?? $node.right !! $node.left;
-            my $right   = $node.comparison-operator eq '__contains__' ?? $node.left  !! $node.right;
+        my %operators =
+            '=='        => '__eq__',
+            '!='        => '__ne__',
+            '<'         => '__lt__',
+            '>'         => '__gt__',
+            '<='        => '__le__',
+            '>='        => '__ge__',
+            'is'        => '__is__',
+            'is not'    => '__is__',
+            'in'        => '__contains__',
+            'not in'    => '__contains__';
 
-            return $node.negate
-                ??  sprintf('\Python2::Type::Scalar::Bool->new(not ${ ${%s}->%s(${%s}) }->__is_py_true__)',
+        if $node.operators == 1 {
+            my $negate = $node.operators[0] ∈ ('not in', 'is not');
+            my $operator = %operators{$node.operators[0]};
+            my ($left, $right) = $node.operands;
+            ($left, $right) = ($right, $left) if $operator eq '__contains__';
+
+            return $negate
+                ??  sprintf('${ ${%s}->%s(${%s}) }->__negate__',
                         $.e($left),
-                        $node.comparison-operator,
+                        $operator,
                         $.e($right),
                     )
                 !!  sprintf('${%s}->%s(${%s})',
                         $.e($left),
-                        $node.comparison-operator,
+                        $operator,
                         $.e($right),
                     );
-        } else {
-            return $.e($node.left);
+        }
+        else {
+            my sub comparer(Pair $op) {
+                my $negate = $op.value ∈ ('not in', 'is not');
+                my $operator = %operators{$op.value};
+                my ($left, $right) = ('$operand_' ~ $op.key, '$operand_' ~ ($op.key + 1));
+                ($left, $right) = ($right, $left) if $op eq '__contains__';
+
+                my $res = Q:s:b "\${ $left\->$operator\($right) }";
+                $res ~= '->__negate__' if $negate;
+                $res ~= '->__is_py_true__';
+                $res
+            }
+            Q:s "(do { my ($node.operands.keys.map({"\$operand_$_"}).join(', ')) = ($node.operands.values.map({"\$\{$.e($_)}"}).join(', ')); \Python2::Type::Scalar::Bool->new($node.operators.pairs.map(&comparer).join(' and ')) })";
         }
     }
 
