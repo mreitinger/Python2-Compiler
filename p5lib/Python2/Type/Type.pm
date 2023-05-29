@@ -17,6 +17,8 @@ sub __getattr__ {
 
     return \Python2::Type::Scalar::String->new(shift->[0])
         if $attr eq '__name__';
+
+    die Python2::Type::Exception->new('AttributeError', "'" . ref($self) . "' has no attribute '$attr'");
 }
 
 sub __print__ { sprintf("<type '%s'>", shift->[0]); }

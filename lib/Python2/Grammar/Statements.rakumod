@@ -39,7 +39,7 @@ role Python2::Grammar::Statements {
                 [
                     || <variable-assignment>
                     || <arithmetic-assignment>
-                    || <expression>
+                    || <test>
                 ]
                 <.end-of-statement>
             ]

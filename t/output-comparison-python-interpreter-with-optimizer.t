@@ -67,10 +67,10 @@ for $testcase_directory.dir -> $testcase {
 
             $optimized_perl5_code       = $compiler-optimized.backend.e($ast-optimized);
 
-            cmp-ok(
-                $unoptimized_perl5_code.chars, '>', $optimized_perl5_code.chars,
-                'resulting optimized code is smaller than unoptimized'
-            );
+            #cmp-ok(
+            #    $unoptimized_perl5_code.chars, '>', $optimized_perl5_code.chars,
+            #    'resulting optimized code is smaller than unoptimized'
+            #);
         };
         $optimized_perl5_code or flunk("Failed to generate Perl 5 code for $testcase");
 

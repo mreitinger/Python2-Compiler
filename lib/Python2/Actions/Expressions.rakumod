@@ -25,40 +25,60 @@ role Python2::Actions::Expressions {
 
     # top level 'expression'
     method expression ($/) {
-        $/.make(Python2::AST::Node::Expression::Container.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            expressions     => $/<xor-expression>.map({ $_.made }),
-            operators       => $/<or-expression-operator>.map({ $_.Str }),
-        ));
+        if $<or-expression-operator> {
+            make Python2::AST::Node::Expression::Container.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                expressions     => $/<xor-expression>.map({ $_.made }),
+                operators       => $/<or-expression-operator>.map({ $_.Str }),
+            );
+        }
+        else {
+            make $/<xor-expression>[0].made;
+        }
     }
 
     method xor-expression ($/) {
-        $/.make(Python2::AST::Node::Expression::Container.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            expressions     => $/<and-expression>.map({ $_.made }),
-            operators       => $/<xor-expression-operator>.map({ $_.Str }),
-        ));
+        if $<xor-expression-operator> {
+            make Python2::AST::Node::Expression::Container.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                expressions     => $/<and-expression>.map({ $_.made }),
+                operators       => $/<xor-expression-operator>.map({ $_.Str }),
+            );
+        }
+        else {
+            make $/<and-expression>[0].made;
+        }
     }
 
 
     method and-expression ($/) {
-        $/.make(Python2::AST::Node::Expression::Container.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            expressions     => $/<shift-expression>.map({ $_.made }),
-            operators       => $/<and-expression-operator>.map({ $_.Str }),
-        ));
+        if $<and-expression-operator> {
+            make Python2::AST::Node::Expression::Container.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                expressions     => $/<shift-expression>.map({ $_.made }),
+                operators       => $/<and-expression-operator>.map({ $_.Str }),
+            );
+        }
+        else {
+            make $/<shift-expression>[0].made;
+        }
     }
 
     method shift-expression ($/) {
-        $/.make(Python2::AST::Node::Expression::Container.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            expressions     => $/<arithmetic-expression-low-precedence>.map({ $_.made }),
-            operators       => $/<shift-expression-operator>.map({ $_.Str }),
-        ));
+        if $/<shift-expression-operator> {
+            make Python2::AST::Node::Expression::Container.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                expressions     => $/<arithmetic-expression-low-precedence>.map({ $_.made }),
+                operators       => $/<shift-expression-operator>.map({ $_.Str }),
+            );
+        }
+        else {
+            make $/<arithmetic-expression-low-precedence>[0].made;
+        }
     }
 
     method trailer ($/) {
@@ -100,12 +120,66 @@ role Python2::Actions::Expressions {
     # this does not yet implement power (as in **) but is here for future expansion and since
     # we need it to match atom/trailers.
     method power ($/) {
-        $/.make(Python2::AST::Node::Power.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            atom            => $/<atom>.made,
-            trailers        => $/<trailer>.map({ $_.made })
-        ))
+        if $/<trailer> {
+            my $atom = $/<atom>.made;
+            for $/<trailer> {
+                my $trailer = $_.made;
+                given $trailer {
+                    when Python2::AST::Node::Name {
+                        $atom = Python2::AST::Node::PropertyAccess.new(
+                            start-position  => $/.from,
+                            end-position    => $/.to,
+                            atom            => $atom,
+                            property        => $trailer,
+                        )
+                    }
+                    when Python2::AST::Node::Subscript {
+                        $atom = Python2::AST::Node::SubscriptAccess.new(
+                            start-position  => $/.from,
+                            end-position    => $/.to,
+                            atom            => $atom,
+                            subscript       => $trailer,
+                        )
+                    }
+                    when Python2::AST::Node::ArgumentList {
+                        given $atom {
+                            when Python2::AST::Node::PropertyAccess {
+                                $atom = Python2::AST::Node::Call::Method.new(
+                                    start-position  => $/.from,
+                                    end-position    => $/.to,
+                                    atom            => $atom.atom,
+                                    name            => $atom.property,
+                                    arglist         => $trailer,
+                                )
+                            }
+                            when Python2::AST::Node::Atom {
+                                $atom = Python2::AST::Node::Call::Name.new(
+                                    start-position  => $/.from,
+                                    end-position    => $/.to,
+                                    name            => $atom,
+                                    arglist         => $trailer,
+                                )
+                            }
+                            default {
+                                $atom = Python2::AST::Node::Call.new(
+                                    start-position  => $/.from,
+                                    end-position    => $/.to,
+                                    atom            => $atom,
+                                    arglist         => $trailer,
+                                )
+                            }
+                        }
+                    }
+                    default {
+                        die "Unknown trailer: $_.gist()";
+                    }
+                }
+            }
+            make $atom;
+        }
+        else {
+            make $/<atom>.made
+        }
     }
 
     multi method atom ($/ where $/<dictionary-entry-list>) {
@@ -117,11 +191,13 @@ role Python2::Actions::Expressions {
     }
 
     multi method atom ($/) {
-        $/.make(Python2::AST::Node::Atom.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            expression => $/.values[0].made
-        ))
+        make $/<name>
+            ?? Python2::AST::Node::Atom.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                expression => $/.values[0].made
+            )
+            !! $/.values[0].made
     }
 
     # literals
@@ -199,51 +275,61 @@ role Python2::Actions::Expressions {
 
     # arithmetic operations
     method arithmetic-expression-low-precedence ($/) {
-        # a list of 'operations' to be performed in order from 'left' to 'right'
-        # format: number, operator, number, operator, number, operator, number, ...
-        my @operations;
+        if $/<arithmetic-operator-low-precedence> {
+            # a list of 'operations' to be performed in order from 'left' to 'right'
+            # format: number, operator, number, operator, number, operator, number, ...
+            my @operations;
 
-        # the the first (left-most) number
-        @operations.push($/<arithmetic-expression-high-precedence>.shift.made);
+            # the the first (left-most) number
+            @operations.push($/<arithmetic-expression-high-precedence>.shift.made);
 
-        #for every remaining number
-        while ($/<arithmetic-expression-high-precedence>.elems) {
-            # get the next operator in line
-            push(@operations, $/<arithmetic-operator-low-precedence>.shift.made);
+            #for every remaining number
+            while ($/<arithmetic-expression-high-precedence>.elems) {
+                # get the next operator in line
+                push(@operations, $/<arithmetic-operator-low-precedence>.shift.made);
 
-            # and the next number
-            push(@operations, $/<arithmetic-expression-high-precedence>.shift.made);
+                # and the next number
+                push(@operations, $/<arithmetic-expression-high-precedence>.shift.made);
+            }
+
+            make Python2::AST::Node::Expression::ArithmeticExpression.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                operations => @operations,
+            );
         }
-
-        $/.make(Python2::AST::Node::Expression::ArithmeticExpression.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            operations => @operations,
-        ));
+        else {
+            make $/<arithmetic-expression-high-precedence>[0].made;
+        }
     }
 
     method arithmetic-expression-high-precedence ($/) {
-        # a list of 'operations' to be performed in order from 'left' to 'right'
-        # format: number, operator, number, operator, number, operator, number, ...
-        my @operations;
+        if $/<arithmetic-operator-high-precedence> {
+            # a list of 'operations' to be performed in order from 'left' to 'right'
+            # format: number, operator, number, operator, number, operator, number, ...
+            my @operations;
 
-        # the the first (left-most) number
-        @operations.push($/<power>.shift.made);
+            # the the first (left-most) number
+            @operations.push($/<power>.shift.made);
 
-        #for every remaining number
-        while ($/<power>.elems) {
-            # get the next operator in line
-            push(@operations, $/<arithmetic-operator-high-precedence>.shift.made);
+            #for every remaining number
+            while ($/<power>.elems) {
+                # get the next operator in line
+                push(@operations, $/<arithmetic-operator-high-precedence>.shift.made);
 
-            # and the next number
-            push(@operations, $/<power>.shift.made);
+                # and the next number
+                push(@operations, $/<power>.shift.made);
+            }
+
+            make Python2::AST::Node::Expression::ArithmeticExpression.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                operations => @operations,
+            );
         }
-
-        $/.make(Python2::AST::Node::Expression::ArithmeticExpression.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            operations => @operations,
-        ));
+        else {
+            make $/<power>[0].made;
+        }
     }
 
     # subscript
@@ -437,41 +523,56 @@ role Python2::Actions::Expressions {
     }
 
     multi method test($/) {
-        $/.make(Python2::AST::Node::Test.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            left            => $<or_test>[0].made,
-            right           => $<test>          ?? $<test>.made       !! Nil,
-            condition       => $<or_test>[1]    ?? $<or_test>[1].made !! Nil,
-        ));
+        if $/<condition> {
+            make Python2::AST::Node::Test.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                left            => $<left>.made,
+                right           => $<right>     ?? $<right>.made       !! Nil,
+                condition       => $<condition> ?? $<condition>.made !! Nil,
+            );
+        }
+        else {
+            make $/<left>.made;
+        }
     }
 
     method or_test($/) {
-        $/.make(Python2::AST::Node::Test::Logical.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            values          => $<and_test>.map({ $_.made }),
+        if $<and_test> > 1 {
+            make Python2::AST::Node::Test::Logical.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                values          => $<and_test>.map({ $_.made }),
 
-            # if we have more than one value set the condition - otherwise set it to Nil
-            # so we can optimize it out later
-            condition       => $<and_test>[1]
-                ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'or')
-                !! Nil,
-        ));
+                # if we have more than one value set the condition - otherwise set it to Nil
+                # so we can optimize it out later
+                condition       => $<and_test>[1]
+                    ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'or')
+                    !! Nil,
+            );
+        }
+        else {
+            make $<and_test>[0].made;
+        }
     }
 
     method and_test($/) {
-        $/.make(Python2::AST::Node::Test::Logical.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            values          => $<not_test>.map({ $_.made }),
+        if $/<not_test> > 1 {
+            make Python2::AST::Node::Test::Logical.new(
+                start-position  => $/.from,
+                end-position    => $/.to,
+                values          => $<not_test>.map({ $_.made }),
 
-            # if we have more than one value set the condition - otherwise set it to Nil
-            # so we can optimize it out later
-            condition       => $<not_test>[1]
-                ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'and')
-                !! Nil,
-        ));
+                # if we have more than one value set the condition - otherwise set it to Nil
+                # so we can optimize it out later
+                condition       => $<not_test>[1]
+                    ?? Python2::AST::Node::Test::LogicalCondition.new(condition => 'and')
+                    !! Nil,
+            );
+        }
+        else {
+            make $/<not_test>[0].made;
+        }
     }
 
     multi method not_test($/ where $/<comparison>) {

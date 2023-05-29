@@ -35,14 +35,17 @@ sub __getattr__ {
     die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
 
-    return $self->{stack}->get($attribute_name->__tonative__);
+    my $name = $attribute_name->__tonative__;
+    return $self->{stack}->get($name) if $self->{stack}->has($name);
+
+    die Python2::Type::Exception->new('AttributeError', "'" . ref($self) . "' has no attribute '$name'");
 }
 
 sub __setattr__ {
     pop @_; # unused named arguments
     my ($self, $attribute_name, $value) = @_;
 
-    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
+    die Python2::Type::Exception->new('TypeError', '__setattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
 
     die Python2::Type::Exception->new('TypeError', '__setattr__() expects a value to assign, got ' . $attribute_name->__type__)

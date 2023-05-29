@@ -15,13 +15,6 @@ class Python2::AST {
     class Node::Expression is Node {}
 
     class Node::Power is Node {
-        # unless this is False we check if it
-        # resolves at runtime. this is overridden only by VariableAssignment.
-        # even if false everything but the last element (atom and/or trailers) must resolve.
-        has Bool $.must-resolve is rw = True;
-
-        has Node $.assignment is rw;
-
         has Node $.atom     is required is rw;
         has Node @.trailers is required is rw;
     }
@@ -124,6 +117,10 @@ class Python2::AST {
 
     class Node::Name is Node {
         has Str $.name is required is rw;
+        # unless this is False we check if it
+        # resolves at runtime. this is overridden only by VariableAssignment.
+        # even if false everything but the last element (atom and/or trailers) must resolve.
+        has Bool $.must-resolve is rw = True;
     }
 
     class Node::Locals is Node {}
@@ -190,9 +187,9 @@ class Python2::AST {
     }
 
     class Node::Statement::VariableAssignment is Node {
-        has Python2::AST::Node::Power   @.targets       is required is rw;
-        has                             @.name-filter;
-        has Node                        $.expression    is required is rw;
+        has Python2::AST::Node @.targets       is required is rw;
+        has                    @.name-filter;
+        has Node               $.expression    is required is rw;
     }
 
     class Node::Statement::ArithmeticAssignment is Node {
@@ -295,6 +292,32 @@ class Python2::AST {
 
     class Node::Block is Node {
         has Node @.statements is rw;
+    }
+
+    class Node::PropertyAccess is Node {
+        has Node $.atom           is required is rw;
+        has Node::Name $.property is required;
+    }
+
+    class Node::SubscriptAccess is Node {
+        has Node            $.atom      is required is rw;
+        has Node::Subscript $.subscript is required;
+    }
+
+    class Node::Call is Node {
+        has Node               $.atom    is required;
+        has Node::ArgumentList $.arglist is required;
+    }
+
+    class Node::Call::Name is Node {
+        has Node::Atom         $.name    is required;
+        has Node::ArgumentList $.arglist is required;
+    }
+
+    class Node::Call::Method is Node {
+        has Node               $.atom    is required is rw;
+        has Node::Name         $.name    is required;
+        has Node::ArgumentList $.arglist is required;
     }
 
     class Node::Comment is Node {

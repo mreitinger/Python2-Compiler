@@ -244,14 +244,16 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Atom $node) {
         if ($node.expression ~~ Python2::AST::Node::Name) {
-            return sprintf('Python2::Internals::getvar($stack, %i, %s)',
-                $node.recurse
-                    ?? 1
-                    !! 0,
-                $.e($node.expression)
-            );
+            my $recurse = $node.recurse ?? 1 !! 0;
+            my $expression = $.e($node.expression);
+            if $node.expression.must-resolve {
+                Q:s:b |(do { my \$p = Python2::Internals::getvar(\$stack, $recurse, $expression); \$\$p // die Python2::Type::Exception->new("NameError", "name '$node.expression.name()' is not defined"); \$p })|
+            }
+            else {
+                Q:s:b "Python2::Internals::getvar(\$stack, $recurse, $expression)";
+            }
         } else {
-            return sprintf('%s', $.e($node.expression));
+            $.e($node.expression);
         }
     }
 
@@ -413,24 +415,31 @@ class Python2::Backend::Perl5 {
             !! sprintf('Python2::Internals::raise(${ %s })', $.e($node.exception));
     }
 
+    multi method assign(Python2::AST::Node::Atom $target, Str $expression, :@name-filter) {
+        $target.expression.must-resolve = False;
+        $target.recurse = False;
+
+        return ((not @name-filter) or @name-filter.grep($target.expression.name))
+            ?? Q:s:b "\${ $.e($target) } = \${ $expression }"
+            !!  '';
+    }
+
+    multi method assign(Python2::AST::Node::PropertyAccess $target, Str $expression) {
+        Q:s:b "\${$.e($target.atom)}->__setattr__(Python2::Type::Scalar::String->new($.e($target.property)), \${ $expression }, {})";
+    }
+
+    multi method assign(Python2::AST::Node::SubscriptAccess $target, Str $expression) {
+        Q:s:b "\${$.e($target.atom)}->__setitem__($.e($target.subscript), \${ $expression }, {})";
+    }
+
+    multi method assign(Python2::AST::Node $target) {
+        Python2::ParseFail.new(:pos($target.start-position), :what("Expected name")).throw
+    }
+
     multi method e(Python2::AST::Node::Statement::VariableAssignment $node) {
-        # see AST::Node::Power
-        for $node.targets.values -> $target is rw {
-            Python2::ParseFail.new(:pos($node.start-position), :what("Expected name")).throw()
-                unless ($target.atom.expression ~~ Python2::AST::Node::Name);
-
-            $target.must-resolve = False;
-            $target.atom.recurse = False;   # if it's a variable assignment we
-                                            # don't recurse upwards on the stack
-        }
-
         # simple '1:1' assignment
         if ($node.targets.elems == 1) {
-            $node.targets[0].assignment = $node.expression;
-
-            return ((not $node.name-filter) or $node.name-filter.grep($node.targets[0].atom.expression.name))
-                ??  $.e($node.targets[0])
-                !!  '';
+            return $.assign($node.targets[0], $.e($node.expression), :name-filter($node.name-filter));
         }
 
         else {
@@ -445,13 +454,8 @@ class Python2::Backend::Perl5 {
             # die if the elements in the object don't match the amount of targets
             $p5 ~= sprintf(q|die Python2::Type::Exception->new('ValueError', 'too many values to unpack') unless ${$$i->__len__}->__tonative__ == %i;|, $node.targets.elems);
 
-            my Int $i = 0;
-            for $node.targets.values -> $target {
-                if (not $node.name-filter or $node.name-filter.grep($target.atom.expression.name)) {
-                    $p5 ~= sprintf(q|${%s} = ${ $$i->__getitem__(Python2::Type::Scalar::Num->new(%i)) };|, $.e($target), $i);
-                }
-
-                $i++;
+            for $node.targets.pairs -> $target {
+                $p5 ~= $.assign($target.value, '$$i->__getitem__(Python2::Type::Scalar::Num->new(' ~ $target.key ~ '))', :name-filter($node.name-filter)) ~ ';';
             }
 
             return $p5 ~ '}';
@@ -899,113 +903,26 @@ class Python2::Backend::Perl5 {
         return $p5;
     }
 
-    multi method e(Python2::AST::Node::Power $node) {
-        my @elements = ($node.atom, $node.trailers).flat;
+    multi method e(Python2::AST::Node::PropertyAccess $node) {
+        Q:s:b "\${$.e($node.atom)}->__getattr__(Python2::Type::Scalar::String->new($.e($node.property)), {})";
+    }
 
-        my Str $p5 = 'my $p = undef; shift;';
+    multi method e(Python2::AST::Node::SubscriptAccess $node) {
+        $node.subscript.target
+            ?? Q:s:b "\${$.e($node.atom)}->__getslice__($.e($node.subscript), {})"
+            !! Q:s:b "(do { my \$p = \${$.e($node.atom)}->__getitem__($.e($node.subscript), {}); \$\$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . $.e($node.subscript)); \$p })";
+    }
 
-        # single atom
-        if (@elements.elems == 1) {
-            $p5 ~= sprintf('$p = %s;', $.e(@elements[0]));
+    multi method e(Python2::AST::Node::Call $node) {
+        Q:s:b "\${ $.e($node.atom) }->__call__($.e($node.arglist))";
+    }
 
-            $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, @elements[0].expression.name)
-                if ($node.must-resolve and @elements[0].expression ~~ Python2::AST::Node::Name);
+    multi method e(Python2::AST::Node::Call::Name $node) {
+        Q:s:b "\${ $.e($node.name) }->__call__($.e($node.arglist))";
+    }
 
-            return $node.assignment
-                ?? sprintf('${ sub{ %s; return $p; }->() } = ${ %s }', $p5, $.e($node.assignment))
-                !! sprintf('sub{ %s; return $p; }->()', $p5);
-        }
-
-
-        # chained expressions
-        while @elements.elems > 0 {
-            my $current-element = @elements.shift;
-            my $next-element = @elements.first;
-
-            # function call
-            if $current-element ~~ Python2::AST::Node::Atom and $next-element ~~ Python2::AST::Node::ArgumentList {
-                    my $argument-list = @elements.shift;
-
-                    $p5 ~= sprintf('$p = %s;', $.e($current-element));
-
-                    $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
-                        if ($current-element.expression ~~ Python2::AST::Node::Name) and $node.must-resolve;
-
-                    $p5 ~= sprintf('$p = $$p->__call__(%s);', $.e($argument-list));
-            }
-
-            # method call
-            elsif $current-element ~~ Python2::AST::Node::Name and $next-element ~~ Python2::AST::Node::ArgumentList {
-                my $argument-list = @elements.shift;
-
-                # check if the object has a p5-style method
-                $p5 ~= sprintf(q|if ($$p->can('%s')) {|, $current-element.name);
-
-                # if yes, call it
-                $p5 ~= sprintf(q|$p = $$p->%s(%s);|, $current-element.name, $.e($argument-list));
-
-                $p5 ~= '} else {';
-
-                # no p5-style method, give the object a chance to return a Function object via the __getattr__ fallback
-                $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new('%s'), {});|, $current-element.name);
-
-                # die if even the fallback did not return anything
-                $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('AttributeError', ref($$p) . " instance has no attribute '%s'");|, $current-element.name);
-
-                # got a python-style method, call it
-                $p5 ~= sprintf(q|$p = $$p->__call__(%s);|, $.e($argument-list));
-
-                $p5 ~= '}';
-            }
-
-            # subscript
-            elsif $current-element ~~ Python2::AST::Node::Subscript {
-                if $current-element.target {
-                    die("Variable Assignment to Slice not supported") if $node.assignment;
-
-                    $p5 ~= sprintf('$p = ${$p}->__getslice__(%s, {});', $.e($current-element)) # array slice
-                }
-                else {
-                    if ($node.assignment and @elements.elems == 0) {
-                        $p5 ~= sprintf('$p = ${$p}->__setitem__(%s, ${ %s }, {});', $.e($current-element), $.e($node.assignment));
-                    }
-                    else {
-                        $p5 ~= sprintf('$p = ${$p}->__getitem__(%s, {});', $.e($current-element));
-
-                        $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . %s);|, $.e($current-element))
-                            if $node.must-resolve;
-                    }
-                }
-            }
-
-            # attribute access
-            elsif $current-element ~~ Python2::AST::Node::Name {
-                if ($node.assignment and @elements.elems == 0) {
-                    $p5 ~= sprintf(q|$p = ${$p}->__setattr__(Python2::Type::Scalar::String->new(%s), ${ %s }, {});|, $.e($current-element), $.e($node.assignment));
-                }
-                else {
-                    $p5 ~= sprintf(q|$p = ${$p}->__getattr__(Python2::Type::Scalar::String->new(%s), {});|, $.e($current-element));
-
-                    $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("AttributeError", "no attribute '%s'");|, $current-element.name)
-                        if ($node.must-resolve or @elements.elems > 0) and ($current-element ~~ Python2::AST::Node::Name);
-                }
-            }
-
-            # function call to returned element ("x[0]()" and similar)
-            elsif $current-element ~~ Python2::AST::Node::ArgumentList {
-                $p5 ~= sprintf(q|$p = $$p->__call__(%s);|, $.e($current-element));
-            }
-
-            # single name
-            else {
-                #die;
-                $p5 ~= sprintf('$p = %s;', $.e($current-element));
-                $p5 ~= sprintf(q|$$p // die Python2::Type::Exception->new("NameError", "name '%s' is not defined");|, $current-element.expression.name)
-                    if ($node.must-resolve or @elements.elems > 0) and ($current-element.expression ~~ Python2::AST::Node::Name);
-            }
-        }
-
-        return sprintf('sub{ %s; return $p; }->()', $p5);
+    multi method e(Python2::AST::Node::Call::Method $node) {
+        Q:s:b "(do { my \$p = \${$.e($node.atom)}; my @a = ($.e($node.arglist)); \$p->can('$node.name.name()') ? \$p->$node.name.name()\(@a) : \${ \$p->__getattr__(Python2::Type::Scalar::String->new('$node.name.name()'), {}) }->__call__(@a) })"
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {
@@ -1019,14 +936,22 @@ class Python2::Backend::Perl5 {
         my $operation;
         my $right-element;
 
-        $p5 ~= sprintf('sub { my $left = %s;', $.e($left-element));
+        $p5 ~= sprintf('(do { my $left = %s;', $.e($left-element));
 
         while @operations.elems {
             $operation      = @operations.shift;
             $right-element  = @operations.shift;
 
             given $right-element {
-                when ($_ ~~ Python2::AST::Node::Power) and ($_.atom.expression ~~ Python2::AST::Node::Expression::TestList) {
+                when Python2::AST::Node::Expression::TestList {
+                    # it's probably a string interpolation with multiple arguments like
+                    #   '%s %s' (1, 2)
+                    # since that gets parsed as a TestList we extract it here
+                    $right-element = sprintf('\Python2::Type::List->new(%s)',
+                        $right-element.tests.values.map({ sprintf('${ %s }', $.e($_)) }).join(', ')
+                    ),
+                }
+                when $_ ~~ Python2::AST::Node::Power and $_.atom.expression ~~ Python2::AST::Node::Expression::TestList {
                     # it's probably a string interpolation with multiple arguments like
                     #   '%s %s' (1, 2)
                     # since that gets parsed as a TestList we extract it here
@@ -1046,7 +971,7 @@ class Python2::Backend::Perl5 {
             );
         }
 
-        $p5 ~= 'return $left; }->()';
+        $p5 ~= '$left })';
 
         return $p5;
     }
@@ -1070,11 +995,16 @@ class Python2::Backend::Perl5 {
                 .subst('\\t',   "\t",   :g);
         }
 
-        my $p5;
+        if $string.contains("'") {
+            my $p5;
 
-        $p5 ~= "\nsub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
-        $p5 ~= $string;
-        $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\Python2::Type::Scalar::String->new(\$s); }->()";
+            $p5 ~= "\nsub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
+            $p5 ~= $string;
+            $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\Python2::Type::Scalar::String->new(\$s); }->()";
+        }
+        else {
+            Q:s "\Python2::Type::Scalar::String->new('$string')"
+        }
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
@@ -1186,7 +1116,11 @@ class Python2::Backend::Perl5 {
 
 
     # Fallback
-    multi method e($node) {
-        die("Perl 5 backed for node not implemented: $node");
+    multi method e(Any:D $node) {
+        die("Perl 5 backed for node not implemented: {$node.^name}");
+    }
+
+    multi method e(Any:U $node) {
+        die("Perl 5 backed for undefined node not implemented: {$node.^name}");
     }
 }

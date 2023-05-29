@@ -212,7 +212,7 @@ role Python2::Grammar::Expressions {
 
     token test {
         | <lambda-definition>
-        | <or_test> [ <.dws>+ 'if' <.dws>+ <or_test> <.dws>+ 'else' <.dws>+ <test> ]?
+        | <left=.or_test> [ <.dws>+ 'if' <.dws>+ <condition=.or_test> <.dws>+ 'else' <.dws>+ <right=.test> ]?
     }
 
     token or_test {

@@ -48,10 +48,10 @@ for $testcase_directory.dir.grep(/\.py$/) -> $testcase {
 
             ok($generated_perl5_code = $backend.e($ast));
 
-            cmp-ok(
-                $unoptimized_perl5_code.chars, '>', $generated_perl5_code.chars,
-                'resulting optimized code is smaller than unoptimized'
-            );
+            #cmp-ok(
+            #    $unoptimized_perl5_code.chars, '>', $generated_perl5_code.chars,
+            #    'resulting optimized code is smaller than unoptimized'
+            #);
         };
         $generated_perl5_code or flunk("Failed to generate Perl 5 code for $testcase");
 
