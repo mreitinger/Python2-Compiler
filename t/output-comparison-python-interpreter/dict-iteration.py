@@ -1,7 +1,9 @@
 d = { 1: 2, 3: 4 }
 
+a = []
 for i in d:
-    print i
+    a.append(i)
+print sorted(a)
 
 try:
     for i, o in d:

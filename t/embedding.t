@@ -770,8 +770,10 @@ subtest "embedding - PerlHash __contains__" => sub {
 subtest "embedding - PerlHash iteration" => sub {
     my Str $input = q:to/END/;
     def t(d):
+        a = []
         for i in d:
-            print i
+            a.append(i)
+        print sorted(a)
     END
 
     my $compiler = Python2::Compiler.new();
@@ -801,7 +803,7 @@ subtest "embedding - PerlHash iteration" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    my $expected = "a\nc\n";
+    my $expected = "['a', 'c']\n";
 
     is $perl5_output, $expected, 'output matches';
 };
