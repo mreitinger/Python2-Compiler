@@ -942,31 +942,9 @@ class Python2::Backend::Perl5 {
             $operation      = @operations.shift;
             $right-element  = @operations.shift;
 
-            given $right-element {
-                when Python2::AST::Node::Expression::TestList {
-                    # it's probably a string interpolation with multiple arguments like
-                    #   '%s %s' (1, 2)
-                    # since that gets parsed as a TestList we extract it here
-                    $right-element = sprintf('\Python2::Type::List->new(%s)',
-                        $right-element.tests.values.map({ sprintf('${ %s }', $.e($_)) }).join(', ')
-                    ),
-                }
-                when $_ ~~ Python2::AST::Node::Power and $_.atom.expression ~~ Python2::AST::Node::Expression::TestList {
-                    # it's probably a string interpolation with multiple arguments like
-                    #   '%s %s' (1, 2)
-                    # since that gets parsed as a TestList we extract it here
-                    $right-element = sprintf('\Python2::Type::List->new(%s)',
-                        $right-element.atom.expression.tests.values.map({ sprintf('${ %s }', $.e($_)) }).join(', ')
-                    ),
-                }
-                default {
-                    $right-element = $.e($right-element)
-                }
-            }
-
             $p5 ~= sprintf(
                 q|$left = Python2::Internals::arithmetic(${ $left }, ${ %s }, '%s');|,
-                $right-element,
+                $.e($right-element),
                 $.e($operation)
             );
         }

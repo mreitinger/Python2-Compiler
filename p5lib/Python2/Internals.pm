@@ -284,7 +284,7 @@ my $arithmetic_operations = {
         elsif (!looks_like_number($left->__tonative__) or !looks_like_number($right->__tonative__)) {
             return \Python2::Type::Scalar::String->new(sprintf(
                 $left->__tonative__,
-                ref($right) eq 'Python2::Type::List'
+                $right->isa('Python2::Type::List')
                     ? map { $_->__print__ } @$right
                     : $right->__print__
             ));
