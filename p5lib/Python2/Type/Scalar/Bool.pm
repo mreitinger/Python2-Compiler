@@ -1,6 +1,6 @@
 package Python2::Type::Scalar::Bool;
 use v5.26.0;
-use base qw/ Python2::Type::Scalar /;
+use base qw/ Python2::Type::Scalar::Num /;
 use warnings;
 use strict;
 
