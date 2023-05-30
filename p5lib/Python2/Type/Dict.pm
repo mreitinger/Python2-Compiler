@@ -153,6 +153,18 @@ sub __tonative__ {
     return $retvar;
 }
 
+sub __tonative_strings__ {
+    my $self = shift;
+
+    my $retvar = {};
+
+    while (my ($key, $value) = each(%$self)) {
+        $retvar->{$key->__print__} = ref($value) ? $value->__print__ : $value;
+    }
+
+    return $retvar;
+}
+
 sub __is_py_true__  {
     my $self = shift;
     return scalar CORE::keys %$self > 0 ? 1 : 0;

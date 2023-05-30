@@ -3,6 +3,7 @@ use v5.26.0;
 use warnings;
 use strict;
 use List::Util::XS; # ensure we use the ::XS version
+use Text::Sprintf::Named qw(named_sprintf);
 use Data::Dumper;
 
 use Scalar::Util qw/ looks_like_number blessed isdual /;
@@ -282,12 +283,19 @@ my $arithmetic_operations = {
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
         elsif (!looks_like_number($left->__tonative__) or !looks_like_number($right->__tonative__)) {
-            return \Python2::Type::Scalar::String->new(sprintf(
-                $left->__tonative__,
-                $right->isa('Python2::Type::List')
-                    ? map { $_->__print__ } @$right
-                    : $right->__print__
-            ));
+            return \Python2::Type::Scalar::String->new(
+                $right->isa('Python2::Type::Dict')
+                    ? named_sprintf(
+                        $left->__tonative__,
+                        $right->__tonative_strings__,
+                    )
+                    : sprintf(
+                        $left->__tonative__,
+                        $right->isa('Python2::Type::List')
+                            ? map { $_->__print__ } @$right
+                            : $right->__print__
+                    )
+            );
         }
         else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand %%', $left->__type__, $right->__type__));
