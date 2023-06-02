@@ -7,17 +7,16 @@ use strict;
 sub new {
     my ($self, $value) = @_;
 
-    return bless({
-        value => $value ? 1 : 0,
-    }, $self);
+    $value = $value ? 1 : 0;
+    return bless \$value, $self;
 }
 
-sub __str__         { return shift->{value} ? 'True' : 'False'; }
-sub __print__       { return shift->{value} ? 'True' : 'False' }
-sub __tonative__    { return shift->{value}; }
+sub __str__         { return $_[0]->$* ? 'True' : 'False'; }
+sub __print__       { return $_[0]->$* ? 'True' : 'False' }
+sub __tonative__    { return $_[0]->$*; }
 sub __type__        { return 'bool'; }
-sub __negate__      { return \__PACKAGE__->new(not shift->{value}); }
+sub __negate__      { return \__PACKAGE__->new(not $_[0]->$*); }
 
-sub __is_py_true__  { shift->{value}; }
+sub __is_py_true__  { $_[0]->$*; }
 
 1;

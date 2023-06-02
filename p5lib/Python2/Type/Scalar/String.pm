@@ -8,9 +8,9 @@ use utf8;
 use MIME::Base64;
 use Encode qw();
 
-sub __str__  { return "'" . shift->{value} . "'"; }
+sub __str__  { return "'" . $_[0]->$* . "'"; }
 sub __type__ { 'str'; }
-sub __is_py_true__  { length(shift->{value}) > 0 ? 1 : 0; }
+sub __is_py_true__  { length($_[0]->$*) > 0 ? 1 : 0; }
 
 sub split {
     pop(@_); # default named arguments hash
@@ -18,7 +18,7 @@ sub split {
 
     return \Python2::Type::List->new(
         Python2::Type::Scalar::String->new('')
-    ) unless length $self->{value};
+    ) unless length $$self;
 
     my $joiner = $separator; # original separator - used to join in case we use maxsplit below
 
@@ -33,7 +33,7 @@ sub split {
         $separator = '\s+';
     }
 
-    my @result = split($separator, $self->{value});
+    my @result = split($separator, $$self);
 
     if ($maxsplit) {
         $maxsplit       = $maxsplit->__tonative__;
@@ -66,7 +66,7 @@ sub rsplit {
     $maxsplit = undef if defined $maxsplit and $maxsplit < 0;
 
     return \Python2::Type::List->new(
-        Python2::Type::Scalar::String->new( $self->{value} )
+        Python2::Type::Scalar::String->new( $$self )
     ) if defined $maxsplit and $maxsplit == 0;
 
     my $joiner = $separator; # original separator - used to join in case we use maxsplit below
@@ -82,7 +82,7 @@ sub rsplit {
         $separator = '\s+';
     }
 
-    my @result = split($separator, join('', reverse split(//, $self->{value})));
+    my @result = split($separator, join('', reverse split(//, $$self)));
 
     if ($maxsplit) {
         my $result_size = scalar(@result);
@@ -106,7 +106,7 @@ sub rsplit {
 }
 
 sub strip {
-    my $string = shift->{value};
+    my $string = $_[0]->$*;
 
     $string =~ s/^\s*//;
     $string =~ s/\s*$//;
@@ -115,7 +115,7 @@ sub strip {
 }
 
 sub isupper {
-    my $string = shift->{value};
+    my $string = $_[0]->$*;
     $string =~ s/[^a-zA-Z]//ig;
 
     return \Python2::Type::Scalar::Bool->new(
@@ -124,7 +124,7 @@ sub isupper {
 }
 
 sub islower {
-    my $string = shift->{value};
+    my $string = $_[0]->$*;
     $string =~ s/[^a-zA-Z]//ig;
 
     return \Python2::Type::Scalar::Bool->new(
@@ -133,7 +133,7 @@ sub islower {
 }
 
 sub isdigit {
-    my $string = shift->{value};
+    my $string = $_[0]->$*;
     $string =~ s/[^[:print:]]//ig;
 
     return \Python2::Type::Scalar::Bool->new(
@@ -225,7 +225,7 @@ sub __call__ {
     # Some mechanism allowed strings to be accessed as a Function Call: <dtml-var "my_string()">
     # This intercepts a __call__() invocation in case the string is already initialized - which
     # would otherwise be interpreted as a str(whatever) call.
-    return \$self if $self->{value};
+    return \$self if $$self;
 
     # TODO - this attempts to convert way more than python
     return $_[0]->__type__ eq 'str'
@@ -398,10 +398,10 @@ sub __getslice__ {
     $target  = $target->__tonative__;
 
     if ($target == -1) {
-        $target = length($self->{value});
+        $target = length($$self);
     }
 
-    return \Python2::Type::Scalar::String->new( substr($self->{value}, $start, $target-$start) );
+    return \Python2::Type::Scalar::String->new( substr($$self, $start, $target-$start) );
 }
 
 sub encode {

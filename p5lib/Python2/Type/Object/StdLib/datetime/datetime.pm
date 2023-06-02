@@ -50,8 +50,8 @@ sub __call__ {
     die Python2::Type::Exception->new('TypeError', "Required argument 'day' (pos 3) not found")
         unless ($day && $day->__type__ eq 'int');
 
-    $year->{value} -= 1900;
-    $month->{value} -= 1;
+    $$year -= 1900;
+    $$month -= 1;
 
     $self->[1]->{year} = $year;
     $self->[1]->{month} = $month;

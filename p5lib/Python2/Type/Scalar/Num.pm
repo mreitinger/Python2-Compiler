@@ -6,11 +6,11 @@ use base qw/ Python2::Type::Scalar /;
 use warnings;
 use strict;
 
-sub __str__ {return shift->{value}; }
+sub __str__ {return $_[0]->$*; }
 
-sub __type__ { shift->{value} =~ m/^\-?\d+$/ ? 'int' : 'float'; }
+sub __type__ { $_[0]->$* =~ m/^\-?\d+$/ ? 'int' : 'float'; }
 
-sub __is_py_true__  { shift->{value} != 0 ? 1 : 0; }
+sub __is_py_true__  { $_[0]->$* != 0 ? 1 : 0; }
 
 sub __ne__ {
     my ($self, $other) = @_;
