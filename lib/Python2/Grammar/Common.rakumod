@@ -60,4 +60,8 @@ role Python2::Grammar::Common {
     token end-slice {
         <test> <.dws>* ':'
     }
+
+    token comment {
+        \h* '#' (\N*) "\n"?
+    }
 }

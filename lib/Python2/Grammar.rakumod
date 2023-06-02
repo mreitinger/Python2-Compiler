@@ -85,10 +85,6 @@ package Python2::Grammar {
             :my @indentations = @*levels.map:{' ' x $_};
             [$ || <?before @indentations\N>]
         }
-
-        token comment {
-            \h* '#' (\N*) "\n"?
-        }
     }
 
     # Grammar restricted to a single expression

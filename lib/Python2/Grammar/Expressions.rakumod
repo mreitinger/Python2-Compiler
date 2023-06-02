@@ -24,7 +24,7 @@ role Python2::Grammar::Expressions {
     token shift-expression-operator { '<<' | '>>' }
 
     token argument-list {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
 
         '('
             <.dws>*
@@ -82,14 +82,14 @@ role Python2::Grammar::Expressions {
 
     # list handling
     token expression-list {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
         <.dws>*
         <expression>* %% <list-delimiter>
         <.dws>*
     }
 
     token list-comprehension {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
         <.dws>*
         <test> <.dws>+ 'for' <.dws>+ <name> <.dws> 'in' <.dws>+ <test> [<.dws>+ 'if' <.dws>+ <test>]?
         <.dws>*
@@ -98,7 +98,7 @@ role Python2::Grammar::Expressions {
 
     # dictionary handling
     token dictionary-entry-list {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
         <dictionary-entry>* %% <list-delimiter>
     }
 
@@ -107,7 +107,7 @@ role Python2::Grammar::Expressions {
     }
 
     token dict-comprehension {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
         <.dws>*
         <key=.test> <.dws>* ':' <.dws>* <value=.test> <.dws>+
         'for' <.dws>+ <name>+ % <list-delimiter> <.dws>
@@ -119,7 +119,7 @@ role Python2::Grammar::Expressions {
 
     # set handling
     token set-entry-list {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
         <set-entry>* %% <list-delimiter>
     }
 
@@ -241,7 +241,7 @@ role Python2::Grammar::Expressions {
     }
 
     token extended-test-list {
-        :my $*WHITE-SPACE = rx/[\s|"\\\n"]/;
+        :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
         <.dws>*
         <test>* % <list-delimiter>
         <trailing-comma=.list-delimiter>?
