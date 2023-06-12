@@ -235,6 +235,35 @@ sub __lt__ {
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
+sub __call__ {
+    my $self = shift;
+    pop @_; # named arguments hash, unused
+    my $param = shift;
+
+    return \Python2::Type::Dict->new()
+        unless defined $param;
+
+    return \Python2::Type::Dict->new(
+        map { $_ => ${ $param->__getitem__($_) } } ${ $param->keys }->ELEMENTS
+    ) if $param->__type__ eq 'dict';
+
+    die Python2::Type::Exception->new('TypeError', 'dict() expects a list as paramter, got ' . $param->__type__)
+        unless $param->__type__ eq 'list';
+
+    return \Python2::Type::Dict->new(
+        map {
+            die Python2::Type::Exception->new(
+                'TypeError',
+                sprintf("'%s' passwd to dict() contained invalid item of type '%s', expected tuple or list", $param->__type__, $_->__type__)
+            ) unless $_->__type__ =~ m/^(list|tuple)$/;
+
+            my @elements = $_->ELEMENTS;
+
+            $elements[0] => $elements[1];
+        } $param->ELEMENTS
+    );
+ }
+
 sub ELEMENTS {
     my $self = shift;
     return CORE::keys %$self;
