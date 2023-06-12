@@ -61,7 +61,7 @@ sub __str__ {
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %{ $self->[0]->[0] });
+    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %{ $self->[0] });
 }
 
 sub __getitem__ {
