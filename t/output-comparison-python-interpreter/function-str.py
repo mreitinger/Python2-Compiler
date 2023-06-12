@@ -9,6 +9,9 @@ print str(a)
 print str(b)
 print str(c)
 
+# call to str() without argument returns empty string
+print "A%sB" % str()
+
 # only str has capitalize() so abuse it to check if we actually converted
 # our __class__ returns the perl class so we can't use that to compare
 

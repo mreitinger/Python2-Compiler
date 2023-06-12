@@ -220,12 +220,15 @@ sub upper {
 
 sub __call__ {
     my $self = shift;
+    pop @_; # named arguments hash, unused
 
     # This is a very, very ugly hack for compatibility with ancient Zope/DTML templates.
     # Some mechanism allowed strings to be accessed as a Function Call: <dtml-var "my_string()">
     # This intercepts a __call__() invocation in case the string is already initialized - which
     # would otherwise be interpreted as a str(whatever) call.
     return \$self if $$self;
+
+    return \Python2::Type::Scalar::String->new('') unless @_;
 
     # TODO - this attempts to convert way more than python
     return $_[0]->__type__ eq 'str'
