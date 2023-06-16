@@ -478,7 +478,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::Return $node) {
         return  $node.value
                 ??  sprintf('return %s', $.e($node.value))
-                !!  'return';
+                !!  'return \Python2::Type::Scalar::None->new()';
     }
 
 
