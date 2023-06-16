@@ -61,6 +61,12 @@ sub __call__ {
     }
 }
 
+# Workaround for broken DTML templates:
+#   <dtml-var "this_be_a_function_call.method()">)
+#   should be
+#   <dtml-var "this_be_a_function_call().method()">)
+sub __getattr__ { shift->__call__(bless({}, 'Python2::NamedArgumentsHash')); }
+
 sub __str__ {
     my $self = shift;
     return sprintf("<perlmethod '%s' of object '%s' at %i>", $self->[2], ref($self->[1]), refaddr($self));
