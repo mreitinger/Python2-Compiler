@@ -162,8 +162,8 @@ role Python2::Grammar::Expressions {
     token string-literal-triple-single-quoted {
         (
             [
-                | <-[']> "'"  <-[']>    # single-single quotes within triple quoted strings
-                | <-[']> "''" <-[']>    # double-single quotes within triple quoted strings
+                | "'"  <-[']>    # single-single quotes within triple quoted strings
+                | "''" <-[']>    # double-single quotes within triple quoted strings
                 | "\\'"                 # escaped quote character
                 | '\\'                  # escaped literal backslash
                 | <-['\\]>              # everything except backslash and quote
@@ -174,8 +174,8 @@ role Python2::Grammar::Expressions {
     token string-literal-triple-double-quoted {
         (
             [
-                | <-["]> '"' <-["]>    # single-double quotes within triple quoted strings
-                | <-["]> '""' <-["]>   # double-double quotes within triple quoted strings
+                | '"' <-["]>    # single-double quotes within triple quoted strings
+                | '""' <-["]>   # double-double quotes within triple quoted strings
                 | '\\"'                # escaped quote character
                 | '\\'                 # escaped literal backslash
                 | <-["\\]>             # everything except backslash and quote

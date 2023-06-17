@@ -19,3 +19,11 @@ print u'''x'''
 
 print ''' foo ' bar '''
 print ''' foo '' bar '''
+
+print """"test":
+    string
+"""
+
+print ''''test':
+    string
+'''
