@@ -661,9 +661,11 @@ subtest "embedding - PerlArray __getslice__" => sub {
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        my $list = ['1', '2', '3'];
+        my $list_of_int = [1, 2, 3];
+        my $list_of_str = ['1', '2', '3'];
 
-        $p5->__run_function__('foo', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('foo', [$list_of_int, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('foo', [$list_of_str, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -678,7 +680,8 @@ subtest "embedding - PerlArray __getslice__" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    my $expected = "1\n\[1\]\n\[1, 2, 3\]\n\[1, 2, 3\]\n\[\]\n\[1, 2\]\n\[3\]\n";
+    my $expected =  "1\n\[1\]\n\[1, 2, 3\]\n\[1, 2, 3\]\n\[\]\n\[1, 2\]\n\[3\]\n";
+    $expected    ~= "1\n\['1'\]\n\['1', '2', '3'\]\n\['1', '2', '3'\]\n\[\]\n\['1', '2'\]\n\['3'\]\n";
 
     is $perl5_output, $expected, 'output matches';
 };
@@ -846,6 +849,46 @@ subtest "embedding - dualvar" => sub {
         unless $perl5.exitcode == 0;
 
     my $expected = "1\n2\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
+
+subtest "embedding - string conversion" => sub {
+    my Str $input = q:to/END/;
+    def get_type(a):
+        print type(a).__name__
+
+    def test_string(a):
+        # replace only exists on a string - if a quoted number ("1") was
+        # detected as number this would fail.
+        print a.replace('1', '2')
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        $p5->__run_function__('get_type', [1, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('get_type', ['1', bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('test_string', ['1', bless({}, 'Python2::NamedArgumentsHash')]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected = "int\nstr\n2\n";
 
     is $perl5_output, $expected, 'output matches';
 };

@@ -10,6 +10,8 @@ use Scalar::Util qw/ looks_like_number blessed isdual /;
 use Carp qw/ confess /;
 use Module::Load;
 
+use Python2::Internals::Ext;
+
 use constant {
     PARENT  => 0,
     ITEMS   => 1,
@@ -410,10 +412,11 @@ sub convert_to_python_type {
         return \Python2::Type::Scalar::Num->new($value + 0);
     }
 
-    # anything else must be a plain scalar
-    return looks_like_number($value)
-        ? \Python2::Type::Scalar::Num->new($value)
-        : \Python2::Type::Scalar::String->new($value);
+    # Check against the SV type of the Scalar to exactly match the behaviour of Inline::Python.
+    # See perlguts/SvPOKp(SV*) and the Inline::Python source for details.
+    return Python2::Internals::Ext::is_string($value)
+        ? \Python2::Type::Scalar::String->new($value)
+        : \Python2::Type::Scalar::Num->new($value);
 }
 
 1;
