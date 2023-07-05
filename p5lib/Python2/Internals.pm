@@ -177,7 +177,13 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left / $right);
+            if ($left =~ m/^\d+$/ and $right =~ m/^\d+$/) {
+                # pure integer division always returns integer
+                return \Python2::Type::Scalar::Num->new(int($left / $right));
+            }
+            else {
+                return \Python2::Type::Scalar::Num->new($left / $right);
+            }
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand /', $left->__type__, $right->__type__));
         }
