@@ -40,6 +40,7 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'range'         => Python2::Builtin::Range->new(),
     'open'          => Python2::Builtin::Open->new(),
     'iter'          => Python2::Builtin::Iter->new(),
+    'chr'           => Python2::Builtin::Chr->new(),
     'next'          => Python2::Builtin::Next->new(),
     'enumerate'     => Python2::Builtin::Enumerate->new(),
     'filter'        => Python2::Builtin::Filter->new(),
