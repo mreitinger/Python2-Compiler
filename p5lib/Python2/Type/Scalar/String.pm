@@ -114,6 +114,22 @@ sub strip {
     return \Python2::Type::Scalar::String->new($string);
 }
 
+sub lstrip {
+    my $string = $_[0]->$*;
+
+    $string =~ s/^\s*//;
+
+    return \Python2::Type::Scalar::String->new($string);
+}
+
+sub rstrip {
+    my $string = $_[0]->$*;
+
+    $string =~ s/\s*$//;
+
+    return \Python2::Type::Scalar::String->new($string);
+}
+
 sub isupper {
     my $string = $_[0]->$*;
     $string =~ s/[^a-zA-Z]//ig;
