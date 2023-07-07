@@ -383,7 +383,12 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
-        my Str $p5 = $node.values.map({ '${' ~ $.e($_) ~ '}' }).join(',');
+        my Str $p5 = $node.values.map({
+                use Data::Dump;
+                note Dump($_) unless defined $_.start-position;
+                qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
+            ~   '${' ~ $.e($_) ~ '}'
+        }).join(',');
 
         return sprintf('Python2::Internals::py2print(%s, {})', $p5);
     }
@@ -884,12 +889,15 @@ class Python2::Backend::Perl5 {
         my $operator;
         my $right-element;
 
+        $p5 ~= qq|\n# line 999 "___position_{$left-element.start-position}_{$left-element.end-position}___"\n|;
         $p5 ~= sprintf('sub { my $left = %s;', $.e($left-element));
 
         # as long as we have operators remaining there must be more expressions
         while @operators.elems > 0 {
             $operator       = @operators.shift;
             $right-element  = @expressions.shift;
+
+            $p5 ~= qq|\n# line 999 "___position_{$right-element.start-position}_{$right-element.end-position}___"\n|;
 
             $p5 ~= sprintf(
                 '$left = $$left->%s(${ %s });',
@@ -936,11 +944,14 @@ class Python2::Backend::Perl5 {
         my $operation;
         my $right-element;
 
+        $p5 ~= qq|\n# line 999 "___position_{$left-element.start-position}_{$left-element.end-position}___"\n|;
         $p5 ~= sprintf('(do { my $left = %s;', $.e($left-element));
 
         while @operations.elems {
             $operation      = @operations.shift;
             $right-element  = @operations.shift;
+
+            $p5 ~= qq|\n# line 999 "___position_{$right-element.start-position}_{$right-element.end-position}___"\n|;
 
             $p5 ~= sprintf(
                 q|$left = Python2::Internals::arithmetic(${ $left }, ${ %s }, '%s');|,
@@ -1003,7 +1014,8 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Expression::ExpressionList $node) {
         return sprintf('\Python2::Type::List->new(%s)',
             $node.expressions.map({
-                '${' ~ self.e($_) ~ '}'
+                    qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
+                ~   '${' ~ self.e($_) ~ '}'
             }).join(', ')
        );
     }
@@ -1017,7 +1029,10 @@ class Python2::Backend::Perl5 {
         # tuple with multiple values "x = (1, 2, 3)" - regular tuple
         elsif $node.tests.elems > ($node.trailing-comma ?? 0 !! 1) {
             return sprintf('\Python2::Type::Tuple->new(%s)',
-                $node.tests.map({ '${' ~ self.e($_) ~ '}' }).join(', ')
+                $node.tests.map({
+                        qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
+                    ~   '${' ~ self.e($_) ~ '}'
+                }).join(', ')
             );
         }
 
@@ -1035,7 +1050,13 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {
         return sprintf('\Python2::Type::Dict->new(%s)',
             $node.entries.map({
-                '${' ~ $.e($_.key) ~ '} => ${' ~ $.e($_.value) ~ '}'
+                    qq|\n# line 999 "___position_{$_.key.start-position}_{$_.key.end-position}___"\n|
+                ~   '${' ~ $.e($_.key)
+
+                ~   '} => ${'
+
+                ~   qq|\n# line 999 "___position_{$_.value.start-position}_{$_.value.end-position}___"\n|
+                ~   $.e($_.value) ~ '}'
             }).join(', ')
        );
     }
@@ -1070,7 +1091,8 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Expression::SetDefinition $node) {
         return sprintf('\Python2::Type::Set->new(%s)',
             $node.entries.map({
-                '${' ~ $.e($_) ~ '}'
+                    qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
+                ~   '${' ~ $.e($_) ~ '}'
             }).join(', ')
        );
     }

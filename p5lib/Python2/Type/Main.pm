@@ -134,7 +134,7 @@ sub __handle_exception__ {
     $output .= sprintf("%5i | %s\n",
         $failed_at_line - 1,
         $input_as_lines[$failed_at_line - 2],
-    ) if (($failed_at_line-2 > 0) and (defined $input_as_lines[$failed_at_line - 2]));
+    ) if (($failed_at_line-1 > 0) and (defined $input_as_lines[$failed_at_line - 1]));
 
     # output line with syntax error
     $output .= sprintf("%5i | %s\n",
@@ -143,7 +143,7 @@ sub __handle_exception__ {
     );
 
     $output .= '        ' . ' ' x $failed_position_in_line;
-    $output .= '^' x ($end_position - $start_position - 1) . " - $message\n";
+    $output .= '^' x ($end_position - $start_position) . " - $message\n";
 
     # output subsequent line, if present
     $output .= sprintf("%5i | %s\n",

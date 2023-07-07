@@ -374,7 +374,10 @@ role Python2::Actions::Expressions {
     }
 
     method expression-list($/) {
-        my $expression-list = Python2::AST::Node::Expression::ExpressionList.new();
+        my $expression-list = Python2::AST::Node::Expression::ExpressionList.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+        );
 
         for $/<expression> -> $expression {
             $expression-list.expressions.push($expression.made);
@@ -385,6 +388,8 @@ role Python2::Actions::Expressions {
 
     method test-list($/) {
         my $test-list = Python2::AST::Node::Expression::TestList.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             trailing-comma => $/<trailing-comma>.so
         );
 
@@ -397,6 +402,8 @@ role Python2::Actions::Expressions {
 
     method extended-test-list($/) {
         my $test-list = Python2::AST::Node::Expression::TestList.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
             trailing-comma => $/<trailing-comma>.so
         );
 
