@@ -177,10 +177,9 @@ sub __getattr__ {
 
     # our wrapped object does not implement __getattr__ protocol and has no method
     die Python2::Type::Exception->new(
-        'NotImplementedError',
+        'AttributeError',
         sprintf(
-            'PerlObject of class \'' . ref($self->{object}) . "' does not implement __getattr__ and has no method '%s', unable to handle __getattr__('%s')",
-            $key,
+            'PerlObject of class \'' . ref($self->{object}) . "' has no attribute '%s'",
             $key,
         )
     );

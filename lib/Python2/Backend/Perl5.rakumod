@@ -842,9 +842,10 @@ class Python2::Backend::Perl5 {
         # everything in %!modules will be placed at the beginning of the code
         %!modules{$perl5_class_name} = sprintf(
             # we inject the base class at runtime by setting up @Package::ISA
-            'package %s { %s sub __build__ { my $self = $_[0]; $self->SUPER::__build__(); my $stack = $self->{stack}; %s; return $self; } }',
+            'package %s { %s sub NAME { \'%s\' }; sub __build__ { my $self = $_[0]; $self->SUPER::__build__(); my $stack = $self->{stack}; %s; return $self; } }',
             $perl5_class_name,
             $preamble,
+            $node.name.name.subst("'", "\\'", :g),
             $.e($node.block, $node)
         );
 

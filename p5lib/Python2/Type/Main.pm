@@ -128,7 +128,7 @@ sub __handle_exception__ {
             :
                 $start_position;
 
-    $output .= "Execution failed at line $failed_at_line ($start_position, $end_position)\n\n";
+    $output .= "Execution failed at line $failed_at_line\n\n";
 
     # output preceeding line, if present
     $output .= sprintf("%5i | %s\n",

@@ -38,7 +38,7 @@ sub __getattr__ {
     my $name = $attribute_name->__tonative__;
     return $self->{stack}->get($name) if $self->{stack}->has($name);
 
-    die Python2::Type::Exception->new('AttributeError', "'" . ref($self) . "' has no attribute '$name'");
+    die Python2::Type::Exception->new('AttributeError', "Class '" . $self->NAME . "' has no attribute '$name'");
 }
 
 sub __setattr__ {
