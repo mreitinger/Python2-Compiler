@@ -96,7 +96,7 @@ class Python2::Backend::Perl5 {
                     $locals
                 );
 
-                %s
+                eval { %s } or do { $self->__handle_exception__($@); }
             }
         }
         END
