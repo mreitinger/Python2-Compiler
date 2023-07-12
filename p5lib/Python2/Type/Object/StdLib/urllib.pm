@@ -8,6 +8,10 @@ use strict;
 
 use URI::Escape qw/ uri_escape_utf8 /;
 
+use LWP::UserAgent ();
+
+use Python2::Type::Object::StdLib::urllib::addinfourl;
+
 sub new {
     my ($self) = @_;
 
@@ -38,5 +42,19 @@ sub quote_plus {
 
     return \Python2::Type::Scalar::String->new($escaped);
 }
+
+sub urlopen {
+    pop(@_); # default named arguments hash
+    my ($self, $url, $data, $timeout, $cafile, $capath, $cadefault, $context) = @_;
+
+    # very simple url open ignoring all parameters as long they're not needed
+    my $ua = LWP::UserAgent->new(timeout => 10);
+
+    my $response = $ua->get($url->__tonative__);
+
+    return \Python2::Type::Object::StdLib::urllib::addinfourl->new($response);
+}
+
+
 
 1;
