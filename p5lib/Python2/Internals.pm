@@ -349,20 +349,21 @@ sub getopt {
         my $default = $argument->[1]; # default value of this argument. might be undef.
         my $splat   = $argument->[2]; # 'splat' was specified (*args), grab all remaining args
 
+        # splat does not care if any arguments are there, it just returns an empty tuple if
+        # no more arguments remain
+        if ($splat) {
+            setvar($stack, $name, Python2::Type::Tuple->new(@arguments));
+            last;
+        }
+
         # we got a positional argument. check if it conflicts and use it otherwise.
         if (exists $arguments[0]) {
             # TODO we should handle this at compile time
             die Python2::Type::Exception->new('SyntaxError', "$function_name(): conflict between named/positional argument '$name'")
                 if exists $named_arguments->{$name};
 
-            if ($splat) {
-                setvar($stack, $name, Python2::Type::Tuple->new(@arguments));
-                last;
-            }
-            else {
-                setvar($stack, $name, shift(@arguments));
-                next;
-            }
+            setvar($stack, $name, shift(@arguments));
+            next;
         }
 
         # we got a named argument
