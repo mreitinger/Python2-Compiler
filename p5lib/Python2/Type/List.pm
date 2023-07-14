@@ -164,6 +164,18 @@ sub __call__ {
     return \Python2::Type::List->new(@{ $value });
 };
 
+sub sort {
+    my $self = shift;
+    my $named_arguments = pop;
+
+    @$self = ${ Python2::Builtin::Sorted->new()->__call__(
+        $self,
+        $named_arguments
+    ) }->ELEMENTS;
+
+    return \Python2::Type::Scalar::None->new();
+}
+
 sub ELEMENTS {
     my ($self) = @_;
 
