@@ -931,7 +931,11 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Call::Method $node) {
-        Q:s:b "(do { my \$p = \${$.e($node.atom)}; my @a = ($.e($node.arglist)); \$p->can('$node.name.name()') ? \$p->$node.name.name()\(@a) : \${ \$p->__getattr__(Python2::Type::Scalar::String->new('$node.name.name()'), {}) }->__call__(@a) })"
+        my Str $p5;
+        $p5 ~= Q:s:b "(do { my \$p = \${$.e($node.atom)};";
+        $p5 ~= Q:s:b "my @a = ($.e($node.arglist));";
+        $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.name.end-position}___"\n|;
+        $p5 ~= Q:s:b "\$p->can('$node.name.name()') ? \$p->$node.name.name()\(@a) : \${ \$p->__getattr__(Python2::Type::Scalar::String->new('$node.name.name()'), {}) }->__call__(@a) })";
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {
