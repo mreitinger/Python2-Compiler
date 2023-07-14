@@ -893,6 +893,63 @@ subtest "embedding - string conversion" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - PerlArray sorting" => sub {
+    my Str $input = q:to/END/;
+    def sort_plain(a):
+        a.sort()
+
+    def sort_key(a):
+        a.sort(key=lambda a: a.lower())
+
+    def sort_reverse(a):
+        a.sort(reverse=True)
+
+    def sort_both(a):
+        a.sort(reverse=True, key=lambda a: a.lower())
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        my $list = ['Test', 'string', 'A', 'b', 'C'];
+
+        $p5->__run_function__('sort_plain', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
+        print(join(" ", @$list) . "\n");
+
+        $p5->__run_function__('sort_key', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
+        print(join(" ", @$list) . "\n");
+
+        $p5->__run_function__('sort_reverse', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
+        print(join(" ", @$list) . "\n");
+
+        $p5->__run_function__('sort_both', [$list, bless({}, 'Python2::NamedArgumentsHash')]);
+        print(join(" ", @$list) . "\n");
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected =  "A C Test b string\n";
+    $expected    ~= "A b C string Test\n";
+    $expected    ~= "string b Test C A\n";
+    $expected    ~= "Test string C b A\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
+
 
 
 

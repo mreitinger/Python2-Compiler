@@ -178,6 +178,41 @@ sub __getslice__ {
     );
 }
 
+sub sort {
+    my $self = shift;
+    my $named_arguments = pop;
+
+    my $key     = exists $named_arguments->{key} ? ${ $named_arguments->{key} } : undef;
+    my $reverse = exists $named_arguments->{reverse} ? ${ $named_arguments->{reverse} } : undef;
+
+    die Python2::Type::Exception->new('TypeError', 'Value passed to sorted must be bool or int, got ' . $reverse->__type__)
+        if defined $reverse and $reverse->__type__ !~ m/^(int|bool)$/;
+
+    die Python2::Type::Exception->new('TypeError', 'key passed to sorted is not callable (does not support __call__)')
+        if defined $key and not $key->can('__call__');
+
+    # both bool and int work here
+    $reverse = defined $reverse ? $reverse->__tonative__ : 0;
+
+    my @result = $key
+        ?   sort {
+                ${ $key->__call__(${ Python2::Internals::convert_to_python_type($a) }, bless({}, 'Python2::NamedArgumentsHash')) }->__tonative__
+                cmp
+                ${ $key->__call__(${ Python2::Internals::convert_to_python_type($b) }, bless({}, 'Python2::NamedArgumentsHash')) }->__tonative__
+            } $self->ELEMENTS
+
+        :   sort {
+                $a cmp $b
+            } @{ $self->[0] }
+        ;
+
+    @{ $self->[0] } = $reverse
+        ? reverse @result
+        : @result;
+
+    return \Python2::Type::Scalar::None->new();
+}
+
 sub REFADDR {
     my ($self) = @_;
     return refaddr($self->[0]);
