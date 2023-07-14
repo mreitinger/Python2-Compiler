@@ -26,5 +26,6 @@ use Python2::Builtin::Type;
 use Python2::Builtin::Ord;
 use Python2::Builtin::Locals;
 use Python2::Builtin::Chr;
+use Python2::Builtin::Die;
 
 1;
