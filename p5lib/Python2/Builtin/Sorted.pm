@@ -10,26 +10,37 @@ sub __call__ {
     my $named_arguments = pop @_;
 
     my $list = shift @_;
-    my $key = exists $named_arguments->{key} ? ${ $named_arguments->{key} } : undef;
+    my $key     = exists $named_arguments->{key} ? ${ $named_arguments->{key} } : undef;
+    my $reverse = exists $named_arguments->{reverse} ? ${ $named_arguments->{reverse} } : undef;
 
     die Python2::Type::Exception->new('TypeError', 'sorted expectes a list, tuple, enumerate or iterable, got ' . (defined $list ? $list->__type__ : 'nothing'))
         unless defined $list and $list->__type__ =~ m/^(list|listiterator|tupleiterator|enumerate|tuple)$/;
 
+    die Python2::Type::Exception->new('TypeError', 'Value passed to sorted must be bool or int, got ' . $reverse->__type__)
+        if defined $reverse and $reverse->__type__ !~ m/^(int|bool)$/;
+
     die Python2::Type::Exception->new('TypeError', 'key passed to sorted is not callable (does not support __call__)')
         if defined $key and not $key->can('__call__');
 
-    return $key
-        ?   \Python2::Type::List->new( sort {
+    # both bool and int work here
+    $reverse = defined $reverse ? $reverse->__tonative__ : 0;
+
+    my @result = $key
+        ?   sort {
                 ${ $key->__call__($a, bless({}, 'Python2::NamedArgumentsHash')) }->__tonative__
                 cmp
                 ${ $key->__call__($b, bless({}, 'Python2::NamedArgumentsHash')) }->__tonative__
-            } $list->ELEMENTS )
+            } $list->ELEMENTS
 
-        :   \Python2::Type::List->new(
-                sort { $a->__tonative__ cmp $b->__tonative__
-            } $list->ELEMENTS )
-
+        :   sort {
+                $a->__tonative__ cmp $b->__tonative__
+            } $list->ELEMENTS
         ;
+
+    return $reverse
+        ? \Python2::Type::List->new( reverse @result )
+        : \Python2::Type::List->new( @result );
+
 };
 
 1;

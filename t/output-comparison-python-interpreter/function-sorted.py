@@ -8,3 +8,7 @@ def t(b):
 print sorted("Test string A b C".split())
 print sorted("Test string A b C".split(), key=t)
 print sorted("Test string A b C".split(), key=lambda s: s.lower())
+print sorted("Test string A b C".split(), key=t, reverse=True)
+print sorted("Test string A b C".split(), key=t, reverse=False)
+print sorted("Test string A b C".split(), key=t, reverse=1)
+print sorted("Test string A b C".split(), key=t, reverse=0)
