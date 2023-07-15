@@ -13,11 +13,15 @@ require POSIX;
 sub new {
     my ($self) = @_;
 
+    my $tz = POSIX::strftime("%Z", localtime());
+    # Appearently DateTime::TimeZone does not know about CEST?
+    $tz = 'CET' if $tz eq 'CEST';
+
     my $object = bless([
         Python2::Stack->new($Python2::builtins),
         {
             ts   => time,
-            zone => DateTime::TimeZone->new(name => POSIX::strftime("%Z", localtime()))
+            zone => DateTime::TimeZone->new(name => $tz),
         }
     ], $self);
 
