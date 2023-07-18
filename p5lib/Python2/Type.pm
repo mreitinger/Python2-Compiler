@@ -30,6 +30,7 @@ sub __dump__ {
     return \Python2::Type::Scalar::String->new($dumper->Dump());
 }
 
+sub __call__    { die Python2::Type::Exception->new('TypeError', sprintf("'%s' is not callable", shift->__type__)); }
 sub __class__   { ref(shift); }
 sub __type__    { die Python2::Type::Exception->new('NotImplementedError', '__type__ for ' . ref(shift)); }
 
