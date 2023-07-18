@@ -764,7 +764,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $self = shift; my $stack = $self->{stack}; $stack->clear;';
+        $block ~= 'my $self = shift; my $stack = $self->{stack}->clone;';
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
@@ -816,7 +816,7 @@ class Python2::Backend::Perl5 {
         my Str $block;
 
         # local stack frame for this lambda
-        $block ~= 'my $self = shift; my $stack = $self->{stack}; $stack->clear;';
+        $block ~= 'my $self = shift; my $stack = $self->{stack}->clone;';
 
         # get arguments
         for $node.argument-list -> $argument {

@@ -54,6 +54,13 @@ sub clear {
     $self->[1] = Python2::Stack::Frame->new(undef);
 }
 
+sub clone {
+    my $self = shift;
+    return Python2::Stack->new(
+        $self->[0], Python2::Stack::Frame->new(%{ $self->[1] })
+    );
+}
+
 sub parent { return shift->[0]; }
 
 1;
