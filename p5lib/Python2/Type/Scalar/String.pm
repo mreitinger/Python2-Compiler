@@ -433,6 +433,8 @@ sub encode {
             "noop encode('utf-8') used for string: '%s<truncated>'. UTF-8 is now assumed everywhere.",
             substr($str, 0, 10)
         ) unless exists $ENV{PYTHON_2_COMPILER_NO_ENCODE_WARNINGS};
+    } elsif ($encoding eq 'cp1250') {
+        $str = Encode::encode('cp1250', $str);
     } elsif ($encoding eq 'cp1252') {
         $str = Encode::encode('cp1252', $str);
     } elsif ($encoding eq 'base64') {
