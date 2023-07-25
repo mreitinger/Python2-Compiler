@@ -1,6 +1,5 @@
 use Python2::AST;
 use Digest::SHA1::Native;
-use Data::Dump;
 use Python2::ParseFail;
 
 class Python2::Backend::Perl5 {
@@ -384,8 +383,6 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::Print $node) {
         my Str $p5 = $node.values.map({
-                use Data::Dump;
-                note Dump($_) unless defined $_.start-position;
                 qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
             ~   '${' ~ $.e($_) ~ '}'
         }).join(',');

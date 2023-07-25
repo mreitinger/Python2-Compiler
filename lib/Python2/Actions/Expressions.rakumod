@@ -1,5 +1,4 @@
 use Python2::AST;
-use Data::Dump;
 
 role Python2::Actions::Expressions {
     # token expression {

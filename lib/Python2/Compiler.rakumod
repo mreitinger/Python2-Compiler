@@ -4,7 +4,6 @@ use Python2::Backend::Perl5;
 use Python2::Optimizer;
 use Python2::ParseFail;
 use Python2::CompilationError;
-use Data::Dump;
 
 class Python2::Compiler {
     has Bool $.optimize = True;
@@ -59,7 +58,7 @@ class Python2::Compiler {
         $!optimizer.t($root) if $.optimize;
 
         if ($.dumpast)  {
-            note Dump($root, :no-postfix, :skip-methods);
+            note $root;
             exit 0;
         }
 
@@ -86,7 +85,7 @@ class Python2::Compiler {
         $!optimizer.t($root) if $.optimize;
 
         if ($.dumpast)  {
-            note Dump($root, :no-postfix, :skip-methods);
+            note $root;
             exit 0;
         }
 
