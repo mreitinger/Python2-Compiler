@@ -731,6 +731,61 @@ subtest "embedding - PerlArray __eq__" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - PerlArray __lt__" => sub {
+    my Str $input = q:to/END/;
+    def lt(a, b):
+        print "%s > %s results in %s" % (type(a).__name__,  type(b).__name__, a > b)
+        print "%s > %s results in %s" % (type([]).__name__, type(b).__name__, [] > b)
+        print "%s < %s results in %s" % (type([]).__name__, type(b).__name__, [] < b)
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        my $list = ['1', '2', '3'];
+        my $list2 = ['1', '2', '3'];
+
+        $p5->__run_function__('lt', [$list, 1, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('lt', [$list, "1", bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('lt', [$list, {}, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('lt', [$list, [], bless({}, 'Python2::NamedArgumentsHash')]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected;
+    $expected ~= "list > int results in True\n";
+    $expected ~= "list > int results in True\n";
+    $expected ~= "list < int results in False\n";
+    $expected ~= "list > str results in False\n";
+    $expected ~= "list > str results in False\n";
+    $expected ~= "list < str results in True\n";
+    $expected ~= "list > dict results in True\n";
+    $expected ~= "list > dict results in True\n";
+    $expected ~= "list < dict results in False\n";
+    $expected ~= "list > list results in False\n";
+    $expected ~= "list > list results in False\n";
+    $expected ~= "list < list results in False\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
+
+
+
 subtest "embedding - PerlHash __contains__" => sub {
     my Str $input = q:to/END/;
     def check(a, b):
