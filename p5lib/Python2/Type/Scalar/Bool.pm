@@ -13,7 +13,7 @@ sub new {
 
 sub __str__         { return $_[0]->$* ? 'True' : 'False'; }
 sub __print__       { return $_[0]->$* ? 'True' : 'False' }
-sub __tonative__    { return $_[0]->$*; }
+sub __tonative__    { return $_[0]->$* ? 1 : undef; }
 sub __type__        { return 'bool'; }
 sub __negate__      { return \__PACKAGE__->new(not $_[0]->$*); }
 
