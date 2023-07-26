@@ -924,7 +924,9 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Call::Name $node) {
-        Q:s:b "\${ $.e($node.name) }->__call__($.e($node.arglist))";
+        my Str $p5;
+        $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.name.end-position}___"\n|;
+        $p5 ~= Q:s:b "\${ $.e($node.name) }->__call__($.e($node.arglist))";
     }
 
     multi method e(Python2::AST::Node::Call::Method $node) {
