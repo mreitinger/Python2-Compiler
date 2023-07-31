@@ -3,6 +3,9 @@ use Cro::HTTP::Client;
 use Cro::HTTP::Router;
 use Python2::Compiler::Service;
 
+$*ERR.out-buffer = False;
+$*OUT.out-buffer = False;
+
 sub spawn_server (Int $port!) {
     my Cro::Service $service = Cro::HTTP::Server.new:
         :host<localhost>, :port($port), :application(
