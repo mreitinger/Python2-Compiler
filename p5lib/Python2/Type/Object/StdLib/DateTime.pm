@@ -14,8 +14,10 @@ sub new {
     my ($self) = @_;
 
     my $tz = POSIX::strftime("%Z", localtime());
-    # Appearently DateTime::TimeZone does not know about CEST?
+
+    # Appearently DateTime::TimeZone does not know about some short names
     $tz = 'CET' if $tz eq 'CEST';
+    $tz = 'Asia/Kolkata' if $tz eq 'IST';
 
     my $object = bless([
         Python2::Stack->new($Python2::builtins),
