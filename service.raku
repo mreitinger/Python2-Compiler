@@ -33,7 +33,9 @@ sub spawn_watchdog (Int $port!) {
 
         my $response = await $resp.body;
         if ($response ~~ /Python2/) {
-            my $proc = run('/bin/systemd-notify', 'WATCHDOG=1');
+            my $notify-proc = run 'systemd-notify', 'WATCHDOG=1';
+            note "systemd-notify failed with exit code {$notify-proc.exitcode}"
+                unless $notify-proc.exitcode == 0;
         }
     });
 }
