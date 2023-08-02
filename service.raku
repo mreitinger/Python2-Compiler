@@ -16,6 +16,10 @@ sub spawn_server (Int $port!) {
     $service.start;
     note "Listening on port $port";
 
+    my $notify-proc = run 'systemd-notify', 'READY=1';
+    note "systemd-notify failed with exit code {$notify-proc.exitcode}"
+        unless $notify-proc.exitcode == 0;
+
     return $service;
 }
 
