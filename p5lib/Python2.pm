@@ -54,6 +54,7 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'type'          => Python2::Builtin::Type->new(),
     'dump'          => Python2::Builtin::Dump->new(),
     'die'           => Python2::Builtin::Die->new(),
+    'warn'          => Python2::Builtin::Warn->new(),
     'ord'           => Python2::Builtin::Ord->new(),
 
     'list'          => Python2::Type::List->new(),
