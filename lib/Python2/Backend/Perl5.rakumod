@@ -985,6 +985,7 @@ class Python2::Backend::Perl5 {
             $string = $string
                 .subst('\\\\',  '\\',   :g)
                 .subst('\\n',   "\n",   :g)
+                .subst('\\r',   "\r",   :g)
                 .subst('\\t',   "\t",   :g);
         }
 
