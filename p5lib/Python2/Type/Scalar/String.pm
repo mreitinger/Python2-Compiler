@@ -516,4 +516,10 @@ sub __contains__ {
     return \Python2::Type::Scalar::Bool->new( index($self->__tonative__, $other->__tonative__) >= 0 );
 }
 
+sub ELEMENTS {
+    my ($self) = @_;
+
+    return map { Python2::Type::Scalar::String->new( $_ ) } split(//, $self->__tonative__);
+}
+
 1;
