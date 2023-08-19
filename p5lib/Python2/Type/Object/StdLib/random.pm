@@ -27,6 +27,22 @@ sub seed {
     return \Python2::Type::Scalar::None->new();
 }
 
+sub randint {
+    pop(@_); # named arguments hash, unused
+
+    my ($self, $lower, $upper) = @_;
+
+    die Python2::Type::Exception->new("TypeError", "random.randint(lower, upper) expecting int as lower bound, got " . (defined $lower ? $lower->__type__ : 'nothing'))
+        unless defined $lower and $lower->__type__ eq 'int';
+
+    die Python2::Type::Exception->new("TypeError", "random.randint(lower, upper) expecting int as upper bound, got " . (defined $upper ? $upper->__type__ : 'nothing'))
+        unless defined $upper and $upper->__type__ eq 'int';
+
+    return \Python2::Type::Scalar::Num->new(
+        int($lower->__tonative__ + rand($upper->__tonative__ - $lower->__tonative__))
+    );
+}
+
 sub sample {
     pop(@_); # default named arguments hash
     my ($self, $sequence, $count) = @_;
