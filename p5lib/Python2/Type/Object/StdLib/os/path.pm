@@ -22,4 +22,13 @@ sub exists {
     return \Python2::Type::Scalar::Bool->new(-e $path)
 }
 
+sub isfile {
+    my ($self, $path) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("isfile() expects a string but got '%s'", defined $path ? $path->__type__ : 'nothing'))
+        unless defined $path and $path->__type__ eq 'str';
+
+    return \Python2::Type::Scalar::Bool->new(-f $path);
+}
+
 1;

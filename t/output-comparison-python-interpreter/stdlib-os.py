@@ -32,3 +32,6 @@ try:
     os.remove('testfile')
 except:
     print 'file does not exist anymore, fail expected'
+
+print 'isfile - file exists %s' % os.path.isfile('t/testdata/stdlib-csv-test.csv')
+print 'isfile - file not existent %s' % os.path.isfile('/non/existent/path')
