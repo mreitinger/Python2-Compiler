@@ -29,6 +29,7 @@ use Python2::Type::Exception;
 use Python2::Type::Function;
 use Python2::Type::PerlHash;
 use Python2::Type::PerlArray;
+use Python2::Type::XRange;
 
 # builtins is used as our top level stack so it must look like one
 our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
@@ -38,6 +39,7 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'hasattr'       => Python2::Builtin::Hasattr->new(),
     'map'           => Python2::Builtin::Map->new(),
     'range'         => Python2::Builtin::Range->new(),
+    'xrange'        => Python2::Type::XRange->new(),
     'open'          => Python2::Builtin::Open->new(),
     'iter'          => Python2::Builtin::Iter->new(),
     'chr'           => Python2::Builtin::Chr->new(),

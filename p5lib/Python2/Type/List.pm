@@ -181,7 +181,7 @@ sub __call__ {
     die Python2::Type::Exception->new('TypeError', 'list() expects some iterable, got ' . $value->__type__)
         unless $value->can('__iter__');
 
-    return \Python2::Type::List->new(@{ $value });
+    return \Python2::Type::List->new( $value->ELEMENTS );
 };
 
 sub sort {
