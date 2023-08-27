@@ -7,24 +7,32 @@ use POSIX;
 sub new {
     my ($self, $start, $stop, $step) = @_;
 
-    my $length;
+    if (defined $start or defined $stop or defined $step) {
+        die("XRange->new(): expected int for start") unless ($start =~ m/^\-?\d+$/);
+        die("XRange->new(): expected int for stop")  unless ($stop =~ m/^\-?\d+$/);
+        die("XRange->new(): expected int for step")  unless ($step =~ m/^\-?\d+$/);
 
-    # ascending range
-    if (($step > 0) and ($start < $stop)) {
-        $length = ceil(($stop - $start) / $step);
+        my $length;
+        # ascending range
+        if (($step > 0) and ($start < $stop)) {
+            $length = ceil(($stop - $start) / $step);
+        }
+
+        # descending range
+        elsif (($step < 0) and ($stop < $start)) {
+            $length = floor(($start - $stop) / $step) * -1;
+        }
+
+        # everything else is 'invalid'
+        else {
+            $length = 0;
+        }
+
+        return bless([$start, $length, $step], $self);
     }
-
-    # descending range
-    elsif (($step < 0) and ($stop < $start)) {
-        $length = floor(($start - $stop) / $step) * -1;
-    }
-
-    # everything else is 'invalid'
     else {
-        $length = 0;
+        return bless([], $self);
     }
-
-    return bless([$start, $length, $step], $self);
 }
 
 sub __type__ { 'xrange' }
