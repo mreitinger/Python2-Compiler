@@ -174,6 +174,9 @@ sub __contains__ {
 sub remove {
     my ($self, $other) = @_;
 
+    die Python2::Type::Exception->new('TypeError', 'remove() takes exactly one argument, got nothing')
+        unless defined $other;
+
     for my $i (0 .. @$self-1) {
         if (${ $self->[$i]->__eq__($other) }->__tonative__) {
             splice(@$self, $i, 1);
