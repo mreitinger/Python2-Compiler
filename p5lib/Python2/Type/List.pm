@@ -171,6 +171,19 @@ sub __contains__ {
     return \Python2::Type::Scalar::Bool->new(0);
 }
 
+sub remove {
+    my ($self, $other) = @_;
+
+    for my $i (0 .. @$self-1) {
+        if (${ $self->[$i]->__eq__($other) }->__tonative__) {
+            splice(@$self, $i, 1);
+            return \Python2::Type::Scalar::None->new();
+        }
+    }
+
+    die Python2::Type::Exception->new('ValueError', 'list.remove() - item not in list');
+}
+
 sub __call__ {
     shift @_; # $self - unused
     pop   @_; # default named arguments hash - unused
