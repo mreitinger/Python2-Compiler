@@ -137,6 +137,25 @@ sub __contains__ {
     return \Python2::Type::Scalar::Bool->new(0);
 }
 
+sub remove {
+    my ($self, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'remove() takes exactly one argument, got nothing')
+        unless defined $other;
+
+    for my $i (0 .. @{ $self->[0] }-1 ) {
+        my $item = ${ Python2::Internals::convert_to_python_type($self->[0]->[$i]) };
+        warn "$self - $item";
+
+        if (${ $item->__eq__($other) }->__tonative__) {
+            splice(@{ $self->[0] }, $i, 1);
+            return \Python2::Type::Scalar::None->new();
+        }
+    }
+
+    die Python2::Type::Exception->new('ValueError', 'list.remove() - item not in list');
+}
+
 sub ELEMENTS {
     my ($self) = @_;
 
