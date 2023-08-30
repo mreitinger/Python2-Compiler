@@ -494,7 +494,7 @@ class Python2::Backend::Perl5 {
 
         if ($node.names.elems > 1) {
             # TODO should support all iterables
-            $p5 ~= 'die Python2::Type::Exception->new("TypeError", "expected enumerate but got " . $i->__type__) unless ($i->__type__ eq "enumerate");';
+            $p5 ~= 'die Python2::Type::Exception->new("TypeError", "expected enumerate but got " . $i->__type__) unless (($i->__type__ eq "enumerate") or ($i->__type__ eq "listiterator"));';
 
             $p5 ~= q:to/END/;
                 while(1) {
@@ -506,7 +506,7 @@ class Python2::Backend::Perl5 {
                             unless $var->__type__ eq 'tuple';
                 END
 
-            $p5 ~= sprintf('die Python2::Type::Exception->new("ValueError", "size of tuple does not match loop declaration") unless scalar(@$i) == %i;', $node.names.elems);
+            $p5 ~= sprintf('die Python2::Type::Exception->new("ValueError", "size of tuple does not match loop declaration, expected %i but got " . scalar(@$var)) unless scalar(@$var) == %i;', $node.names.elems, $node.names.elems);
 
             my Int $index = 0;
             for $node.names -> $name {
