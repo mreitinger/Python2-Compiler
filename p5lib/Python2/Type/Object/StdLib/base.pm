@@ -24,10 +24,12 @@ sub __str__ {
 }
 
 sub __getattr__ {
-    my ($self, $attribute_name) = @_;
+    my $self = shift;
+    my $named_arguments = pop;
+    my $attribute_name = shift;
 
-    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
-        unless ($attribute_name->__type__ eq 'str');
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . (defined $attribute_name ? $attribute_name->__type__ : 'nothing'))
+        unless defined $attribute_name and $attribute_name->__type__ eq 'str';
 
     $attribute_name = $attribute_name->__tonative__;
 
