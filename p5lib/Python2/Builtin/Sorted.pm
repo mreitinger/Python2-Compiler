@@ -13,14 +13,16 @@ sub __call__ {
     my $key     = exists $named_arguments->{key} ? ${ $named_arguments->{key} } : undef;
     my $reverse = exists $named_arguments->{reverse} ? ${ $named_arguments->{reverse} } : undef;
 
-    die Python2::Type::Exception->new('TypeError', 'sorted expectes a list, tuple, enumerate or iterable, got ' . (defined $list ? $list->__type__ : 'nothing'))
-        unless defined $list and $list->__type__ =~ m/^(list|listiterator|tupleiterator|enumerate|tuple)$/;
+    die Python2::Type::Exception->new('TypeError', 'sorted expectes a list, dict, tuple, enumerate or iterable, got ' . (defined $list ? $list->__type__ : 'nothing'))
+        unless defined $list and $list->__type__ =~ m/^(list|listiterator|tupleiterator|enumerate|tuple|dict)$/;
 
     die Python2::Type::Exception->new('TypeError', 'Value passed to sorted must be bool or int, got ' . $reverse->__type__)
         if defined $reverse and $reverse->__type__ !~ m/^(int|bool)$/;
 
     die Python2::Type::Exception->new('TypeError', 'key passed to sorted is not callable (does not support __call__)')
         if defined $key and not $key->can('__call__');
+
+    $list = ${ $list->keys() } if $list->__type__ eq 'dict';
 
     # both bool and int work here
     $reverse = defined $reverse ? $reverse->__tonative__ : 0;
