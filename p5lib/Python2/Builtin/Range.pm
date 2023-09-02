@@ -14,8 +14,14 @@ sub __call__ {
 
     my ($arg_1, $arg_2, $arg_3) = @_;
 
-    die Python2::Type::Exception->new('TypeError', 'range() integer argument expected, got ' . $arg_1->__type__)
-        unless $arg_1->__type__ eq 'int';
+    die Python2::Type::Exception->new('NotImplementedError', 'range() with step')
+        if defined $arg_3;
+
+    die Python2::Type::Exception->new('TypeError', 'range() integer expected as first argument, got ' . (defined $arg_1 ? $arg_1->__type__ : 'nothing'))
+        unless defined $arg_1 and $arg_1->__type__ eq 'int';
+
+    die Python2::Type::Exception->new('TypeError', 'range() integer expected as second argument, got ' . $arg_2->__type__)
+        if defined $arg_2 and $arg_2->__type__ ne 'int';
 
     if ($arg_1 and not defined $arg_2 and not defined $arg_3) {
         return \Python2::Type::List->new(
@@ -29,8 +35,7 @@ sub __call__ {
         );
     }
 
-
-    # \Python2::Type::List->new(1 .. $_[0]->__tonative__);
+    ...; #TODO NYI step parameter
 };
 
 1;
