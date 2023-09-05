@@ -28,6 +28,8 @@ sub group {
     return \Python2::Type::Scalar::String->new($self->{groups}->[$i]);
 }
 
-
+sub __is_py_true__ {
+    1;
+}
 
 1;
