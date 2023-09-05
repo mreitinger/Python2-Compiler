@@ -68,6 +68,26 @@ sub sub {
     return \Python2::Type::Scalar::String->new($value);
 }
 
+
+sub search {
+    pop(@_); #default named args hash
+    my ($self, $regex, $string) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("search() expects a string as regex as first parameter, got %s", (defined $regex ? $regex->__type__ : 'nothing')))
+        unless defined $regex and $regex->__type__ eq 'str';
+
+    die Python2::Type::Exception->new('TypeError', sprintf("search() expects a string to search as second parameter, got %s", (defined $string ? $string->__type__ : 'nothing')))
+        unless defined $string and $string->__type__ eq 'str';
+
+    my $r = $regex->__tonative__;
+
+    my $groups = [ $string =~ /($r)/g ];
+
+    return @$groups
+        ? \Python2::Type::Object::StdLib::re::match->new($groups)
+        : \Python2::Type::Scalar::None->new();
+}
+
 sub match {
     pop(@_); #default named args hash
     my ($self, $regex, $string) = @_;
