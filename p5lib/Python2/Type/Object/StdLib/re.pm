@@ -91,6 +91,13 @@ sub search {
 sub match {
     pop(@_); #default named args hash
     my ($self, $regex, $string) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("match() expects a string as regex as first parameter, got %s", (defined $regex ? $regex->__type__ : 'nothing') . join("|", caller)))
+        unless defined $regex and $regex->__type__ eq 'str';
+
+    die Python2::Type::Exception->new('TypeError', sprintf("match() expects a string to search as second parameter, got %s", (defined $string ? $string->__type__ : 'nothing')))
+        unless defined $string and $string->__type__ eq 'str';
+
     my $r = $regex->__tonative__;
 
     # match.group(0) contains the outer match, so we simply wrap () around the expression
