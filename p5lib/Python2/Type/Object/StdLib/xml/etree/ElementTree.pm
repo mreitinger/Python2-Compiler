@@ -6,16 +6,16 @@ use v5.26.0;
 use warnings;
 use strict;
 
-use XML::Parser;
+use XML::LibXML;
 
 use Python2::Type::Object::StdLib::xml::etree::Element;
 
 sub new {
-    my ($self, $tree) = @_;
+    my ($self, $dom) = @_;
 
     my $object = bless({
         stack => [$Python2::builtins],
-        tree => $tree
+        dom   => $dom
     }, $self);
 
     return $object;
@@ -23,23 +23,29 @@ sub new {
 
 sub parse {
     pop(@_); # default named arguments hash
-    my ($self, $source, $parser) = @_;
+    my $self = shift;
+    my $source = shift;
+
+    die Python2::Type::Exception->new(
+        'TypeError',
+        'parse() expects exactly one argument, path or file-like object implementing read(). got: ' . (defined $source ? $source->__type__ : 'nothing')
+    ) unless (defined $source) and (($source->__type__ eq 'str') or $source->can('read'));
 
     die Python2::Type::Exception->new('OSError', 'No such file or directory: ' . $source)
-        unless (-e $source);
-    my $p = XML::Parser->new(Style => 'Tree');
-    my $tree = $p->parsefile($source);
+        if $source->__type__ eq 'str' and not -e $source;
 
-    return \Python2::Type::Object::StdLib::xml::etree::ElementTree->new($tree);
+    my $dom = $source->__type__ eq 'str'
+        ? XML::LibXML->load_xml(location => $source->__tonative__)
+        : XML::LibXML->load_xml(string => ${ $source->read() }->__tonative__);
+
+    return \Python2::Type::Object::StdLib::xml::etree::ElementTree->new($dom);
 }
 
 sub getroot {
     pop(@_); # default named arguments hash
     my ($self, $pstack) = @_;
 
-    return \Python2::Type::Object::StdLib::xml::etree::Element->new(
-        $self->{tree}->[0], $self->{tree}->[1]
-    );
+    return \Python2::Type::Object::StdLib::xml::etree::Element->new( $self->{dom}->getDocumentElement() );
 }
 
 1;
