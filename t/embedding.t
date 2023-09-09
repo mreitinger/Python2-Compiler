@@ -726,7 +726,7 @@ subtest "embedding - PerlArray __eq__" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    my $expected = "True\nTrue\nFalse\nTrue\nFalse\n";
+    my $expected = "True\nTrue\nFalse\nFalse\nFalse\n";
 
     is $perl5_output, $expected, 'output matches';
 };

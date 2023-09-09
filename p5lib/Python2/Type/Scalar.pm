@@ -27,8 +27,14 @@ sub __tonative__ {
 sub __eq__ {
     my ($self, $other) = @_;
 
+    die Python2::Type::Exception->new('Exception', 'Scalar->__eq__() called without $other')
+        unless defined $other;
+
     return \Python2::Type::Scalar::Bool->new(0)
         if $other->__type__ eq 'none';
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if $other->__type__ ne $self->__type__;
 
     return \Python2::Type::Scalar::Bool->new($self->__tonative__ eq $other->__tonative__);
 }
