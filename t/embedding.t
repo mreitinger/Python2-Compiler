@@ -1081,5 +1081,56 @@ subtest "embedding - bool conversion" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
+subtest "embedding - __cmp__ support" => sub {
+    my Str $input = q:to/END/;
+    def a(a, b):
+        if a == b:
+            print 'a == b, as expected with __cmp__ support'
+        else:
+            print 'a != b, failure'
+    END
+
+    my $compiler = Python2::Compiler.new();
+
+    my $generated_perl5_code = $compiler.compile($input, :embedded('quux'));
+
+    $generated_perl5_code ~= q:to/END/;
+        {
+            package PerlObjectTest;
+
+            sub __cmp__ {
+                0;
+            }
+
+            sub new { return bless([], shift); }
+
+            1;
+        }
+
+        my $obj1 = PerlObjectTest->new();
+        my $obj2 = PerlObjectTest->new();
+
+        my $p5 = Python2::Type::Class::main_quux->new();
+
+        $p5->__run_function__('a', [$obj1, $obj2, bless({}, 'Python2::NamedArgumentsHash')]);
+    END
+
+    my $perl5;
+    my $perl5_output;
+    lives-ok {
+        $perl5 = run('perl', :in, :out, :err);
+        $perl5.in.say($generated_perl5_code);
+        $perl5.in.close;
+        $perl5_output = $perl5.out.slurp;
+    }
+
+    diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
+        unless $perl5.exitcode == 0;
+
+    my $expected = "a == b, as expected with __cmp__ support\n";
+
+    is $perl5_output, $expected, 'output matches';
+};
+
 
 done-testing();

@@ -86,6 +86,13 @@ sub __tonative__ { return shift->{object}; }
 sub __eq__ {
     my ($self, $other) = @_;
 
+    # if the object we wrap implements __cmp__ protocol support hand over the comparison
+    # to that. See https://metacpan.org/release/NINE/Inline-Python-0.57/source/perlmodule.c#L565
+    # for the Inline::Python implementation.
+    return \Python2::Type::Scalar::Bool->new(
+        $self->{object}->__cmp__($other->__tonative__) == 0 ? 1 : 0
+    ) if $self->{object}->can('__cmp__');
+
     return \Python2::Type::Scalar::Bool->new(1)
         if $self->REFADDR eq $other->REFADDR;
 
