@@ -125,6 +125,14 @@ sub extend {
     return \Python2::Type::Scalar::None->new();
 }
 
+sub reverse {
+    my $self = shift;
+
+    @{ $self->[0] } = reverse @{ $self->[0] };
+
+    return \Python2::Type::Scalar::None->new();
+}
+
 sub __contains__ {
     my ($self, $other) = @_;
 

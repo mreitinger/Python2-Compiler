@@ -54,6 +54,15 @@ sub extend {
     return \Python2::Type::Scalar::None->new();
 }
 
+
+sub reverse {
+    my $self = shift;
+
+    @$self = reverse @$self;
+
+    return \Python2::Type::Scalar::None->new();
+}
+
 sub __getitem__ {
     my ($self, $key) = @_;
 
