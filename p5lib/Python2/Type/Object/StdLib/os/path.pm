@@ -31,4 +31,20 @@ sub isfile {
     return \Python2::Type::Scalar::Bool->new(-f $path);
 }
 
+sub getsize {
+    my $self = shift;
+    pop; # unused named arguments hash
+    my $path = shift;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("getsize() expects a string as path but got '%s'", defined $path ? $path->__type__ : 'nothing'))
+        unless defined $path and $path->__type__ eq 'str';
+
+    die Python2::Type::Exception->new('OSError', sprintf("No such file or directory: %s", $path->__tonative__))
+        unless -e $path;
+
+    return \Python2::Type::Scalar::Num->new(-s $path);
+}
+
+
+
 1;
