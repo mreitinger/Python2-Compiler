@@ -91,7 +91,7 @@ sub __eq__ {
     # for the Inline::Python implementation.
     return \Python2::Type::Scalar::Bool->new(
         $self->{object}->__cmp__($other->__tonative__) == 0 ? 1 : 0
-    ) if $self->{object}->can('__cmp__');
+    ) if ($self->{object}->can('__cmp__') and ($other->__type__ eq 'p5object'));
 
     return \Python2::Type::Scalar::Bool->new(1)
         if $self->REFADDR eq $other->REFADDR;

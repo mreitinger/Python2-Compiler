@@ -1088,6 +1088,12 @@ subtest "embedding - __cmp__ support" => sub {
             print 'a == b, as expected with __cmp__ support'
         else:
             print 'a != b, failure'
+
+    def b(c, d):
+        if c != d:
+            print 'c != d, as expected'
+        else:
+            print 'c == d, failure'
     END
 
     my $compiler = Python2::Compiler.new();
@@ -1113,6 +1119,7 @@ subtest "embedding - __cmp__ support" => sub {
         my $p5 = Python2::Type::Class::main_quux->new();
 
         $p5->__run_function__('a', [$obj1, $obj2, bless({}, 'Python2::NamedArgumentsHash')]);
+        $p5->__run_function__('b', [$obj1, undef, bless({}, 'Python2::NamedArgumentsHash')]);
     END
 
     my $perl5;
@@ -1127,7 +1134,7 @@ subtest "embedding - __cmp__ support" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    my $expected = "a == b, as expected with __cmp__ support\n";
+    my $expected = "a == b, as expected with __cmp__ support\nc != d, as expected\n";
 
     is $perl5_output, $expected, 'output matches';
 };
