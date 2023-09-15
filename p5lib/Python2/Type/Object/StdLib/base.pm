@@ -49,7 +49,7 @@ sub AUTOLOAD {
 
     return if ($requested_method eq 'DESTROY');
 
-    die("Unknown method $requested_method");
+    die("Unknown method $requested_method caller was " . join(", ", caller));
 }
 
 sub __type__ { return 'pyobject'; }

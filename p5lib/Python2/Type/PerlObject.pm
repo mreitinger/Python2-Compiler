@@ -259,7 +259,18 @@ sub AUTOLOAD {
         die Python2::Type::Exception->new('AttributeError', 'object of class \'' . ref($self->{object}) . "' has no method '$requested_method'");
     }
 
-    return $self->CALL_METHOD($requested_method, @argument_list);
+    my $retval;
+    eval {
+        $retval = $self->CALL_METHOD($requested_method, @argument_list);
+    };
+
+    if ($@) {
+        $|=1;
+        print STDERR "Failed $requested_method with $@ caller was " . join(" ", caller) . "\n";
+        die "Failed $requested_method with $@ caller was " . join(" ", caller) . "\n";
+    }
+
+    return $retval;
 }
 
 sub CALL_METHOD {
@@ -268,7 +279,7 @@ sub CALL_METHOD {
     # last argument is the hashref with named arguments
     my $named_arguments = pop(@argument_list);
 
-    confess("Python2::NamedArgumentsHash missing when calling perl5 method $requested_method on " . ref($self->{object}))
+    carp("Python2::NamedArgumentsHash missing when calling perl5 method $requested_method on " . ref($self->{object}))
         unless ref($named_arguments) eq 'Python2::NamedArgumentsHash';
 
     # convert all 'Python' objects to native representations

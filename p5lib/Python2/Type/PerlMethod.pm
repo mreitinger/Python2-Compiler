@@ -16,6 +16,9 @@ use Carp qw/ confess /;
 sub new {
     my ($self, $coderef, $object, $method_name) = @_;
 
+    die Python2::Type::Exception->new('TypeError', "PerlMethod expects a coderef but got " . (ref($coderef) ? ref($coderef) : 'scalar'))
+        unless ref($coderef) eq 'CODE';
+
     return bless([
         $coderef, $object, $method_name
     ], $self);
