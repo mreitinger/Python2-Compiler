@@ -128,7 +128,7 @@ sub extend {
 sub reverse {
     my $self = shift;
 
-    @{ $self->[0] } = reverse @{ $self->[0] };
+    @{ $self->[0] } = CORE::reverse @{ $self->[0] };
 
     return \Python2::Type::Scalar::None->new();
 }
