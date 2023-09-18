@@ -131,9 +131,15 @@ sub __call__ {
     elsif (defined $self->{object} and $self->{object}->isa('ZMS::Object')) {
         return \$self;
     }
-
+    elsif (defined $self->{object} and $self->{object}->isa('ZMS::Search')) {
+        return \$self;
+    }
+    elsif (defined $self->{object}) {
+        die Python2::Type::Exception->new('Exception', 'PerlObject.__call__() invoked on ' . $self->{class} . ' but object was already instanciated')
+    }
     else {
         my $object = Python2::Type::PerlObject->new($self->{class});
+
         eval {
             $object->{object} = $self->{class}->new(@argument_list);
         };
