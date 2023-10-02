@@ -784,7 +784,7 @@ subtest "embedding - PerlArray __lt__" => sub {
     is $perl5_output, $expected, 'output matches';
 };
 
-subtest "embedding - PerlArray remote" => sub {
+subtest "embedding - PerlArray remove" => sub {
     my Str $input = q:to/END/;
     def r(haystack, needle):
         haystack.remove(needle)
