@@ -19,4 +19,25 @@ sub __negate__      { return \__PACKAGE__->new(not $_[0]->$*); }
 
 sub __is_py_true__  { $_[0]->$*; }
 
+sub __eq__ {
+    my ($self, $other) = @_;
+
+    die Python2::Type::Exception->new('Exception', 'Bool->__eq__() called without $other')
+        unless defined $other;
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if $other->__type__ eq 'none';
+
+    return \Python2::Type::Scalar::Bool->new(
+        $self->__tonative__ == $other->__tonative__
+    ) if $other->__type__ eq 'int';
+
+    return \Python2::Type::Scalar::Bool->new(
+        ($self->__tonative__ // 0) == ($other->__tonative__ // 0)
+    ) if $other->__type__ eq 'bool';
+
+    return \Python2::Type::Scalar::Bool->new(0);
+}
+
+
 1;
