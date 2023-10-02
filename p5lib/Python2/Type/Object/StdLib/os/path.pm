@@ -60,12 +60,15 @@ sub join {
             unless $_->__type__ eq 'str';
     }
 
+
+    # match pythons behaviour of skipping everything before the last path separator int he list
+    my $last_path_separator = List::MoreUtils::last_index(sub { $_ eq '/' }, @_);
+
     return \Python2::Type::Scalar::String->new(
         File::Spec->catfile(
 
-            # match pythons behaviour of skipping everything before the last path separator int he list
             @_[
-                List::MoreUtils::last_index(sub { $_ eq '/' }, @_)
+                ($last_path_separator == -1 ? 0 : $last_path_separator)
                 ..
                 scalar @_ - 1
             ]
@@ -73,6 +76,24 @@ sub join {
     );
 }
 
+sub split {
+    my $self = shift;
+    pop; # unused named arguments hash
 
+    my $path = shift;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("split() expects a string as path but got '%s'", defined $path ? $path->__type__ : 'nothing'))
+        unless defined $path and $path->__type__ eq 'str';
+
+    my @path = File::Spec->splitpath($path);
+    shift @path; # we don't care about Volume
+
+    # remove trailing slash to match python
+    $path[0] =~ s!/+$!! unless $path[0] =~ m!^/+$!;
+
+    return \Python2::Type::Tuple->new(
+        map { Python2::Type::Scalar::String->new($_) } @path
+    );
+}
 
 1;
