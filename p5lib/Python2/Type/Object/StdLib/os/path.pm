@@ -6,6 +6,9 @@ use v5.26.0;
 use warnings;
 use strict;
 
+use File::Spec;
+use List::MoreUtils;
+
 
 sub new {
     my ($self) = @_;
@@ -43,6 +46,31 @@ sub getsize {
         unless -e $path;
 
     return \Python2::Type::Scalar::Num->new(-s $path);
+}
+
+sub join {
+    my $self = shift;
+    pop; # unused named arguments hash
+
+    die Python2::Type::Exception->new('TypeError', sprintf("join() expects at least one argument as path but got nothing"))
+        unless scalar @_;
+
+    foreach (@_) {
+        die Python2::Type::Exception->new('TypeError', sprintf("join() expects at list of strings path but found '%s' in argument list", $_->__type__))
+            unless $_->__type__ eq 'str';
+    }
+
+    return \Python2::Type::Scalar::String->new(
+        File::Spec->catfile(
+
+            # match pythons behaviour of skipping everything before the last path separator int he list
+            @_[
+                List::MoreUtils::last_index(sub { $_ eq '/' }, @_)
+                ..
+                scalar @_ - 1
+            ]
+        )
+    );
 }
 
 
