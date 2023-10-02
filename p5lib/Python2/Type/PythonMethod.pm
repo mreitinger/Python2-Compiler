@@ -12,11 +12,15 @@ use base qw/ Python2::Type /;
 use v5.26.0;
 use warnings;
 use strict;
+use Carp qw/ confess /;
 
 use Python2::Internals;
 
 sub new {
     my ($self, $coderef, $object) = @_;
+
+    confess("Python2::Type::PerlMethod->new() called without coderef") unless defined $coderef;
+    confess("Python2::Type::PerlMethod->new() called without object")  unless defined $object;
 
     return bless([
         $coderef, $object
