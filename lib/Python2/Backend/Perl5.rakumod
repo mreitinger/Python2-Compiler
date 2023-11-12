@@ -989,15 +989,19 @@ class Python2::Backend::Perl5 {
                 .subst('\\t',   "\t",   :g);
         }
 
+        my $class = $node.unicode
+            ??  'Python2::Type::Scalar::Unicode'
+            !!  'Python2::Type::Scalar::String';
+
         if $string.contains("'") {
             my $p5;
 
             $p5 ~= "\nsub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
             $p5 ~= $string;
-            $p5 ~= "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\Python2::Type::Scalar::String->new(\$s); }->()";
+            $p5 ~= Q:c:b "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\{$class}->new(\$s); }->()";
         }
         else {
-            Q:s "\Python2::Type::Scalar::String->new('$string')"
+            Q:c "\{$class}->new('{$string}')"
         }
     }
 

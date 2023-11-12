@@ -21,6 +21,8 @@ use Python2::Type::Tuple;
 use Python2::Type::Dict;
 use Python2::Type::File;
 use Python2::Type::Scalar::String;
+use Python2::Type::Scalar::Unicode;
+use Python2::Type::Scalar::Basestring;
 use Python2::Type::Scalar::Num;
 use Python2::Type::Scalar::Bool;
 use Python2::Type::Scalar::None;
@@ -65,7 +67,8 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
 
     # Somewhat ugly: we don't have a separate unicode string and this allowes more than
     # Python does. Currently this is only used for isinstance() checks - good enough here.
-    'basestring'    => Python2::Type::Scalar::String->new(),
+    'basestring'    => Python2::Type::Scalar::Basestring->new(),
+    'unicode'       => Python2::Type::Scalar::Unicode->new(),
 
     'perl'          => Python2::PerlWrapper->new(),
 

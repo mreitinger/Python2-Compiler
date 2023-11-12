@@ -1,0 +1,8 @@
+type(s): <type 'str'>
+isinstance(s, unicode): True
+isinstance(s, basestring): True
+isinstance(s, str): True
+type(u): <type 'unicode'>
+isinstance(u, unicode): True
+isinstance(u, basestring): True
+isinstance(u, str): True

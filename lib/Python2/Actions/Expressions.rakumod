@@ -206,8 +206,9 @@ role Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/<single-quoted-string>.<string-literal-single-quoted>.Str.subst("\\\n", "", :g),
-            raw   => $string-prefix eq 'r',
+            value     => $/<single-quoted-string>.<string-literal-single-quoted>.Str.subst("\\\n", "", :g),
+            raw       => $string-prefix eq 'r',
+            unicode   => $string-prefix eq 'u',
         ));
     }
 
@@ -218,7 +219,8 @@ role Python2::Actions::Expressions {
             start-position  => $/.from,
             end-position    => $/.to,
             value           => $/<double-quoted-string>.<string-literal-double-quoted>.Str.subst("\\\n", "", :g),
-            raw             => $string-prefix eq 'r'
+            raw             => $string-prefix eq 'r',
+            unicode         => $string-prefix eq 'u',
         ));
     }
 
@@ -226,8 +228,9 @@ role Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/<triple-single-quoted-string>.<string-literal-triple-single-quoted>.Str.subst("\\\n", "", :g),
-            raw   => False,
+            value           => $/<triple-single-quoted-string>.<string-literal-triple-single-quoted>.Str.subst("\\\n", "", :g),
+            raw             => False,
+            unicode         => False,
         ));
     }
 
@@ -235,8 +238,9 @@ role Python2::Actions::Expressions {
         $/.make(Python2::AST::Node::Expression::Literal::String.new(
             start-position  => $/.from,
             end-position    => $/.to,
-            value => $/<triple-double-quoted-string>.<string-literal-triple-double-quoted>.Str.subst("\\\n", "", :g),
-            raw   => False,
+            value           => $/<triple-double-quoted-string>.<string-literal-triple-double-quoted>.Str.subst("\\\n", "", :g),
+            raw             => False,
+            unicode         => False,
         ));
     }
 

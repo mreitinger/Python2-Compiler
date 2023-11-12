@@ -43,8 +43,9 @@ class Python2::AST {
     }
 
     class Node::Expression::Literal::String is Node {
-        has Str     $.value is required  is rw;
-        has Bool    $.raw   is required;
+        has Str     $.value     is required  is rw;
+        has Bool    $.raw       is required;
+        has Bool    $.unicode   is required;
     }
 
     class Node::Expression::Literal::Integer is Node {
