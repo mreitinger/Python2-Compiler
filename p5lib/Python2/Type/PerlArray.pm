@@ -254,7 +254,7 @@ sub sort {
         ;
 
     @{ $self->[0] } = $reverse
-        ? reverse @result
+        ? CORE::reverse @result
         : @result;
 
     return \Python2::Type::Scalar::None->new();
