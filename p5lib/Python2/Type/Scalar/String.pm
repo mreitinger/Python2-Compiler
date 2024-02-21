@@ -474,6 +474,18 @@ sub __gt__ {
     return \Python2::Type::Scalar::Bool->new(1)
         if ref($other) eq 'Python2::Type::Scalar::Num';
 
+    return \Python2::Type::Scalar::Bool->new(1)
+        if $other->__type__ eq 'list';
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if $other->__type__ eq 'tuple';
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if $other->__type__ eq 'dict';
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ref($other) eq 'Python2::Type::Scalar::Bool';
+
     die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
@@ -485,6 +497,18 @@ sub __lt__ {
 
     return \Python2::Type::Scalar::Bool->new(0)
         if ref($other) eq 'Python2::Type::Scalar::Num';
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if $other->__type__ eq 'list';
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if $other->__type__ eq 'tuple';
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if $other->__type__ eq 'dict';
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ref($other) eq 'Python2::Type::Scalar::Bool';
 
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }

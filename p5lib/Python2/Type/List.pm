@@ -154,8 +154,27 @@ sub __lt__ {
 
     return \Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::Num';
     return \Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::String';
-    return \Python2::Type::Scalar::Bool->new(0) if $other->__type__ eq 'list';
     return \Python2::Type::Scalar::Bool->new(0) if $other->__type__ eq 'dict';
+    return \Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::Bool';
+    return \Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Tuple';
+
+    if ($other->__type__ eq 'list') {
+        # compare all elements we can compare
+        foreach (0 .. min(${ $self->__len__ }->__tonative__, ${ $other->__len__ }->__tonative__) - 1) {
+            return \Python2::Type::Scalar::Bool->new(1)
+                if ${
+                    ${ $self->__getitem__(Python2::Type::Scalar::Num->new($_) ) }
+                        ->__lt__(${ $other->__getitem__(Python2::Type::Scalar::Num->new($_)) });
+                }->__tonative__;
+        }
+
+        return \Python2::Type::Scalar::Bool->new(
+            ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__
+                ? 0
+                : ${ $self->__len__ }->__tonative__ < ${ $other->__len__ }->__tonative__
+        );
+    }
+
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
@@ -164,8 +183,27 @@ sub __gt__ {
 
     return \Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::Num';
     return \Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::String';
-    return \Python2::Type::Scalar::Bool->new(0) if $other->__type__ eq 'list';
     return \Python2::Type::Scalar::Bool->new(1) if $other->__type__ eq 'dict';
+    return \Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::Bool';
+    return \Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Tuple';
+
+    if ($other->__type__ eq 'list') {
+        foreach (0 .. min(${ $self->__len__ }->__tonative__, ${ $other->__len__ }->__tonative__) - 1) {
+            return \Python2::Type::Scalar::Bool->new(1)
+                if  ${
+                    ${ $self->__getitem__(Python2::Type::Scalar::Num->new($_) ) }
+                        ->__gt__(${ $other->__getitem__(Python2::Type::Scalar::Num->new($_)) });
+                }->__tonative__;
+        }
+
+        return \Python2::Type::Scalar::Bool->new(
+            ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__
+                ? 0
+                : ${ $self->__len__ }->__tonative__ > ${ $other->__len__ }->__tonative__
+        );
+    }
+
+
     die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 

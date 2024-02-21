@@ -7,6 +7,7 @@ use warnings;
 use strict;
 
 use Scalar::Util qw/ refaddr /;
+use List::Util qw/ min /;
 use Tie::PythonDict;
 
 sub new {
@@ -223,6 +224,32 @@ sub __gt__ {
     return \Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'int');
 
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ($other->__type__ eq 'bool');
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ($other->__type__ eq 'list');
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ($other->__type__ eq 'tuple');
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ($other->__type__ eq 'str');
+
+    # ref https://hg.python.org/releasing/2.7.9/file/753a8f457ddc/Objects/dictobject.c#l1792
+    if ($other->__type__ eq 'dict') {
+        if (${ $self->__len__ }->__tonative__ > ${ $other->__len__ }->__tonative__) {
+            return \Python2::Type::Scalar::Bool->new(1);
+        }
+
+        if (${ $self->__len__ }->__tonative__ < ${ $other->__len__ }->__tonative__) {
+            return \Python2::Type::Scalar::Bool->new(0);
+        }
+
+        return \Python2::Type::Scalar::Bool->new(0)
+            if $self->__eq__($other);
+    }
+
     die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
 
@@ -231,6 +258,32 @@ sub __lt__ {
 
     return \Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'int');
+
+    return \Python2::Type::Scalar::Bool->new(0)
+        if ($other->__type__ eq 'bool');
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ($other->__type__ eq 'list');
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ($other->__type__ eq 'tuple');
+
+    return \Python2::Type::Scalar::Bool->new(1)
+        if ($other->__type__ eq 'str');
+
+    # ref https://hg.python.org/releasing/2.7.9/file/753a8f457ddc/Objects/dictobject.c#l1792
+    if ($other->__type__ eq 'dict') {
+        if (${ $self->__len__ }->__tonative__ < ${ $other->__len__ }->__tonative__) {
+            return \Python2::Type::Scalar::Bool->new(1);
+        }
+
+        if (${ $self->__len__ }->__tonative__ > ${ $other->__len__ }->__tonative__) {
+            return \Python2::Type::Scalar::Bool->new(0);
+        }
+
+        return \Python2::Type::Scalar::Bool->new(0)
+            if $self->__eq__($other);
+    }
 
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }

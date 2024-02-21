@@ -35,7 +35,15 @@ sub __call__ {
             } $list->ELEMENTS
 
         :   sort {
-                $a->__tonative__ cmp $b->__tonative__
+                if(${ $a->__lt__($b) }->__tonative__) {
+                    return -1;
+                }
+                elsif (${ $a->__eq__($b) }->__tonative__) {
+                     return 0;
+                }
+                else {
+                     return 1;
+                }
             } $list->ELEMENTS
         ;
 
