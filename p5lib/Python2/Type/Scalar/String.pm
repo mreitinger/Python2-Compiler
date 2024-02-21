@@ -82,7 +82,7 @@ sub rsplit {
         $separator = '\s+';
     }
 
-    my @result = split($separator, join('', reverse split(//, $$self)));
+    my @result = reverse split($separator, join('', split(//, $$self)));
 
     if ($maxsplit) {
         my $result_size = scalar(@result);
