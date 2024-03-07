@@ -20,4 +20,10 @@ sub new {
     return $object;
 }
 
+sub datetime {
+    my ($self, @args) = @_;
+
+    $self->{stack}->[1]->{datetime}->__call__(@args);
+}
+
 1;
