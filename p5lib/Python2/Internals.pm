@@ -66,13 +66,22 @@ sub import_module {
         my $name_as = $module->{name_as};
 
         $name =~ s/\./::/g;
-        load "Python2::Type::Object::StdLib::$name";
+
+        eval {
+            load "Python2::Type::Object::StdLib::$name";
+            1;
+        } or do {
+            die Python2::Type::Exception->new('ImportError', "Failed to load module '$name': $@");
+        };
 
         # used when only importing names with from foo import bar
         if (defined $module->{functions}) {
-            my $object = "Python2::Type::Object::StdLib::$name"->new();
+                my $object = "Python2::Type::Object::StdLib::$name"->new();
 
             foreach my $function_name (@{ $module->{functions} }) {
+                die Python2::Type::Exception->new('ImportError', "Module '$name' has no function '$function_name'")
+                    unless $object->can($function_name);
+
                 setvar($stack, $function_name,
                     Python2::Type::PythonMethod->new($object->can($function_name), $object)
                 );
