@@ -23,7 +23,7 @@ sub new {
 sub datetime {
     my ($self, @args) = @_;
 
-    $self->{stack}->[1]->{datetime}->__call__(@args);
+    Python2::Type::Object::StdLib::datetime::datetime->new()->__call__(@args),
 }
 
 1;
