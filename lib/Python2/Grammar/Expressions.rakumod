@@ -265,6 +265,6 @@ role Python2::Grammar::Expressions {
         | <float>
         | <integer>
     }
-    token float             { '-'? \d*\.\d+ }
-    token integer           { '-'? \d+ }
+    token float             { ['-'|'+'] ? \d*\.\d+ }
+    token integer           { ['-'|'+'] ? \d+ }
 }
