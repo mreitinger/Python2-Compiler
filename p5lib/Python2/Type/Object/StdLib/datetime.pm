@@ -7,6 +7,7 @@ use warnings;
 use strict;
 
 use Python2::Type::Object::StdLib::datetime::datetime;
+use Python2::Type::Object::StdLib::datetime::timedelta;
 
 sub new {
     my ($self) = @_;
@@ -24,6 +25,12 @@ sub datetime {
     my ($self, @args) = @_;
 
     Python2::Type::Object::StdLib::datetime::datetime->new()->__call__(@args),
+}
+
+sub timedelta {
+    my ($self, @args) = @_;
+
+    Python2::Type::Object::StdLib::datetime::timedelta->new()->__call__(@args),
 }
 
 1;
