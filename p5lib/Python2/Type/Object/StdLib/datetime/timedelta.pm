@@ -13,6 +13,17 @@ use Scalar::Util::Numeric qw(isfloat);
 
 sub new { bless({}, shift); }
 
+sub new_from_duration {
+    my ($self, $duration) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'new_from_duration() expects a DateTime::Duration object, got ' . ref($duration))
+        unless ref($duration) eq 'DateTime::Duration';
+
+    return \bless({
+        duration => $duration
+    }, ref($self));
+}
+
 sub __call__ {
     my $self = shift;
     my $named_arguments = pop;
@@ -102,5 +113,31 @@ sub __print__ {
     return sprintf("%s days, %s:%s:%s", $d, $h, $m, $s) if $d > 1;
     return sprintf("%s:%s:%s", $h, $m, $s);
 }
+
+sub __tonative__ { shift->{duration} }
+
+sub __add__ {
+    my ($self, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'Unsupported type for addition to timedelta: ' . $other->__type__ . ', expected timedelta.')
+        unless ref($other) eq ref($self);
+
+    return $self->new_from_duration(
+        $self->__tonative__ + $other->__tonative__
+    );
+}
+
+sub __sub__ {
+    my ($self, $other) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'Unsupported type for subtraction to timedelta: ' . $other->__type__ . ', expected timedelta.')
+        unless ref($other) eq ref($self);
+
+    return $self->new_from_duration(
+        $self->__tonative__ - $other->__tonative__
+    );
+}
+
+
 
 1;

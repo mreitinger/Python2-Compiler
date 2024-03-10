@@ -128,6 +128,8 @@ my $arithmetic_operations = {
     '+' => sub {
         my ($left, $right) = @_;
 
+        return $left->__add__($right) if $left->can('__add__');
+
         if ($left->isa('Python2::Type::Scalar::Num') and ($right->isa('Python2::Type::Scalar::Num'))) {
             return \Python2::Type::Scalar::Num->new($left->__tonative__ + $right->__tonative__);
         }
@@ -148,6 +150,8 @@ my $arithmetic_operations = {
 
     '-' => sub {
         my ($left, $right) = @_;
+
+        return $left->__sub__($right) if $left->can('__add__');
 
         $left  = $left->__tonative__;
         $right = $right->__tonative__;
