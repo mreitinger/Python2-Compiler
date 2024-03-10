@@ -8,6 +8,9 @@ print d_formatted
 d_reverse = datetime.datetime.strptime(d_formatted, format)
 print d_reverse
 
+today = datetime.datetime.today()
+print today.strftime('%Y-%m-%d')
+
 try:
     datetime.datetime()
 except:

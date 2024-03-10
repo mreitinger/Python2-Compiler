@@ -69,6 +69,8 @@ sub __print__ {
     POSIX::strftime("%Y-%m-%d %H:%M:%S", shift->__posix__);
 }
 
+sub today { shift->now() }
+
 sub now {
     pop(@_); # default named arguments hash
 
