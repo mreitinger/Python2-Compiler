@@ -76,15 +76,29 @@ sub import_module {
 
         # used when only importing names with from foo import bar
         if (defined $module->{functions}) {
-                my $object = "Python2::Type::Object::StdLib::$name"->new();
+            my $object = "Python2::Type::Object::StdLib::$name"->new();
 
             foreach my $function_name (@{ $module->{functions} }) {
-                die Python2::Type::Exception->new('ImportError', "Module '$name' has no function '$function_name'")
-                    unless $object->can($function_name);
+                if ($object->can($function_name)) {
+                    setvar($stack, $function_name,
+                        Python2::Type::PythonMethod->new($object->can($function_name), $object)
+                    );
 
-                setvar($stack, $function_name,
-                    Python2::Type::PythonMethod->new($object->can($function_name), $object)
-                );
+                    return;
+                }
+
+                if (
+                    $object->can('__hasattr__') and
+                    ${ $object->__hasattr__(Python2::Type::Scalar::String->new($function_name)) }->__tonative__
+                ) {
+                    setvar($stack, $function_name,
+                        ${ $object->__getattr__(Python2::Type::Scalar::String->new($function_name)) }
+                    );
+
+                    return;
+                }
+
+                die Python2::Type::Exception->new('ImportError', "Module '$name' has no attribute '$function_name'");
             }
         }
 

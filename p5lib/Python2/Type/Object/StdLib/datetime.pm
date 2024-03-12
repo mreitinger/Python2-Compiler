@@ -13,24 +13,34 @@ sub new {
     my ($self) = @_;
 
     my $object = bless({
-        stack => [$Python2::builtins, {
-            datetime => Python2::Type::Object::StdLib::datetime::datetime->new()
-        }],
+        classes => {
+            datetime    => "Python2::Type::Object::StdLib::datetime::datetime",
+            timedelta   => "Python2::Type::Object::StdLib::datetime::timedelta",
+        }
     }, $self);
 
     return $object;
 }
 
-sub datetime {
-    my ($self, @args) = @_;
+sub __getattr__ {
+    my ($self, $attribute_name) = @_;
 
-    Python2::Type::Object::StdLib::datetime::datetime->new()->__call__(@args),
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    my $object = $self->{classes}->{$attribute_name}->new();
+    return \$object;
 }
 
-sub timedelta {
-    my ($self, @args) = @_;
+sub __hasattr__ {
+    my ($self, $attribute_name) = @_;
 
-    Python2::Type::Object::StdLib::datetime::timedelta->new()->__call__(@args),
+    die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
+        unless ($attribute_name->__type__ eq 'str');
+
+    return \Python2::Type::Scalar::Bool->new(
+        exists $self->{classes}->{$attribute_name}
+    );
 }
 
 1;

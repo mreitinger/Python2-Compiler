@@ -13,6 +13,7 @@ use v5.26.0;
 use warnings;
 use strict;
 use Carp qw/ confess /;
+use Scalar::Util qw/ refaddr /;
 
 use Python2::Internals;
 
@@ -37,6 +38,8 @@ sub __str__ {
     my $self = shift;
     return sprintf('<pythonmethod anon at %i>', refaddr($self));
 }
+
+sub __getattr__ { my $self = shift; return $self->[1]->__getattr__(@_); }
 
 sub __tonative__ { ...; }
 
