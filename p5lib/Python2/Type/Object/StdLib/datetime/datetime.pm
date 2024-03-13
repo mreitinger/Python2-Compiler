@@ -6,9 +6,10 @@ use v5.26.0;
 use warnings;
 use strict;
 
-require POSIX;
-require DateTime::Format::Strptime;
-require DateTime;
+use POSIX;
+use DateTime::Format::Strptime;
+use DateTime;
+use DateTime::TimeZone;
 
 sub new {
     my $self = shift;
@@ -68,6 +69,24 @@ sub now {
 
     return \$object;
 }
+
+sub fromtimestamp {
+    my ($self, $timestamp) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'fromtimestamp() expects an intenger as timestamp, got ' . defined $timestamp ? $timestamp->__type__ : 'nothing')
+        unless defined $timestamp and $timestamp->__type__ eq 'int';
+
+    my $object = bless({
+        datetime => DateTime->from_epoch(
+            epoch       => $timestamp->__tonative__,
+            time_zone   => DateTime::TimeZone->new( name => 'local' )->name(),
+        )
+    }, ref($self));
+
+    return \$object;
+}
+
+
 
 sub strftime {
     pop(@_); # default named arguments hash

@@ -1,8 +1,6 @@
 import datetime
 import time
 
-#print datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-
 # always outputs current time, just checks to if don't fail and we get some sane return value
 t = time.time()
 
