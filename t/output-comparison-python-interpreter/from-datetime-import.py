@@ -5,12 +5,13 @@ format = '%Y--%m--%d %H::%M::%S'
 d_formatted = d.strftime(format)
 print d_formatted
 
-print datetime.now().year
-print datetime.now().month
-print datetime.now().day
-print datetime.now().hour
-print datetime.now().minute
-print datetime.now().second
+d = datetime.fromtimestamp(1710303422)
+print d.year
+print d.month
+print d.day
+print d.hour
+print d.minute
+print d.second
 
 try:
     datetime.now().unknown
