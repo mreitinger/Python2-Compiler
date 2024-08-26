@@ -42,7 +42,7 @@ token dtml:sym<var> {
         '<' <.ws> 'dtml-' <.ws> 'var' <.ws>
         <dtml-expression> <.ws>
         <dtml-attribute>* % <.ws>
-        '>'
+        <.ws> '>'
     ]
     | [
         '&dtml' <.ws>
@@ -55,7 +55,7 @@ token dtml:sym<return> {
     '<' <.ws> 'dtml-' <.ws> 'return' <.ws>
     <dtml-expression> <.ws>
     <dtml-attribute>* % <.ws>
-    '>'
+    <.ws> '>'
 }
 
 token dtml:sym<comment> {
@@ -103,7 +103,7 @@ token dtml:sym<unless> {
 token dtml:sym<let> {
     <.start-tag('let')>
     <dtml-declaration>* % <.ws>
-    '>'
+    <.ws> '>'
     <chunk>*
     <.end-tag('let')>
 }
@@ -120,7 +120,7 @@ token dtml:sym<in> {
     <.start-tag('in')>
     <dtml-expression> <.ws>
     <dtml-attribute>* % <.ws>
-    '>'
+    <.ws> '>'
     <chunk>*
     <.end-tag('in')>
 }
@@ -149,7 +149,7 @@ token dtml:sym<zms> {
             || <content_switch=expression-attribute('content_switch')>
             || <dtml-attribute>
         ]* % <.ws>
-    '>'
+    <.ws> '>'
 }
 
 token expression-attribute($name) {
