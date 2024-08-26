@@ -4,7 +4,7 @@ use Python2::ParseFail;
 
 class Python2::Backend::Perl5 {
     has Str $!o = '';
-    has Str %!modules;
+    has Str %.modules;
     has $.compiler is required;
 
 
@@ -68,7 +68,7 @@ class Python2::Backend::Perl5 {
         END
 
     # Wrapper used for expressions
-    has Str $.expression-wrapper = q:to/END/;
+    has Str $!expression-wrapper = q:to/END/;
         use v5.26.0;
         use utf8;
         use strict;
@@ -99,6 +99,38 @@ class Python2::Backend::Perl5 {
                 $self->__handle_exception__($@) if $@ ne '';
                 wantarray ? @res : $res[0]
             }
+        }
+        END
+
+    # Wrapper used for DTML templates
+    has Str $.template-wrapper = q:to/END/;
+        use v5.26.0;
+        use utf8;
+        use strict;
+        use lib qw( p5lib );
+        use Python2::Type::CodeObject;
+        use Scalar::Util qw(blessed);
+
+        %s
+
+        sub {
+            Python2::Type::CodeObject::Anonymous->new(
+        <<'PythonInput%s',
+        %s
+        PythonInput%s
+                sub {
+                    my ($self, $locals, $parent) = @_;
+
+                    my $stack = Python2::Stack->new(
+                        Python2::Stack->new($Python2::builtins, $parent),
+                        $locals
+                    );
+
+                    my @res = eval { %s };
+                    $self->__handle_exception__($@) if $@ ne '';
+                    wantarray ? @res : $res[0]
+                }
+            );
         }
         END
 

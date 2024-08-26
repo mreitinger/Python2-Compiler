@@ -95,5 +95,21 @@ sub __handle_exception__ {
     die $output;
 }
 
+package Python2::Type::CodeObject::Anonymous;
+
+sub new {
+    my ($self, $source, $callee) = @_;
+
+    return bless([Python2::Stack->new($Python2::builtins), $source, $callee], $self);
+}
+
+sub __source__ {
+    $_[0][1]
+}
+
+sub __call__ {
+    my ($self, $locals, $parent) = @_;
+    $_[0][2]->($self, $locals, $parent)
+}
 
 1;

@@ -1,4 +1,5 @@
 class Python2::Compiler::Service {
+    use DTML::Compiler;
     use Python2::Compiler;
     use Cro::HTTP::Router;
 
@@ -48,14 +49,21 @@ class Python2::Compiler::Service {
                         unless %data{'embedded'} ~~ /^^<[a..z0..9]>+$$/;
 
                     Python2::Compiler::Service::Exception::FieldInvalid.new(:field-name('type')).throw()
-                        unless %data{'type'} ~~ /^^[script|expression]+$$/;
+                        unless %data{'type'} ~~ /^^[dtml|script|expression]+$$/;
 
                     note sprintf("Compiling %s with id %s", %data<type>, %data<embedded>);
 
-                    my $compiler = Python2::Compiler.new( optimize => True );
-                    my $output   = %data{'type'} eq 'expression'
-                        ?? $compiler.compile-expression(%data<code>, :embedded(%data<embedded>))
-                        !! $compiler.compile(%data<code>, :embedded(%data<embedded>));
+                    my $output;
+                    if %data<type> eq 'dtml' {
+                        my $compiler = DTML::Compiler.new;
+                        $output = $compiler.compile(%data<code>, :embedded(%data<embedded>));
+                    }
+                    else {
+                        my $compiler = Python2::Compiler.new( optimize => True );
+                        $output   = %data<type> eq 'expression'
+                            ?? $compiler.compile-expression(%data<code>, :embedded(%data<embedded>))
+                            !! $compiler.compile(%data<code>, :embedded(%data<embedded>));
+                    }
 
                     content 'text/plain', $output;
                 }
