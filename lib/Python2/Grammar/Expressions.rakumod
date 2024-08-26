@@ -72,6 +72,53 @@ role Python2::Grammar::Expressions {
         | '%'
     }
 
+    token power {
+        <atom> <trailer>*
+    }
+
+    token atom {
+        | '(' <extended-test-list>    ')'
+        | '[' <expression-list>       ']'
+        | '[' <list-comprehension>    ']'
+        | '{' <dictionary-entry-list> '}'
+        | '{' <dict-comprehension>    '}'
+        | '{' <set-entry-list>        '}'
+        | <locals>
+        | <name>
+        | <number>
+        | <string>
+    }
+
+    token trailer {
+        || <.dws>* <argument-list>    # handles ('x')
+        || <.dws>* <subscript>        # handles ['x']
+        || <.dws>* '.' <.dws>* <name>   # handles .foo
+    }
+
+    token subscript {
+        '['
+            <.dws>*
+            [
+                || <start-slice>
+                || <full-slice>
+                || <end-slice>
+                || <test>
+            ]
+            <.dws>*
+        ']'
+    }
+
+    token full-slice {
+        <test> <.dws>* ':' <.dws>* <test>
+    }
+
+    token start-slice {
+        ':' <.dws>* <test>
+    }
+
+    token end-slice {
+        <test> <.dws>* ':'
+    }
 
     # access to a single variable
     token variable-access {
@@ -127,6 +174,12 @@ role Python2::Grammar::Expressions {
         <.dws>* <test> <.dws>*
     }
 
+    # Match the comma used in lists (actual Lists and Argument defintions) including
+    # optional whitespace around it.
+    token list-delimiter { <.dws>* ',' <.dws>* }
+
+    # Match function/variable/class names. Matches the NAME token in Python's grammar.
+    token name  { [<lower>|<upper>|_][<lower>|<upper>|<digit>|_]* }
 
     # lambda definition
     token lambda-definition {

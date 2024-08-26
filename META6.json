@@ -6,6 +6,27 @@
     "authors"       : [ "Mathias Reitinger", "Stefan Seifert" ],
     "license"       : "MIT",
     "depends"       : [ "Data::Dump", "Digest::SHA1::Native" ],
+    "provides"      : {
+        "DTML::AST": "lib/DTML/AST.rakumod",
+        "DTML::Actions": "lib/DTML/Actions.rakumod",
+        "DTML::Backend::Perl5": "lib/DTML/Backend/Perl5.rakumod",
+        "DTML::Compiler": "lib/DTML/Compiler.rakumod",
+        "DTML::Grammar": "lib/DTML/Grammar.rakumod",
+        "Python2::AST": "lib/Python2/AST.rakumod",
+        "Python2::Actions": "lib/Python2/Actions.rakumod",
+        "Python2::Actions::Expressions": "lib/Python2/Actions/Expressions.rakumod",
+        "Python2::Actions::Statements": "lib/Python2/Actions/Statements.rakumod",
+        "Python2::Backend::Perl5": "lib/Python2/Backend/Perl5.rakumod",
+        "Python2::Compiler": "lib/Python2/Compiler.rakumod",
+        "Python2::Compiler::Service": "lib/Python2/Compiler/Service.rakumod",
+        "Python2::CompilationError": "lib/Python2/CompilationError.rakumod",
+        "Python2::Grammar": "lib/Python2/Grammar.rakumod",
+        "Python2::Grammar::Common": "lib/Python2/Grammar/Common.rakumod",
+        "Python2::Grammar::Expressions": "lib/Python2/Grammar/Expressions.rakumod",
+        "Python2::Grammar::Statements": "lib/Python2/Grammar/Statements.rakumod",
+        "Python2::Optimizer": "lib/Python2/Optimizer.rakumod",
+        "Python2::ParseFail": "lib/Python2/ParseFail.rakumod"
+    },
     "test-depends"  : [ "App::Prove6" ],
     "source-url"    : "git://github.com/mreitinger/Python2-Compiler.git"
 }

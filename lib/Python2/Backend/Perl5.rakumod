@@ -68,7 +68,7 @@ class Python2::Backend::Perl5 {
         END
 
     # Wrapper used for expressions
-    has Str $!expression-wrapper = q:to/END/;
+    has Str $.expression-wrapper = q:to/END/;
         use v5.26.0;
         use utf8;
         use strict;
