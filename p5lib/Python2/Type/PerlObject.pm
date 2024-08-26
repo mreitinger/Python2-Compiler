@@ -268,6 +268,7 @@ sub AUTOLOAD {
     };
 
     if ($@) {
+        die $@ if $@ =~ /\Acatalyst_detach/; # Required for CMS control flow;
         $|=1;
         print STDERR "Failed $requested_method with $@ caller was " . join(" ", caller) . "\n";
         die "Failed $requested_method with $@ caller was " . join(" ", caller) . "\n";

@@ -73,6 +73,9 @@ sub __getattr__ { use Carp; Carp::confess; }
 
 sub __handle_exception__ {
     my ($self, $error) = @_;
+    warn $error;
+
+    die $error if $error =~ /\Acatalyst_detach/; # Required for CMS control flow;
 
     my $output;
     my $message;
