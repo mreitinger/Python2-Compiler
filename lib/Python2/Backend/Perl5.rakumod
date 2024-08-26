@@ -95,7 +95,9 @@ class Python2::Backend::Perl5 {
                     $locals
                 );
 
-                eval { %s } or do { $self->__handle_exception__($@); }
+                my @res = eval { %s };
+                $self->__handle_exception__($@) if $@ ne '';
+                wantarray ? @res : $res[0]
             }
         }
         END
