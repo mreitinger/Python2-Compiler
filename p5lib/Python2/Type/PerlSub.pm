@@ -56,7 +56,8 @@ sub __str__ {
     return sprintf('<perlsub anon at %i>', refaddr($self));
 }
 
-sub __tonative__ { ...; }
+# Workaround for crazy Zope conventions
+sub __tonative__ { $_[0]->__call__(bless {}, 'Python2::NamedArgumentsHash') }
 
 sub __getattr__ {
     my ($self, $attr) = @_;
