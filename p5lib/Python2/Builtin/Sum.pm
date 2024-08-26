@@ -30,7 +30,7 @@ sub __call__ {
 
         my $retval = sum(@plist) + $start_value->__tonative__;
 
-        return \Python2::Type::Scalar::Num->new($retval);
+        return Python2::Type::Scalar::Num->new($retval);
 };
 
 1;

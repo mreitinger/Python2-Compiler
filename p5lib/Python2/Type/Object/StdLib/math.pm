@@ -25,7 +25,7 @@ sub floor {
     die Python2::Type::Exception->new('TypeError', 'floor() expects a number, got ' . (defined $value ? $value->__type__ : 'nothing'))
         unless defined $value and ref($value) eq 'Python2::Type::Scalar::Num';
 
-    return \Python2::Type::Scalar::Num->new( POSIX::floor($value->__tonative__) );
+    return Python2::Type::Scalar::Num->new( POSIX::floor($value->__tonative__) );
 }
 
 sub ceil {
@@ -36,7 +36,7 @@ sub ceil {
     die Python2::Type::Exception->new('TypeError', 'ceil() expects a number, got ' . (defined $value ? $value->__type__ : 'nothing'))
         unless defined $value and ref($value) eq 'Python2::Type::Scalar::Num';
 
-    return \Python2::Type::Scalar::Num->new( POSIX::ceil($value->__tonative__) );
+    return Python2::Type::Scalar::Num->new( POSIX::ceil($value->__tonative__) );
 }
 
 

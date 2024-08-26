@@ -39,7 +39,7 @@ sub __call__ {
     }
 
     foreach my $argument (keys %$named_arguments) {
-        $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
+        $named_arguments->{$argument} = $named_arguments->{$argument}->__tonative__;
     }
 
     my @retval;

@@ -12,7 +12,7 @@ sub __call__ {
 
     die Python2::Type::Exception->new('NetImplementedError', 'compile() with parameters not implemented') if $@;
 
-    return \$result;
+    return $result;
 }
 
 1;

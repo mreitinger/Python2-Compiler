@@ -19,7 +19,7 @@ sub new_from_duration {
     die Python2::Type::Exception->new('TypeError', 'new_from_duration() expects a DateTime::Duration object, got ' . ref($duration))
         unless ref($duration) eq 'DateTime::Duration';
 
-    return \bless({
+    return bless({
         duration => $duration
     }, ref($self));
 }
@@ -81,7 +81,7 @@ sub __call__ {
         delete $values->{milliseconds};
     }
 
-    return \bless({
+    return bless({
         duration => DateTime::Duration->new(%$values)
     }, ref($self));
 }

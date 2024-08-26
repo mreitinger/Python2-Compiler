@@ -30,7 +30,7 @@ sub dumps {
     my $json = JSON->new->space_after(1);
     my $json_str = $json->encode($obj->__tonative__);
 
-    return \Python2::Type::Scalar::String->new($json_str);
+    return Python2::Type::Scalar::String->new($json_str);
 }
 
 sub loads {

@@ -8,7 +8,7 @@ sub __name__ { 'int' }
 sub __call__ {
     shift @_; # $self - unused
 
-    \Python2::Type::Scalar::Num->new(int($_[0]->__tonative__));
+    Python2::Type::Scalar::Num->new(int($_[0]->__tonative__));
 }
 
 1;

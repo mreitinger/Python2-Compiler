@@ -14,11 +14,11 @@ sub new {
 
     return bless({
         dom         => $dom,
-        attributes  => ${ Python2::Internals::convert_to_python_type(
+        attributes  => Python2::Internals::convert_to_python_type(
             {
                 map { $_->nodeName => $_->getValue } $dom->attributes
             }
-        ) },
+        ),
     }, $self);
 }
 
@@ -32,8 +32,8 @@ sub __getattr__ {
 
     $attribute_name = $attribute_name->__tonative__;
 
-    return \$self->{attributes} if $attribute_name eq 'attrib';
-    return \Python2::Type::Scalar::String->new( $self->{dom}->textContent() ) if $attribute_name eq 'text';
+    return $self->{attributes} if $attribute_name eq 'attrib';
+    return Python2::Type::Scalar::String->new( $self->{dom}->textContent() ) if $attribute_name eq 'text';
 
     die Python2::Type::Exception->new('AttributeError', "Element for node '" . $self->{dom}->nodeName . "' has no attribute '$attribute_name'");
 }
@@ -49,8 +49,8 @@ sub find {
     my $node = $self->{dom}->find($match);
 
     return defined $node
-        ? \Python2::Type::Object::StdLib::xml::etree::Element->new($node->shift)
-        : \Python2::Type::Scalar::None->new();
+        ? Python2::Type::Object::StdLib::xml::etree::Element->new($node->shift)
+        : Python2::Type::Scalar::None->new();
 }
 
 sub findall {
@@ -61,7 +61,7 @@ sub findall {
     die Python2::Type::Exception->new('TypeError', 'findall() expects a str as match, got ' . (defined $match ? $match->__type__ : 'nothing'))
         unless defined $match and $match->__type__ eq 'str';
 
-    return \Python2::Type::List->new(
+    return Python2::Type::List->new(
         map {
             Python2::Type::Object::StdLib::xml::etree::Element->new($_)
         } $self->{dom}->findnodes($match->__tonative__)

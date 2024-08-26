@@ -38,8 +38,8 @@ sub b64encode {
     # string.encode leaves a trailing newline but b64encode does not
     # https://bugs.python.org/issue17714
     # so we need to remove it for equal results
-    $$res =~ s/\s+$//;
-    return \Python2::Type::Scalar::String->new($$res);
+    $res =~ s/\s+$//;
+    return Python2::Type::Scalar::String->new($res);
 }
 
 sub b64decode {
@@ -47,8 +47,8 @@ sub b64decode {
     my ($self, $s, $altchars) = @_;
 
     my $res = Python2::Type::Scalar::String->new($s)->decode('base64', undef);
-    $$res =~ s/\s+$//;
-    return \Python2::Type::Scalar::String->new($$res);
+    $res =~ s/\s+$//;
+    return Python2::Type::Scalar::String->new($res);
 }
 
 1;

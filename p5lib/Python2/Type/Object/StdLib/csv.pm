@@ -23,12 +23,12 @@ sub reader {
     my ($self, $csvfile, $named_args) = @_;
 
     # TODO: implement other options? not needed so far
-    my $delimiter = $named_args->{delimiter} ? ${ $named_args->{delimiter} } : ',';
+    my $delimiter = $named_args->{delimiter} ? $named_args->{delimiter} : ',';
 
     die Python2::Type::Exception->("TypeError", $csvfile->__type__ . " does not implement read()")
         unless $csvfile->can("read");
 
-    my $in = ${ $csvfile->read(undef) };
+    my $in = $csvfile->read(undef);
 
     die Python2::Type::Exception->("TypeError", $csvfile->__type__ . ".read() expected string, got " . $in->__type__)
         unless ref($in) =~ m/^Python2::Type::Scalar/;
@@ -44,7 +44,7 @@ sub reader {
 
     # simply return a list which is good enough
     # as long we don't have to deal with huge files
-    return \Python2::Type::List->new(@input_pyobj);
+    return Python2::Type::List->new(@input_pyobj);
 }
 
 1;

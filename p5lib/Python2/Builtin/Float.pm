@@ -22,8 +22,8 @@ sub __call__ {
     # append '.0' to make Num return float if float() would otherwise return a plain
     # integer
     return $val =~ m/^\d+$/
-        ? \Python2::Type::Scalar::Num->new($val . '.0')
-        : \Python2::Type::Scalar::Num->new($val)
+        ? Python2::Type::Scalar::Num->new($val . '.0')
+        : Python2::Type::Scalar::Num->new($val)
 }
 
 1;

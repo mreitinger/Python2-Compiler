@@ -15,7 +15,7 @@ sub __call__ {
     die Python2::Type::Exception->new('TypeError', 'set() expects a list, got ' . $value->__type__)
         unless ($value->__type__ eq 'list');
 
-    return \Python2::Type::Set->new(@{ $value });
+    return Python2::Type::Set->new(@{ $value });
 };
 
 1;

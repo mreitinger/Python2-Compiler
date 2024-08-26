@@ -30,8 +30,8 @@ sub getheader {
         unless defined $header and $header->__type__ eq 'str';
 
     return defined $self->{response}->header($header->__tonative__)
-        ? \Python2::Type::Scalar::String->new($self->{response}->header($header->__tonative__))
-        : \Python2::Type::Scalar::None->new();
+        ? Python2::Type::Scalar::String->new($self->{response}->header($header->__tonative__))
+        : Python2::Type::Scalar::None->new();
 }
 
 sub get {

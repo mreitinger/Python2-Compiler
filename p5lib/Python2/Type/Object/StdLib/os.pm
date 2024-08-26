@@ -113,7 +113,7 @@ sub stat {
     # python2 stat order
     # https://docs.python.org/2.7/library/os.html#os.stat
 
-    return \Python2::Type::List->new((
+    return Python2::Type::List->new((
         Python2::Type::Scalar::Num->new($st[2]),  # st_mode
         Python2::Type::Scalar::Num->new($st[1]),  # st_ino
         Python2::Type::Scalar::Num->new($st[0]),  # st_dev

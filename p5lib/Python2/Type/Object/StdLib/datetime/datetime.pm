@@ -49,7 +49,7 @@ sub __call__ {
         )
     );
 
-    return \$dt;
+    return $dt;
 }
 
 sub __print__ {
@@ -67,7 +67,7 @@ sub now {
         datetime => DateTime->now()
     }, ref($self));
 
-    return \$object;
+    return $object;
 }
 
 sub fromtimestamp {
@@ -83,7 +83,7 @@ sub fromtimestamp {
         )
     }, ref($self));
 
-    return \$object;
+    return $object;
 }
 
 
@@ -96,7 +96,7 @@ sub strftime {
     die Python2::Type::Exception->new('TypeError', 'strftime() expects a string as format, got ' . defined $format ? $format->__type__ : 'nothing')
         unless defined $format and $format->__type__ eq 'str';
 
-    return \Python2::Type::Scalar::String->new(
+    return Python2::Type::Scalar::String->new(
         $self->{datetime}->strftime($format)
     );
 }
@@ -116,18 +116,18 @@ sub strptime {
 
     my $obj = $parser->parse_datetime($string);
 
-    return \$self->new_from_datetime($obj);
+    return $self->new_from_datetime($obj);
 }
 
 sub __getattr__ {
     my ($self, $attr) = @_;
 
-    return \Python2::Type::Scalar::Num->new($self->{datetime}->year) if $attr eq 'year';
-    return \Python2::Type::Scalar::Num->new($self->{datetime}->month) if $attr eq 'month';
-    return \Python2::Type::Scalar::Num->new($self->{datetime}->day) if $attr eq 'day';
-    return \Python2::Type::Scalar::Num->new($self->{datetime}->hour) if $attr eq 'hour';
-    return \Python2::Type::Scalar::Num->new($self->{datetime}->minute) if $attr eq 'minute';
-    return \Python2::Type::Scalar::Num->new($self->{datetime}->second) if $attr eq 'second';
+    return Python2::Type::Scalar::Num->new($self->{datetime}->year) if $attr eq 'year';
+    return Python2::Type::Scalar::Num->new($self->{datetime}->month) if $attr eq 'month';
+    return Python2::Type::Scalar::Num->new($self->{datetime}->day) if $attr eq 'day';
+    return Python2::Type::Scalar::Num->new($self->{datetime}->hour) if $attr eq 'hour';
+    return Python2::Type::Scalar::Num->new($self->{datetime}->minute) if $attr eq 'minute';
+    return Python2::Type::Scalar::Num->new($self->{datetime}->second) if $attr eq 'second';
 
     die Python2::Type::Exception->new('AttributeError', 'datetime has no attribute ' . $attr);
 }

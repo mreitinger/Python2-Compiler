@@ -19,7 +19,7 @@ sub __call__ {
     die Python2::Type::Exception->new('TypeError', 'type() takes 1 argument')
         unless defined $object;
 
-    return \Python2::Type::Type->new($object->__type__);
+    return Python2::Type::Type->new($object->__type__);
 };
 
 1;

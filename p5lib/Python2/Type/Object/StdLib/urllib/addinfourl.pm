@@ -22,13 +22,13 @@ sub new {
 sub read {
     my ($self, $pstack) = @_;
 
-    return \Python2::Type::Scalar::String->new($self->{response}->decoded_content);
+    return Python2::Type::Scalar::String->new($self->{response}->decoded_content);
 }
 
 sub info {
     my ($self) = @_;
 
-    return \Python2::Type::Object::StdLib::mimetools::Message->new($self->{response});
+    return Python2::Type::Object::StdLib::mimetools::Message->new($self->{response});
 }
 
 1;

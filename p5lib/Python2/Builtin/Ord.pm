@@ -20,7 +20,7 @@ sub __call__ {
     die Python2::Type::Exception->new('TypeError', 'ord() expected string of length 1 but string with length ' . length($value) . ' found')
         unless length($value) == 1;
 
-    return \Python2::Type::Scalar::Num->new(ord($value));
+    return Python2::Type::Scalar::Num->new(ord($value));
 };
 
 1;

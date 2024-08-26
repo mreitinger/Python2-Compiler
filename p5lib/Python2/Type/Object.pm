@@ -51,7 +51,7 @@ sub __setattr__ {
     die Python2::Type::Exception->new('TypeError', '__setattr__() expects a value to assign, got ' . $attribute_name->__type__)
         unless defined $value;
 
-    ${ $self->{stack}->get($attribute_name->__tonative__) } = $value;
+    $self->{stack}->get($attribute_name->__tonative__, 1) = $value;
 }
 
 sub __hasattr__ {
@@ -60,7 +60,7 @@ sub __hasattr__ {
     die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
 
-    return \Python2::Type::Scalar::Bool->new($self->{stack}->has($attribute_name->__tonative__));
+    return Python2::Type::Scalar::Bool->new($self->{stack}->has($attribute_name->__tonative__));
 }
 
 sub __str__ {
@@ -78,7 +78,7 @@ sub __call__ {
     # {} for unused named variables
     $object->__init__(@_) if $object->{stack}->has('__init__');
 
-    return \$object;
+    return $object;
 }
 
 sub __build__ {}
@@ -93,7 +93,7 @@ sub AUTOLOAD {
 
     my $self = shift;       # this object
 
-    my $method_ref = ${ $self->{stack}->get($requested_method) } // die("Unknown method $requested_method");
+    my $method_ref = $self->{stack}->get($requested_method) // die("Unknown method $requested_method");
 
     return $method_ref->__call__(@_);
 }

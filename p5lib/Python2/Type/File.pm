@@ -22,7 +22,7 @@ sub new {
 
 sub __enter__ {
     my $self = shift;
-    return \$self;
+    return $self;
 }
 
 sub __exit__ {
@@ -58,7 +58,7 @@ sub write {
 
     $self->[0]->print($string->__tonative__);
 
-    return \Python2::Type::Scalar::None->new();
+    return Python2::Type::Scalar::None->new();
 }
 
 sub close {

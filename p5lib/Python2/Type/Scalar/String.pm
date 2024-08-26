@@ -16,7 +16,7 @@ sub split {
     pop(@_); # default named arguments hash
     my ($self, $separator, $maxsplit) = @_;
 
-    return \Python2::Type::List->new(
+    return Python2::Type::List->new(
         Python2::Type::Scalar::String->new('')
     ) unless length $$self;
 
@@ -42,7 +42,7 @@ sub split {
         # clamp to result size
         $maxsplit = $result_size if $maxsplit > $result_size;
 
-        my $ret = \Python2::Type::List->new(
+        my $ret = Python2::Type::List->new(
             map { Python2::Type::Scalar::String->new($_) } @result[0 .. $maxsplit-1],
             (
                 ($result_size-$maxsplit > 0)
@@ -54,7 +54,7 @@ sub split {
         return $ret;
     }
 
-    return \Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } @result);
+    return Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } @result);
 }
 
 sub rsplit {
@@ -65,7 +65,7 @@ sub rsplit {
     # mimic pythons behaviour
     $maxsplit = undef if defined $maxsplit and $maxsplit < 0;
 
-    return \Python2::Type::List->new(
+    return Python2::Type::List->new(
         Python2::Type::Scalar::String->new( $$self )
     ) if defined $maxsplit and $maxsplit == 0;
 
@@ -90,7 +90,7 @@ sub rsplit {
         # clamp to result size
         $maxsplit = $result_size if $maxsplit > $result_size;
 
-        my $ret = \Python2::Type::List->new(
+        my $ret = Python2::Type::List->new(
             map { Python2::Type::Scalar::String->new($_) } reverse @result[0 .. $maxsplit-1],
             (
                 ($result_size-$maxsplit > 0)
@@ -102,7 +102,7 @@ sub rsplit {
         return $ret;
     }
 
-    return \Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } reverse @result);
+    return Python2::Type::List->new(map { Python2::Type::Scalar::String->new($_) } reverse @result);
 }
 
 sub strip {
@@ -111,7 +111,7 @@ sub strip {
     $string =~ s/^\s*//;
     $string =~ s/\s*$//;
 
-    return \Python2::Type::Scalar::String->new($string);
+    return Python2::Type::Scalar::String->new($string);
 }
 
 sub lstrip {
@@ -119,7 +119,7 @@ sub lstrip {
 
     $string =~ s/^\s*//;
 
-    return \Python2::Type::Scalar::String->new($string);
+    return Python2::Type::Scalar::String->new($string);
 }
 
 sub rstrip {
@@ -127,14 +127,14 @@ sub rstrip {
 
     $string =~ s/\s*$//;
 
-    return \Python2::Type::Scalar::String->new($string);
+    return Python2::Type::Scalar::String->new($string);
 }
 
 sub isupper {
     my $string = $_[0]->$*;
     $string =~ s/[^a-zA-Z]//ig;
 
-    return \Python2::Type::Scalar::Bool->new(
+    return Python2::Type::Scalar::Bool->new(
         $string =~ m/^[A-Z]+$/ ? 1 : 0
     )
 }
@@ -143,7 +143,7 @@ sub islower {
     my $string = $_[0]->$*;
     $string =~ s/[^a-zA-Z]//ig;
 
-    return \Python2::Type::Scalar::Bool->new(
+    return Python2::Type::Scalar::Bool->new(
         $string =~ m/^[a-z]+$/ ? 1 : 0
     )
 }
@@ -152,7 +152,7 @@ sub isdigit {
     my $string = $_[0]->$*;
     $string =~ s/[^[:print:]]//ig;
 
-    return \Python2::Type::Scalar::Bool->new(
+    return Python2::Type::Scalar::Bool->new(
         $string =~ m/^[0-9]+$/ ? 1 : 0
     )
 }
@@ -172,8 +172,8 @@ sub join {
     }
 
     return $iterable->__type__ eq 'list'
-        ?   \Python2::Type::Scalar::String->new(join($self->__tonative__, @{ $iterable->__tonative__ } ))
-        :   \Python2::Type::Scalar::String->new(join($self->__tonative__, split(//, $iterable->__tonative__)));
+        ?   Python2::Type::Scalar::String->new(join($self->__tonative__, @{ $iterable->__tonative__ } ))
+        :   Python2::Type::Scalar::String->new(join($self->__tonative__, split(//, $iterable->__tonative__)));
 }
 
 sub replace {
@@ -201,7 +201,7 @@ sub replace {
     } else {
         $s =~ s/\Q$o\E/$n/g;
     }
-    return \Python2::Type::Scalar::String->new($s);
+    return Python2::Type::Scalar::String->new($s);
 }
 
 sub splitlines {
@@ -216,22 +216,22 @@ sub splitlines {
 
     my $regex = $keepends->__tonative__ ? '(?<=\n)' : '\n';
 
-    return \Python2::Type::List->new(
+    return Python2::Type::List->new(
         map { Python2::Type::Scalar::String->new($_) }
         split /$regex/, $self->__tonative__
     );
 }
 
 sub capitalize {
-    return \Python2::Type::Scalar::String->new(ucfirst lc shift->__tonative__);
+    return Python2::Type::Scalar::String->new(ucfirst lc shift->__tonative__);
 }
 
 sub lower {
-    return \Python2::Type::Scalar::String->new(lc shift->__tonative__);
+    return Python2::Type::Scalar::String->new(lc shift->__tonative__);
 }
 
 sub upper {
-    return \Python2::Type::Scalar::String->new(uc shift->__tonative__);
+    return Python2::Type::Scalar::String->new(uc shift->__tonative__);
 }
 
 sub __call__ {
@@ -242,16 +242,16 @@ sub __call__ {
     # Some mechanism allowed strings to be accessed as a Function Call: <dtml-var "my_string()">
     # This intercepts a __call__() invocation in case the string is already initialized - which
     # would otherwise be interpreted as a str(whatever) call.
-    return \$self if $$self;
+    return $self if $$self;
 
-    return \Python2::Type::Scalar::String->new('') unless @_;
+    return Python2::Type::Scalar::String->new('') unless @_;
 
     # TODO - this attempts to convert way more than python
     return $_[0]->__type__ eq 'str'
         # __str__ for string returns "'str'" - workaround
         # so we get matching output to python2
-        ?  \Python2::Type::Scalar::String->new($_[0]->__tonative__)
-        :  \Python2::Type::Scalar::String->new($_[0]->__str__);
+        ?  Python2::Type::Scalar::String->new($_[0]->__tonative__)
+        :  Python2::Type::Scalar::String->new($_[0]->__str__);
 }
 
 sub count {
@@ -271,7 +271,7 @@ sub count {
     my $s = substr $self->__tonative__, $start->__tonative__, $offset;
     my $c =()= $s=~ m/\Q$sub\E/g;
 
-    return \Python2::Type::Scalar::Num->new($c);
+    return Python2::Type::Scalar::Num->new($c);
 }
 
 sub find {
@@ -293,7 +293,7 @@ sub find {
     my $offset = $end->__tonative__ - $start->__tonative__;
     my $s = substr $self->__tonative__, $start->__tonative__, $offset;
     my $i = index($s, $sub);
-    return \Python2::Type::Scalar::Num->new($i gt -1 ? $i + $start->__tonative__ : -1);
+    return Python2::Type::Scalar::Num->new($i gt -1 ? $i + $start->__tonative__ : -1);
 }
 
 sub rfind {
@@ -315,7 +315,7 @@ sub rfind {
     my $offset = $end->__tonative__ - $start->__tonative__;
     my $s = substr $self->__tonative__, $start->__tonative__, $offset;
     my $i = rindex($s, $sub);
-    return \Python2::Type::Scalar::Num->new($i gt -1 ? $i + $start->__tonative__ : -1);
+    return Python2::Type::Scalar::Num->new($i gt -1 ? $i + $start->__tonative__ : -1);
 }
 
 sub startswith {
@@ -349,9 +349,9 @@ sub startswith {
     my $s = substr $self->__tonative__, $start->__tonative__, $offset;
     for $sub (@subs) {
         my $i = index($s, $sub);
-        return \Python2::Type::Scalar::Bool->new(1) if $i eq 0;
+        return Python2::Type::Scalar::Bool->new(1) if $i eq 0;
     }
-    return \Python2::Type::Scalar::Bool->new(0);
+    return Python2::Type::Scalar::Bool->new(0);
 }
 
 sub endswith {
@@ -385,10 +385,10 @@ sub endswith {
     my $s       = substr $self->__tonative__, $start->__tonative__, $offset;
 
     for $sub (@subs) {
-        return \Python2::Type::Scalar::Bool->new(1) if $sub eq substr($s, -length($sub));
+        return Python2::Type::Scalar::Bool->new(1) if $sub eq substr($s, -length($sub));
     }
 
-    return \Python2::Type::Scalar::Bool->new(0);
+    return Python2::Type::Scalar::Bool->new(0);
 }
 
 
@@ -405,7 +405,7 @@ sub __getitem__ {
     die Python2::Type::Exception->new('IndexError', 'string index out of range')
         if ($position < 0 ? $position*-1 : $position+1) > length($string);
 
-    return \Python2::Type::Scalar::String->new(
+    return Python2::Type::Scalar::String->new(
         substr($string, $position, 1)
     );
 }
@@ -420,7 +420,7 @@ sub __getslice__ {
         $target = length($$self);
     }
 
-    return \Python2::Type::Scalar::String->new( substr($$self, $start, $target-$start) );
+    return Python2::Type::Scalar::String->new( substr($$self, $start, $target-$start) );
 }
 
 sub encode {
@@ -443,7 +443,7 @@ sub encode {
         die Python2::Type::Exception->new('LookupError',
             sprintf("unknown encoding: %s", $encoding));
     }
-    return \Python2::Type::Scalar::String->new($str);
+    return Python2::Type::Scalar::String->new($str);
 }
 
 sub decode {
@@ -462,28 +462,28 @@ sub decode {
         die Python2::Type::Exception->new('LookupError',
             sprintf("unknown encoding: %s", $encoding));
     }
-    return \Python2::Type::Scalar::String->new($str);
+    return Python2::Type::Scalar::String->new($str);
 }
 
 sub __gt__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new($self->__tonative__ gt $other->__tonative__)
+    return Python2::Type::Scalar::Bool->new($self->__tonative__ gt $other->__tonative__)
         if ($other->__type__ eq 'str');
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ref($other) eq 'Python2::Type::Scalar::Num';
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if $other->__type__ eq 'list';
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if $other->__type__ eq 'tuple';
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if $other->__type__ eq 'dict';
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ref($other) eq 'Python2::Type::Scalar::Bool';
 
     die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $self->__type__ . ' and ' . $other->__type__);
@@ -492,22 +492,22 @@ sub __gt__ {
 sub __lt__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new($self->__tonative__ lt $other->__tonative__)
+    return Python2::Type::Scalar::Bool->new($self->__tonative__ lt $other->__tonative__)
         if ($other->__type__ eq 'str');
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ref($other) eq 'Python2::Type::Scalar::Num';
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if $other->__type__ eq 'list';
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if $other->__type__ eq 'tuple';
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if $other->__type__ eq 'dict';
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ref($other) eq 'Python2::Type::Scalar::Bool';
 
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
@@ -516,7 +516,7 @@ sub __lt__ {
 sub __ge__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new($self->__tonative__ ge $other->__tonative__)
+    return Python2::Type::Scalar::Bool->new($self->__tonative__ ge $other->__tonative__)
         if ($other->__type__ eq 'str');
 
     die Python2::Type::Exception->new('NotImplementedError', '__ge__ between ' . $self->__type__ . ' and ' . $other->__type__);
@@ -525,7 +525,7 @@ sub __ge__ {
 sub __le__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new($self->__tonative__ le $other->__tonative__)
+    return Python2::Type::Scalar::Bool->new($self->__tonative__ le $other->__tonative__)
         if ($other->__type__ eq 'str');
 
     die Python2::Type::Exception->new('NotImplementedError', '__le__ between ' . $self->__type__ . ' and ' . $other->__type__);
@@ -537,7 +537,7 @@ sub __contains__ {
     die Python2::Type::Exception->new('TypeError', sprintf("in <string> requires string as left operand, got %s", $other->__type__))
         unless ($other->__type__ eq 'str');
 
-    return \Python2::Type::Scalar::Bool->new( index($self->__tonative__, $other->__tonative__) >= 0 );
+    return Python2::Type::Scalar::Bool->new( index($self->__tonative__, $other->__tonative__) >= 0 );
 }
 
 sub ELEMENTS {

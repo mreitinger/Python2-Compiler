@@ -70,7 +70,7 @@ sub add {
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %$self);
+    return Python2::Type::Scalar::Num->new(scalar CORE::keys %$self);
 }
 
 # convert to a 'native' perl5 arrayref
@@ -94,32 +94,32 @@ sub __eq__      {
     my ($self, $other) = @_;
 
     # if it's the same element it must match
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if refaddr($self) == refaddr($other);
 
     # if it's not a set just abort right here no need to compare
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         unless $other->__class__ eq 'Python2::Type::Set';
 
     # if it's not at least the same size we don't need to compare any further
-    return \Python2::Type::Scalar::Bool->new(0)
-        unless ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__;
+    return Python2::Type::Scalar::Bool->new(0)
+        unless $self->__len__->__tonative__ == $other->__len__->__tonative__;
 
     # we are comparing empty sets so they are identical
-    return \Python2::Type::Scalar::Bool->new(1)
-        if ${ $self->__len__ }->__tonative__ == 0;
+    return Python2::Type::Scalar::Bool->new(1)
+        if $self->__len__->__tonative__ == 0;
 
     my @left  = sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %$self;
     my @right = sort { $a->__tonative__ cmp $b->__tonative__ } CORE::keys %$other;
 
     # compare all elements and return false if anything doesn't match
     for (my $i = 0; $i <= scalar(@left)-1; $i++) {
-        return \Python2::Type::Scalar::Bool->new(0)
+        return Python2::Type::Scalar::Bool->new(0)
             unless $left[$i]->__eq__($right[$i]);
     }
 
     # all matched - return true
-    return \Python2::Type::Scalar::Bool->new(1);
+    return Python2::Type::Scalar::Bool->new(1);
 }
 
 1;

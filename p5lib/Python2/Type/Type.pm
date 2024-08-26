@@ -15,7 +15,7 @@ sub new {
 sub __getattr__ {
     my ($self, $attr) = @_;
 
-    return \Python2::Type::Scalar::String->new(shift->[0])
+    return Python2::Type::Scalar::String->new(shift->[0])
         if $attr eq '__name__';
 
     die Python2::Type::Exception->new('AttributeError', "'" . ref($self) . "' has no attribute '$attr'");

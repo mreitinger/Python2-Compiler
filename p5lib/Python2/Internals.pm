@@ -22,7 +22,7 @@ use constant {
 sub setvar {
     my ($stack, $name, $value) = @_;
 
-    ${ $stack->get($name) } = $value;
+    $stack->set($name, $value);
 }
 
 # delete a variable on our stack
@@ -37,11 +37,11 @@ sub delvar {
 }
 
 # return a reference to a variable name on our stack
-sub getvar {
-    my ($stack, $recurse, $name) = @_;
+sub getvar : lvalue {
+    my ($stack, $recurse, $name, $gracefully) = @_;
 
     # if recursion is disabled (for variable assignment) don't travel upwards on the stack
-    return $stack->get($name)
+    return $stack->get($name, $gracefully)
         unless $recurse;
 
     # recursion enabled - look upwards to find the variable
@@ -51,11 +51,9 @@ sub getvar {
         $call_frame = $call_frame->parent;
     }
 
-    my $retval = $call_frame->has($name)
+    $call_frame->has($name)
         ? $call_frame->get($name)
         : $stack->get($name);
-
-    return $retval;
 }
 
 sub import_module {
@@ -89,10 +87,10 @@ sub import_module {
 
                 if (
                     $object->can('__hasattr__') and
-                    ${ $object->__hasattr__(Python2::Type::Scalar::String->new($function_name)) }->__tonative__
+                    $object->__hasattr__(Python2::Type::Scalar::String->new($function_name))->__tonative__
                 ) {
                     setvar($stack, $function_name,
-                        ${ $object->__getattr__(Python2::Type::Scalar::String->new($function_name)) }
+                        $object->__getattr__(Python2::Type::Scalar::String->new($function_name))
                     );
 
                     return;
@@ -145,17 +143,17 @@ my $arithmetic_operations = {
         return $left->__add__($right) if $left->can('__add__');
 
         if ($left->isa('Python2::Type::Scalar::Num') and ($right->isa('Python2::Type::Scalar::Num'))) {
-            return \Python2::Type::Scalar::Num->new($left->__tonative__ + $right->__tonative__);
+            return Python2::Type::Scalar::Num->new($left->__tonative__ + $right->__tonative__);
         }
         elsif (($left->__type__ eq 'list') and ($right->__type__ eq 'list')) {
-            return \Python2::Type::List->new($left->ELEMENTS, $right->ELEMENTS);
+            return Python2::Type::List->new($left->ELEMENTS, $right->ELEMENTS);
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
         elsif ((ref($left) =~ m/^Python2::Type::Scalar/) and (ref($right) =~ m/^Python2::Type::Scalar/)) {
-            return \Python2::Type::Scalar::String->new($left->__tonative__ . $right->__tonative__);
+            return Python2::Type::Scalar::String->new($left->__tonative__ . $right->__tonative__);
         }
         else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand +', $left->__type__, $right->__type__));
@@ -171,7 +169,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left - $right);
+            return Python2::Type::Scalar::Num->new($left - $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand -', $left->__type__, $right->__type__));
         }
@@ -181,9 +179,9 @@ my $arithmetic_operations = {
         my ($left, $right) = @_;
 
         if ($left->isa('Python2::Type::Scalar::Num') and $right->isa('Python2::Type::Scalar::Num')) {
-            return \Python2::Type::Scalar::Num->new($left->__tonative__ * $right->__tonative__);
+            return Python2::Type::Scalar::Num->new($left->__tonative__ * $right->__tonative__);
         } elsif ($left->isa('Python2::Type::Scalar::String') and $right->isa('Python2::Type::Scalar::Num')) {
-            return \Python2::Type::Scalar::String->new($left->__tonative__ x int($right->__tonative__));
+            return Python2::Type::Scalar::String->new($left->__tonative__ x int($right->__tonative__));
         } elsif (($left->__type__ eq 'list') and ($right->__type__ eq 'int')) {
             my $count = $right->__tonative__;
             $count = 0 if $count < 0;
@@ -193,7 +191,7 @@ my $arithmetic_operations = {
                 $target->append($_) foreach $left->ELEMENTS;
             }
 
-            return \$target;
+            return $target;
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand *', $left->__type__, $right->__type__));
         }
@@ -208,10 +206,10 @@ my $arithmetic_operations = {
         if (looks_like_number($left) and looks_like_number($right)) {
             if ($left =~ m/^\d+$/ and $right =~ m/^\d+$/) {
                 # pure integer division always returns integer
-                return \Python2::Type::Scalar::Num->new(int($left / $right));
+                return Python2::Type::Scalar::Num->new(int($left / $right));
             }
             else {
-                return \Python2::Type::Scalar::Num->new($left / $right);
+                return Python2::Type::Scalar::Num->new($left / $right);
             }
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand /', $left->__type__, $right->__type__));
@@ -225,7 +223,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left / $right);
+            return Python2::Type::Scalar::Num->new($left / $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand //', $left->__type__, $right->__type__));
         }
@@ -238,7 +236,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left ** $right);
+            return Python2::Type::Scalar::Num->new($left ** $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand **', $left->__type__, $right->__type__));
         }
@@ -251,7 +249,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left & $right);
+            return Python2::Type::Scalar::Num->new($left & $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand &', $left->__type__, $right->__type__));
         }
@@ -264,7 +262,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left | $right);
+            return Python2::Type::Scalar::Num->new($left | $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand |', $left->__type__, $right->__type__));
         }
@@ -277,7 +275,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left ^ $right);
+            return Python2::Type::Scalar::Num->new($left ^ $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand ^', $left->__type__, $right->__type__));
         }
@@ -290,7 +288,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left >> $right);
+            return Python2::Type::Scalar::Num->new($left >> $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand >>', $left->__type__, $right->__type__));
         }
@@ -303,7 +301,7 @@ my $arithmetic_operations = {
         $right = $right->__tonative__;
 
         if (looks_like_number($left) and looks_like_number($right)) {
-            return \Python2::Type::Scalar::Num->new($left << $right);
+            return Python2::Type::Scalar::Num->new($left << $right);
         } else {
             die Python2::Type::Exception->new('NotImplementedError', sprintf('unsupported operand type(s) for %s and %s with operand <<', $left->__type__, $right->__type__));
         }
@@ -313,14 +311,14 @@ my $arithmetic_operations = {
         my ($left, $right) = @_;
 
         if (looks_like_number($left->__tonative__) and looks_like_number($right->__tonative__)) {
-            return \Python2::Type::Scalar::Num->new($left->__tonative__ % $right->__tonative__);
+            return Python2::Type::Scalar::Num->new($left->__tonative__ % $right->__tonative__);
         }
 
         # this, unlike python, allows things like "print 1 + 'a'"
         # avoiding this by doing harsher checks against perl's internals hinders
         # interoperability with other perl objects
         elsif (!looks_like_number($left->__tonative__) or !looks_like_number($right->__tonative__)) {
-            return \Python2::Type::Scalar::String->new(
+            return Python2::Type::Scalar::String->new(
                 $right->isa('Python2::Type::Dict')
                     ? named_sprintf(
                         $left->__tonative__,
@@ -358,7 +356,7 @@ sub raise {
         unless $exception->__type__ eq 'exception';
 
     die defined $message
-        ? ${ $exception->__call__($message->__tonative__) }
+        ? $exception->__call__($message->__tonative__)
         : $exception;
 }
 
@@ -397,12 +395,12 @@ sub getopt {
 
         # we got a named argument
         if (exists $named_arguments->{$name}) {
-            setvar($stack, $name, ${ $named_arguments->{$name} });
+            setvar($stack, $name, $named_arguments->{$name});
             next;
         }
 
         # we got nothing, use the default.
-        setvar($stack, $name, ${ $default });
+        setvar($stack, $name, $default);
     }
 }
 
@@ -411,31 +409,31 @@ sub convert_to_python_type {
     my ($value) = @_;
 
     # undef
-    return \Python2::Type::Scalar::None->new() unless defined $value;
+    return Python2::Type::Scalar::None->new() unless defined $value;
 
     # if it's already a native type just return it
     if (blessed($value) and $value->isa('Python2::Type')) {
-        return \$value;
+        return $value;
     }
 
     # some foreign perl object - wrap it in our PerlObject wrapper so it conforms to our
     # calling conventions
     if (blessed($value)) {
-        return \Python2::Type::PerlObject->new_from_object($value)
+        return Python2::Type::PerlObject->new_from_object($value)
     }
 
     # perl5 hashref
     if (ref($value) eq 'HASH') {
-        return \Python2::Type::PerlHash->new($value);
+        return Python2::Type::PerlHash->new($value);
     }
 
     # perl5 array
     if (ref($value) eq 'ARRAY') {
-        return \Python2::Type::PerlArray->new($value);
+        return Python2::Type::PerlArray->new($value);
     }
 
     if (ref($value) eq 'CODE') {
-        return \Python2::Type::PerlSub->new($value);
+        return Python2::Type::PerlSub->new($value);
     }
 
     # A dualvar wich explicit numeric representation as returned by, for example, by
@@ -445,14 +443,14 @@ sub convert_to_python_type {
     #
     # This matches Inline::Python so existing code can works as-is.
     if (isdual($value)) {
-        return \Python2::Type::Scalar::Num->new($value + 0);
+        return Python2::Type::Scalar::Num->new($value + 0);
     }
 
     # Check against the SV type of the Scalar to exactly match the behaviour of Inline::Python.
     # See perlguts/SvPOKp(SV*) and the Inline::Python source for details.
     return Python2::Internals::Ext::is_string($value)
-        ? \Python2::Type::Scalar::String->new($value)
-        : \Python2::Type::Scalar::Num->new($value);
+        ? Python2::Type::Scalar::String->new($value)
+        : Python2::Type::Scalar::Num->new($value);
 }
 
 1;

@@ -27,7 +27,7 @@ sub __call__ {
     $retval = "$retval.0" if $retval =~ m/^\d+$/;
     $retval =~ s/([1-9])0+$/$1/;
 
-    return \Python2::Type::Scalar::Num->new($retval);
+    return Python2::Type::Scalar::Num->new($retval);
 };
 
 1;

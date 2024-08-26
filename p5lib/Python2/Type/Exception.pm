@@ -87,7 +87,7 @@ sub __call__ {
 
     $object->[2] = Devel::StackTrace->new(),
 
-    return \$object;
+    return $object;
 }
 
 sub message {

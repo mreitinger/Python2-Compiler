@@ -60,7 +60,7 @@ sub write {
         if ($self->[1]->{mode} eq 'r');
 
     # arcname might be given as named argument
-    my $arcname = ${ $named_arguments->{arcname} } if exists $named_arguments->{arcname};
+    my $arcname = $named_arguments->{arcname} if exists $named_arguments->{arcname};
 
     my $member = $self->[1]->{zip}->addFile($path->__tonative__, $arcname->__tonative__);
 
@@ -71,7 +71,7 @@ sub write {
 
 sub __enter__ {
     my ($self, $path, $mode) = @_;
-    return \$self;
+    return $self;
 }
 
 sub __exit__ {
@@ -85,7 +85,7 @@ sub __call__ {
 
     my ($self, $path, $mode) = @_;
     $self->open($path, $mode, undef, undef);
-    return \$self;
+    return $self;
 }
 
 1;

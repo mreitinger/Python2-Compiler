@@ -30,7 +30,7 @@ sub new {
 
 sub keys {
     my $self = shift;
-    return \Python2::Type::List->new(keys %$self);
+    return Python2::Type::List->new(keys %$self);
 }
 
 sub iterkeys {
@@ -47,7 +47,7 @@ sub clear {
 
 sub values {
     my $self = shift;
-    return \Python2::Type::List->new(values %$self);
+    return Python2::Type::List->new(values %$self);
 }
 
 sub __str__ {
@@ -67,7 +67,7 @@ sub __str__ {
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar CORE::keys %$self);
+    return Python2::Type::Scalar::Num->new(scalar CORE::keys %$self);
 }
 
 sub __getitem__ {
@@ -76,7 +76,7 @@ sub __getitem__ {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return \$self->{$key};
+    return $self->{$key};
 }
 
 sub get {
@@ -85,7 +85,7 @@ sub get {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return exists $self->{$key} ? \$self->{$key} : \Python2::Type::Scalar::None->new(0);
+    return exists $self->{$key} ? $self->{$key} : Python2::Type::Scalar::None->new(0);
 }
 
 sub has_key {
@@ -94,7 +94,7 @@ sub has_key {
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
 
-    return \Python2::Type::Scalar::Bool->new(exists $self->{$key});
+    return Python2::Type::Scalar::Bool->new(exists $self->{$key});
 }
 
 sub update {
@@ -111,7 +111,7 @@ sub update {
         $self->__setitem__($key, $value);
     }
 
-    return \Python2::Type::Scalar::None->new();
+    return Python2::Type::Scalar::None->new();
 }
 
 sub items {
@@ -123,7 +123,7 @@ sub items {
         $list->append(Python2::Type::Tuple->new($key, $self->{$key}));
     }
 
-    return \$list;
+    return $list;
 }
 
 
@@ -178,76 +178,74 @@ sub __eq__      {
     my ($self, $other) = @_;
 
     # if it's the same element it must match
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if refaddr($self) == refaddr($other);
 
     # if it's not a dict just abort right here no need to compare
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         unless $other->__class__ eq 'Python2::Type::Dict';
 
     # if it's not at least the same size we don't need to compare any further
-    return \Python2::Type::Scalar::Bool->new(0)
-        unless ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__;
+    return Python2::Type::Scalar::Bool->new(0)
+        unless $self->__len__->__tonative__ == $other->__len__->__tonative__;
 
     # we are comparing empty lists so they are identical
-    return \Python2::Type::Scalar::Bool->new(1)
-        if ${ $self->__len__ }->__tonative__ == 0;
+    return Python2::Type::Scalar::Bool->new(1)
+        if $self->__len__->__tonative__ == 0;
 
     # compare all elements and return false if anything doesn't match
     foreach (CORE::keys %$self) {
-        return \Python2::Type::Scalar::Bool->new(0)
-            unless ${ $other->has_key($_) }->__tonative__;
+        return Python2::Type::Scalar::Bool->new(0)
+            unless $other->has_key($_)->__tonative__;
 
-        return \Python2::Type::Scalar::Bool->new(0)
-            unless ${
-                ${ $self->__getitem__($_) }->__eq__(${ $other->__getitem__($_) });
-            }->__tonative__;
+        return Python2::Type::Scalar::Bool->new(0)
+            unless $self->__getitem__($_)->__eq__($other->__getitem__($_))->__tonative__;
     }
 
     # all matched - return true
-    return \Python2::Type::Scalar::Bool->new(1);
+    return Python2::Type::Scalar::Bool->new(1);
 }
 
 sub __contains__ {
     my ($self, $key) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(exists $self->{$key});
+    return Python2::Type::Scalar::Bool->new(exists $self->{$key});
 }
 
 sub __hasattr__ {
     my ($self, $key) = @_;
-    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+    return Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 
 sub __gt__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'int');
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'bool');
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'list');
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'tuple');
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'str');
 
     # ref https://hg.python.org/releasing/2.7.9/file/753a8f457ddc/Objects/dictobject.c#l1792
     if ($other->__type__ eq 'dict') {
-        if (${ $self->__len__ }->__tonative__ > ${ $other->__len__ }->__tonative__) {
-            return \Python2::Type::Scalar::Bool->new(1);
+        if ($self->__len__->__tonative__ > $other->__len__->__tonative__) {
+            return Python2::Type::Scalar::Bool->new(1);
         }
 
-        if (${ $self->__len__ }->__tonative__ < ${ $other->__len__ }->__tonative__) {
-            return \Python2::Type::Scalar::Bool->new(0);
+        if ($self->__len__->__tonative__ < $other->__len__->__tonative__) {
+            return Python2::Type::Scalar::Bool->new(0);
         }
 
-        return \Python2::Type::Scalar::Bool->new(0)
+        return Python2::Type::Scalar::Bool->new(0)
             if $self->__eq__($other);
     }
 
@@ -257,32 +255,32 @@ sub __gt__ {
 sub __lt__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'int');
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'bool');
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'list');
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'tuple');
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'str');
 
     # ref https://hg.python.org/releasing/2.7.9/file/753a8f457ddc/Objects/dictobject.c#l1792
     if ($other->__type__ eq 'dict') {
-        if (${ $self->__len__ }->__tonative__ < ${ $other->__len__ }->__tonative__) {
-            return \Python2::Type::Scalar::Bool->new(1);
+        if ($self->__len__->__tonative__ < $other->__len__->__tonative__) {
+            return Python2::Type::Scalar::Bool->new(1);
         }
 
-        if (${ $self->__len__ }->__tonative__ > ${ $other->__len__ }->__tonative__) {
-            return \Python2::Type::Scalar::Bool->new(0);
+        if ($self->__len__->__tonative__ > $other->__len__->__tonative__) {
+            return Python2::Type::Scalar::Bool->new(0);
         }
 
-        return \Python2::Type::Scalar::Bool->new(0)
+        return Python2::Type::Scalar::Bool->new(0)
             if $self->__eq__($other);
     }
 
@@ -294,17 +292,17 @@ sub __call__ {
     pop @_; # named arguments hash, unused
     my $param = shift;
 
-    return \Python2::Type::Dict->new()
+    return Python2::Type::Dict->new()
         unless defined $param;
 
-    return \Python2::Type::Dict->new(
-        map { $_ => ${ $param->__getitem__($_) } } ${ $param->keys }->ELEMENTS
+    return Python2::Type::Dict->new(
+        map { $_ => $param->__getitem__($_) } $param->keys->ELEMENTS
     ) if $param->__type__ eq 'dict';
 
     die Python2::Type::Exception->new('TypeError', 'dict() expects a list as paramter, got ' . $param->__type__)
         unless $param->__type__ eq 'list';
 
-    return \Python2::Type::Dict->new(
+    return Python2::Type::Dict->new(
         map {
             die Python2::Type::Exception->new(
                 'TypeError',

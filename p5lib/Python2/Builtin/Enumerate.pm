@@ -8,7 +8,7 @@ sub __name__ { 'enumerate' }
 sub __call__ {
     shift @_; # $self - unused
 
-    \Python2::Type::Enumerate->new($_[0]);
+    Python2::Type::Enumerate->new($_[0]);
 };
 
 1;

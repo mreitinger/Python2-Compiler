@@ -15,7 +15,7 @@ sub new {
 }
 
 sub time {
-    return \Python2::Type::Scalar::Num->new(time);
+    return Python2::Type::Scalar::Num->new(time);
 }
 
 1;

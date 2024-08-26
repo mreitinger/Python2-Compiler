@@ -24,7 +24,7 @@ sub seed {
     my ($self, $seed) = @_;
     $rseed = $seed;
     srand($rseed);
-    return \Python2::Type::Scalar::None->new();
+    return Python2::Type::Scalar::None->new();
 }
 
 sub randint {
@@ -38,7 +38,7 @@ sub randint {
     die Python2::Type::Exception->new("TypeError", "random.randint(lower, upper) expecting int as upper bound, got " . (defined $upper ? $upper->__type__ : 'nothing'))
         unless defined $upper and $upper->__type__ eq 'int';
 
-    return \Python2::Type::Scalar::Num->new(
+    return Python2::Type::Scalar::Num->new(
         int($lower->__tonative__ + rand($upper->__tonative__ - $lower->__tonative__))
     );
 }
@@ -63,7 +63,7 @@ sub sample {
         "ValueError", "random.sample() invalid sample size")
         if $count->__tonative__ < 0;
 
-    return \Python2::Type::List->new(
+    return Python2::Type::List->new(
         List::Util::sample($count->__tonative__, $sequence->ELEMENTS)
     );
 }
@@ -106,7 +106,7 @@ sub shuffle {
 
     @$sequence = List::Util::shuffle @$sequence;
 
-    return \Python2::Type::Scalar::None->new();
+    return Python2::Type::Scalar::None->new();
 }
 
 1;

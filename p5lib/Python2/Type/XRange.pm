@@ -62,7 +62,7 @@ sub __call__ {
     my $stop  = defined $arg_2 ? $arg_2 : $arg_1;
     my $step  = defined $arg_3 ? $arg_3 : 1;
 
-    return \Python2::Type::XRange->new($start, $stop, $step);
+    return Python2::Type::XRange->new($start, $stop, $step);
 };
 
 sub __print__ {

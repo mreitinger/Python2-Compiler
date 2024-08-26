@@ -27,7 +27,7 @@ sub urlopen {
 
     my $response = $ua->get($url->__tonative__);
 
-    return \Python2::Type::Object::StdLib::urllib::addinfourl->new($response);
+    return Python2::Type::Object::StdLib::urllib::addinfourl->new($response);
 }
 
 1;

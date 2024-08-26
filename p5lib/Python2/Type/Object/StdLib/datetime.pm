@@ -29,7 +29,7 @@ sub __getattr__ {
         unless ($attribute_name->__type__ eq 'str');
 
     my $object = $self->{classes}->{$attribute_name}->new();
-    return \$object;
+    return $object;
 }
 
 sub __hasattr__ {
@@ -38,7 +38,7 @@ sub __hasattr__ {
     die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . $attribute_name->__type__)
         unless ($attribute_name->__type__ eq 'str');
 
-    return \Python2::Type::Scalar::Bool->new(
+    return Python2::Type::Scalar::Bool->new(
         exists $self->{classes}->{$attribute_name}
     );
 }

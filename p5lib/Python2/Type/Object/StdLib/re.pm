@@ -34,15 +34,15 @@ sub compile {
         my @flags;
 
         die Python2::Type::Exception->new('TypeError', sprintf("sub expects flags as integer, got %s", $named_args->{flags}->__type__))
-            unless ${ $named_args->{flags} }->__type__ eq 'int';
+            unless $named_args->{flags}->__type__ eq 'int';
 
-        push(@flags, 'i') if ${ $named_args->{flags} } & 2;
-        push(@flags, 'x') if ${ $named_args->{flags} } & 64;
+        push(@flags, 'i') if $named_args->{flags} & 2;
+        push(@flags, 'x') if $named_args->{flags} & 64;
 
         $flags .= join('', @flags);
     }
 
-    return \Python2::Type::Object::StdLib::re::pattern->new(qr/(?$flags)$regex/);
+    return Python2::Type::Object::StdLib::re::pattern->new(qr/(?$flags)$regex/);
 }
 
 sub sub {
@@ -54,10 +54,10 @@ sub sub {
         my @flags;
 
         die Python2::Type::Exception->new('TypeError', sprintf("sub expects flags as integer, got %s", $named_args->{flags}->__type__))
-            unless ${ $named_args->{flags} }->__type__ eq 'int';
+            unless $named_args->{flags}->__type__ eq 'int';
 
-        push(@flags, 'i') if ${ $named_args->{flags} } & 2;
-        push(@flags, 'x') if ${ $named_args->{flags} } & 64;
+        push(@flags, 'i') if $named_args->{flags} & 2;
+        push(@flags, 'x') if $named_args->{flags} & 64;
 
         $flags .= join('', @flags);
     }
@@ -65,7 +65,7 @@ sub sub {
     $value = $value->__tonative__;
     $value =~ s/(?$flags)$regex/$newtext/g;
 
-    return \Python2::Type::Scalar::String->new($value);
+    return Python2::Type::Scalar::String->new($value);
 }
 
 
@@ -84,8 +84,8 @@ sub search {
     my $groups = [ $string =~ /($r)/g ];
 
     return @$groups
-        ? \Python2::Type::Object::StdLib::re::match->new($groups)
-        : \Python2::Type::Scalar::None->new();
+        ? Python2::Type::Object::StdLib::re::match->new($groups)
+        : Python2::Type::Scalar::None->new();
 }
 
 sub match {
@@ -103,7 +103,7 @@ sub match {
     # match.group(0) contains the outer match, so we simply wrap () around the expression
     my $groups = [ $string =~ /($r)/g ];
 
-    return \Python2::Type::Object::StdLib::re::match->new($groups);
+    return Python2::Type::Object::StdLib::re::match->new($groups);
 }
 
 1;

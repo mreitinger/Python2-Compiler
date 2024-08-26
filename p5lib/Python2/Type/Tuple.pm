@@ -28,17 +28,17 @@ sub __getslice__ {
     $target  = $target->__tonative__;
 
     # if the target is longer than the list cap it
-    if ($target > ${ $self->__len__ }->__tonative__ ) {
-        $target = ${ $self->__len__}->__tonative__;
+    if ($target > $self->__len__->__tonative__) {
+        $target = $self->__len__->__tonative__;
     }
 
-    return \Python2::Type::Tuple->new( @$self[$key .. $target - 1] );
+    return Python2::Type::Tuple->new( @$self[$key .. $target - 1] );
 }
 
 sub __len__ {
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new(scalar @$self);
+    return Python2::Type::Scalar::Num->new(scalar @$self);
 }
 
 # convert to a 'native' perl5 arrayref
@@ -55,39 +55,39 @@ sub __type__ { return 'tuple'; }
 sub __lt__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $other->[0] and not exists $self->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $other->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $self->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(
-        ${$self->[0]->__eq__($other->[0])}->__tonative__
-            ? ${ $self->__len__ }->__tonative__ < ${ $other->__len__ }->__tonative__
-            : ${ $self->[0]->__lt__($other->[0]) }->__tonative__
+    return Python2::Type::Scalar::Bool->new(
+        $self->[0]->__eq__($other->[0])->__tonative__
+            ? $self->__len__->__tonative__ < $other->__len__->__tonative__
+            : $self->[0]->__lt__($other->[0])->__tonative__
     ) if ref($other) eq 'Python2::Type::Tuple';
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $other->[0] and not exists $self->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $self->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $other->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(
-        ${ $self->[0]->__lt__($other->[0]) }->__tonative__
+    return Python2::Type::Scalar::Bool->new(
+        $self->[0]->__lt__($other->[0])->__tonative__
     ) if ref($other) eq 'Python2::Type::Tuple';
 
-    return \Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::Num';
-    return \Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::String';
-    return \Python2::Type::Scalar::Bool->new(0) if $other->__type__ eq 'dict';
-    return \Python2::Type::Scalar::Bool->new(0) if $other->__type__ eq 'list';
-    return \Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::Bool';
+    return Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::Num';
+    return Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::String';
+    return Python2::Type::Scalar::Bool->new(0) if $other->__type__ eq 'dict';
+    return Python2::Type::Scalar::Bool->new(0) if $other->__type__ eq 'list';
+    return Python2::Type::Scalar::Bool->new(0) if ref($other) eq 'Python2::Type::Scalar::Bool';
 
     die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
@@ -95,26 +95,26 @@ sub __lt__ {
 sub __gt__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $other->[0] and not exists $self->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $other->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if (ref($other) eq 'Python2::Type::Tuple' and not exists $self->[0]);
 
-    return \Python2::Type::Scalar::Bool->new(
-        ${$self->[0]->__eq__($other->[0])}->__tonative__
-            ? ${ $self->__len__ }->__tonative__ > ${ $other->__len__ }->__tonative__
-            : ${ $self->[0]->__gt__($other->[0]) }->__tonative__
+    return Python2::Type::Scalar::Bool->new(
+        $self->[0]->__eq__($other->[0])->__tonative__
+            ? $self->__len__->__tonative__ > $other->__len__->__tonative__
+            : $self->[0]->__gt__($other->[0])->__tonative__
     ) if ref($other) eq 'Python2::Type::Tuple';
 
-    return \Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::Num';
-    return \Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::String';
-    return \Python2::Type::Scalar::Bool->new(1) if $other->__type__ eq 'dict';
-    return \Python2::Type::Scalar::Bool->new(1) if $other->__type__ eq 'list';
-    return \Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::Bool';
+    return Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::Num';
+    return Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::String';
+    return Python2::Type::Scalar::Bool->new(1) if $other->__type__ eq 'dict';
+    return Python2::Type::Scalar::Bool->new(1) if $other->__type__ eq 'list';
+    return Python2::Type::Scalar::Bool->new(1) if ref($other) eq 'Python2::Type::Scalar::Bool';
 
     die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $self->__type__ . ' and ' . $other->__type__);
 }
@@ -123,32 +123,32 @@ sub __eq__      {
     my ($self, $other) = @_;
 
     # if it's the same element it must match
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if refaddr($self) == refaddr($other);
 
     # if it's not a tuple just abort right here no need to compare
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         unless $other->__class__ eq 'Python2::Type::Tuple';
 
     # if it's not at least the same size we don't need to compare any further
-    return \Python2::Type::Scalar::Bool->new(0)
-        unless ${ $self->__len__ }->__tonative__ == ${ $other->__len__ }->__tonative__;
+    return Python2::Type::Scalar::Bool->new(0)
+        unless $self->__len__->__tonative__ == $other->__len__->__tonative__;
 
     # we are comparing empty tuples so they are identical
-    return \Python2::Type::Scalar::Bool->new(1)
-        if ${ $self->__len__ }->__tonative__ == 0;
+    return Python2::Type::Scalar::Bool->new(1)
+        if $self->__len__->__tonative__ == 0;
 
     # compare all elements and return false if anything doesn't match
-    foreach (0 .. ${ $self->__len__ }->__tonative__ -1) {
-        return \Python2::Type::Scalar::Bool->new(0)
-            unless  ${
-                ${ $self->__getitem__( Python2::Type::Scalar::Num->new($_) ) }
-                    ->__eq__(${ $other->__getitem__(Python2::Type::Scalar::Num->new($_)) });
-            }->__tonative__;
+    foreach (0 .. $self->__len__->__tonative__ -1) {
+        return Python2::Type::Scalar::Bool->new(0)
+            unless
+                $self->__getitem__( Python2::Type::Scalar::Num->new($_) )
+                    ->__eq__($other->__getitem__(Python2::Type::Scalar::Num->new($_)))
+                    ->__tonative__;
     }
 
     # all matched - return true
-    return \Python2::Type::Scalar::Bool->new(1);
+    return Python2::Type::Scalar::Bool->new(1);
 }
 
 1;

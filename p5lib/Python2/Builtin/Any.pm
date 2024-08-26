@@ -15,10 +15,10 @@ sub __call__ {
         unless ($iterable->__type__ eq 'list');
 
     foreach my $element (@$iterable) {
-        return \Python2::Type::Scalar::Bool->new(1) if $element->__is_py_true__;
+        return Python2::Type::Scalar::Bool->new(1) if $element->__is_py_true__;
     }
 
-    return \Python2::Type::Scalar::Bool->new(0);
+    return Python2::Type::Scalar::Bool->new(0);
 }
 
 1;

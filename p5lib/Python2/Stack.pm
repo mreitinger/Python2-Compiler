@@ -24,16 +24,20 @@ sub new {
     ], $self);
 }
 
-sub get {
-    my ($self, $name) = @_;
+sub get : lvalue {
+    my ($self, $name, $gracefully) = @_;
 
     # if it's not a ::Frame it was supplied by overriding globals/locals so we need to convert
     # it to a python type
-    my $retval = ref($self->[1]) eq 'Python2::Stack::Frame'
-        ? $self->[1]->__getattr__($name)
+    ref($self->[1]) eq 'Python2::Stack::Frame'
+        ? $self->[1]->__getattr__($name, $gracefully)
         : Python2::Internals::convert_to_python_type( $self->[1]->__getattr__($name) );
+}
 
-    return $retval;
+sub set {
+    my ($self, $name, $value) = @_;
+
+    $self->[1]->__setattr__($name, $value);
 }
 
 sub has {

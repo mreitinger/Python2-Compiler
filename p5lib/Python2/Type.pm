@@ -27,7 +27,7 @@ sub __dump__ {
 
     my $dumper = Data::Dumper->new([$self]);
     $dumper->Maxdepth($depth->__tonative__);
-    return \Python2::Type::Scalar::String->new($dumper->Dump());
+    return Python2::Type::Scalar::String->new($dumper->Dump());
 }
 
 sub __call__    { die Python2::Type::Exception->new('TypeError', sprintf("'%s' is not callable", shift->__type__)); }
@@ -49,9 +49,9 @@ sub __hasattr__ {
 sub __ne__      {
     my ($self, $other) = @_;
 
-    return ${ $self->__eq__($other) }->__tonative__
-        ? \Python2::Type::Scalar::Bool->new(0)
-        : \Python2::Type::Scalar::Bool->new(1);
+    return $self->__eq__($other)->__tonative__
+        ? Python2::Type::Scalar::Bool->new(0)
+        : Python2::Type::Scalar::Bool->new(1);
 }
 
 sub __is_py_true__  {
@@ -84,10 +84,10 @@ sub __is__  {
     my ($self, $other) = @_;
 
     if (refaddr($self) == refaddr($other)) {
-        return \Python2::Type::Scalar::Bool->new(1);
+        return Python2::Type::Scalar::Bool->new(1);
     }
     else {
-        return \Python2::Type::Scalar::Bool->new(0);
+        return Python2::Type::Scalar::Bool->new(0);
     }
 }
 

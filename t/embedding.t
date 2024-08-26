@@ -87,7 +87,7 @@ subtest "embedding - lambda" => sub {
         );
 
         # returns our function wrapper - see Function::__tonative__
-        $coderef = $$coderef->__tonative__;
+        $coderef = $coderef->__tonative__;
 
         say $coderef->(2, 4);
     END
@@ -1057,8 +1057,8 @@ subtest "embedding - bool conversion" => sub {
     $generated_perl5_code ~= q:to/END/;
         my $p5 = Python2::Type::Class::main_quux->new();
 
-        my $true  = ${ $p5->__run_function__('get_true',  [bless({}, 'Python2::NamedArgumentsHash')]) }->__tonative__;
-        my $false = ${ $p5->__run_function__('get_false', [bless({}, 'Python2::NamedArgumentsHash')]) }->__tonative__;
+        my $true  = $p5->__run_function__('get_true',  [bless({}, 'Python2::NamedArgumentsHash')])->__tonative__;
+        my $false = $p5->__run_function__('get_false', [bless({}, 'Python2::NamedArgumentsHash')])->__tonative__;
 
         print "true-is-one\n" if $true == 1;
         print "false-is-undef\n" unless defined $false;

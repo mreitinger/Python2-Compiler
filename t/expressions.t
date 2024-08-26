@@ -15,7 +15,7 @@ subtest "compile expression" => sub {
     my $generated_perl5_code = $compiler.compile-expression($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
-        print ${ Python2::Type::CodeObject::quux->new()->__call__ }->__tonative__;
+        print Python2::Type::CodeObject::quux->new()->__call__->__tonative__;
     END
 
     my $perl5;
@@ -43,7 +43,7 @@ subtest "compile expression with test" => sub {
     my $generated_perl5_code = $compiler.compile-expression($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
-        print ${ Python2::Type::CodeObject::quux->new()->__call__ }->__tonative__;
+        print  Python2::Type::CodeObject::quux->new()->__call__->__tonative__;
     END
 
     my $perl5;
@@ -88,7 +88,7 @@ subtest "override-locals" => sub {
                 return 9 if $attribute_name eq 'b';
             }
         }
-        print ${ Python2::Type::CodeObject::quux->new()->__call__(Locals->new) }->__tonative__;
+        print Python2::Type::CodeObject::quux->new()->__call__(Locals->new)->__tonative__;
     END
 
     my $perl5;
@@ -150,7 +150,7 @@ subtest "override-globals-and-locals" => sub {
             }
         }
 
-        print ${ Python2::Type::CodeObject::quux->new()->__call__(Locals->new, Parent->new) }->__tonative__;
+        print Python2::Type::CodeObject::quux->new()->__call__(Locals->new, Parent->new)->__tonative__;
     END
 
     my $perl5;
@@ -178,7 +178,7 @@ subtest "lambda" => sub {
     my $generated_perl5_code = $compiler.compile-expression($input, :embedded('quux'));
 
     $generated_perl5_code ~= q:to/END/;
-        print ${ Python2::Type::CodeObject::quux->new()->__call__() }->__tonative__->[0];
+        print Python2::Type::CodeObject::quux->new()->__call__()->__tonative__->[0];
     END
 
     my $perl5;

@@ -74,12 +74,12 @@ sub __str__ {
     die Python2::Type::Exception->new('NotImplementedError', 'PerlObject of class \'' . ref($self->{object}) . "' does not implement __str__")
         unless $self->{object}->can('__str__');
 
-    return \Python2::Type::Scalar::String->new(
+    return Python2::Type::Scalar::String->new(
         $self->{object}->__str__
     );
 }
 
-sub __print__ { ${ shift->__str__ }; }
+sub __print__ { shift->__str__; }
 
 sub __tonative__ { return shift->{object}; }
 
@@ -89,14 +89,14 @@ sub __eq__ {
     # if the object we wrap implements __cmp__ protocol support hand over the comparison
     # to that. See https://metacpan.org/release/NINE/Inline-Python-0.57/source/perlmodule.c#L565
     # for the Inline::Python implementation.
-    return \Python2::Type::Scalar::Bool->new(
+    return Python2::Type::Scalar::Bool->new(
         $self->{object}->__cmp__($other->__tonative__) == 0 ? 1 : 0
     ) if ($self->{object}->can('__cmp__') and ($other->__type__ eq 'p5object'));
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if $self->REFADDR eq $other->REFADDR;
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
 }
 
 sub __call__ {
@@ -129,10 +129,10 @@ sub __call__ {
         return Python2::Internals::convert_to_python_type( $self->{object}->__call__(@argument_list) );
     }
     elsif (defined $self->{object} and $self->{object}->isa('ZMS::Object')) {
-        return \$self;
+        return $self;
     }
     elsif (defined $self->{object} and $self->{object}->isa('ZMS::Search')) {
-        return \$self;
+        return $self;
     }
     else {
         my $object = Python2::Type::PerlObject->new($self->{class});
@@ -145,7 +145,7 @@ sub __call__ {
             die Python2::Type::Exception->new('Exception', $@);
         }
 
-        return \$object;
+        return $object;
     }
 }
 
@@ -153,11 +153,11 @@ sub __hasattr__ {
     my ($self, $key) = @_;
 
     # our wrapped object implements __hasattr__ itself, pass the request on
-    return \Python2::Type::Scalar::Bool->new($self->{object}->__hasattr__($key->__tonative__))
+    return Python2::Type::Scalar::Bool->new($self->{object}->__hasattr__($key->__tonative__))
         if ($self->{object}->can('__hasattr__'));
 
     # our wrapped object does not support __hasattr__ fall back to method check
-    return \Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+    return Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
 }
 
 sub __getattr__ {
@@ -234,7 +234,7 @@ sub __len__ {
     die Python2::Type::Exception->new('NotImplementedError', 'PerlObject of class \'' . ref($self->{object}) . "' does not implement __str__, unable to handle __len__")
         unless $self->{object}->can('__str__');
 
-    return \Python2::Type::Scalar::Num->new(length $self->{object}->__str__);
+    return Python2::Type::Scalar::Num->new(length $self->{object}->__str__);
 }
 
 # called for every unknown method
@@ -291,7 +291,7 @@ sub CALL_METHOD {
     }
 
     foreach my $argument (keys %$named_arguments) {
-        $named_arguments->{$argument} = ${$named_arguments->{$argument}}->__tonative__;
+        $named_arguments->{$argument} = $named_arguments->{$argument}->__tonative__;
     }
 
     # This matches the calling conventions for Inline::Python so Perl code written to work with

@@ -10,10 +10,19 @@ sub new {
     return bless($values // {}, $self);
 }
 
-sub __getattr__ {
-    my ($self, $name) = @_;
+sub __getattr__ : lvalue {
+    my ($self, $name, $gracefully) = @_;
 
-    return \$self->{$name};
+    die Python2::Type::Exception->new("NameError", "name '$name' is not defined")
+        unless defined $self->{$name} or $gracefully;
+
+    return $self->{$name};
+}
+
+sub __setattr__ {
+    my ($self, $name, $value) = @_;
+
+    return $self->{$name} = $value;
 }
 
 sub __hasattr__ {

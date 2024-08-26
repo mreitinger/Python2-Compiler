@@ -22,7 +22,7 @@ sub new {
 
 sub exists {
     my ($self, $path) = @_;
-    return \Python2::Type::Scalar::Bool->new(-e $path)
+    return Python2::Type::Scalar::Bool->new(-e $path)
 }
 
 sub isfile {
@@ -31,7 +31,7 @@ sub isfile {
     die Python2::Type::Exception->new('TypeError', sprintf("isfile() expects a string but got '%s'", defined $path ? $path->__type__ : 'nothing'))
         unless defined $path and $path->__type__ eq 'str';
 
-    return \Python2::Type::Scalar::Bool->new(-f $path);
+    return Python2::Type::Scalar::Bool->new(-f $path);
 }
 
 sub getsize {
@@ -45,7 +45,7 @@ sub getsize {
     die Python2::Type::Exception->new('OSError', sprintf("No such file or directory: %s", $path->__tonative__))
         unless -e $path;
 
-    return \Python2::Type::Scalar::Num->new(-s $path);
+    return Python2::Type::Scalar::Num->new(-s $path);
 }
 
 sub join {
@@ -64,7 +64,7 @@ sub join {
     # match pythons behaviour of skipping everything before the last path separator int he list
     my $last_path_separator = List::MoreUtils::last_index(sub { $_ eq '/' }, @_);
 
-    return \Python2::Type::Scalar::String->new(
+    return Python2::Type::Scalar::String->new(
         File::Spec->catfile(
 
             @_[
@@ -91,7 +91,7 @@ sub split {
     # remove trailing slash to match python
     $path[0] =~ s!/+$!! unless $path[0] =~ m!^/+$!;
 
-    return \Python2::Type::Tuple->new(
+    return Python2::Type::Tuple->new(
         map { Python2::Type::Scalar::String->new($_) } @path
     );
 }

@@ -18,7 +18,7 @@ sub __call__ {
     my $dumper = Data::Dumper->new([$object]);
 
     $dumper->Maxdepth($depth->__tonative__);
-    return \Python2::Type::Scalar::String->new($dumper->Dump());
+    return Python2::Type::Scalar::String->new($dumper->Dump());
 };
 
 1;

@@ -49,7 +49,7 @@ sub __run_function__ {
 
     # convert positionals to python types
     foreach my $argument (@$argument_list) {
-        $argument = ${ Python2::Internals::convert_to_python_type( $argument ) };
+        $argument = Python2::Internals::convert_to_python_type( $argument );
     }
 
     # exec the main block so we get all function definitions
@@ -60,8 +60,8 @@ sub __run_function__ {
     my $coderef = Python2::Internals::getvar($self->[0], 0, $name);
 
     my $retval = eval {
-        die("Function $name not found") unless defined $$coderef;
-        $$coderef->__call__(@$argument_list, $named_arguments)
+        die("Function $name not found") unless defined $coderef;
+        $coderef->__call__(@$argument_list, $named_arguments)
     };
 
     $self->__handle_exception__($@) if $@;

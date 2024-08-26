@@ -36,16 +36,16 @@ sub parse {
 
     my $dom = $source->__type__ eq 'str'
         ? XML::LibXML->load_xml(location => $source->__tonative__)
-        : XML::LibXML->load_xml(string => ${ $source->read() }->__tonative__);
+        : XML::LibXML->load_xml(string => $source->read()->__tonative__);
 
-    return \Python2::Type::Object::StdLib::xml::etree::ElementTree->new($dom);
+    return Python2::Type::Object::StdLib::xml::etree::ElementTree->new($dom);
 }
 
 sub getroot {
     pop(@_); # default named arguments hash
     my ($self, $pstack) = @_;
 
-    return \Python2::Type::Object::StdLib::xml::etree::Element->new( $self->{dom}->getDocumentElement() );
+    return Python2::Type::Object::StdLib::xml::etree::Element->new( $self->{dom}->getDocumentElement() );
 }
 
 1;

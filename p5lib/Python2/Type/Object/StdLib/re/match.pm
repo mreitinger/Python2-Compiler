@@ -25,7 +25,7 @@ sub group {
     die Python2::Type::Exception->new('IndexError', 'no such group: ' . $i)
         unless $index->__type__ eq 'int' && $i >= 0 && $i < scalar(@{ $self->{groups} });
 
-    return \Python2::Type::Scalar::String->new($self->{groups}->[$i]);
+    return Python2::Type::Scalar::String->new($self->{groups}->[$i]);
 }
 
 sub __is_py_true__ {

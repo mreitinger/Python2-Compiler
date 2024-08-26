@@ -5,11 +5,11 @@ use warnings;
 use strict;
 
 sub new {
-    my ($self) = @_;
+    my ($class) = @_;
 
-    return bless({
-        value => undef,
-    }, $self);
+    my $self = undef;
+
+    return bless(\$self, $class);
 }
 
 sub __str__         { 'None'; }
@@ -22,53 +22,53 @@ sub __is__          {
     my ($self, $other) = @_;
 
     # special case: None is None
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if $self->__class__ eq $other->__class__;
 
     # everything else is false when compared to None
-    return \Python2::Type::Scalar::Bool->new(0);
+    return Python2::Type::Scalar::Bool->new(0);
 }
 
 sub __eq__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'none');
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ ne 'none');
 }
 
 sub __ne__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'none');
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ ne 'none');
 }
 
-sub __gt__ { \Python2::Type::Scalar::Bool->new(0) }
+sub __gt__ { Python2::Type::Scalar::Bool->new(0) }
 
 sub __lt__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(0)
+    return Python2::Type::Scalar::Bool->new(0)
         if ($other->__type__ eq 'none');
 
-    return \Python2::Type::Scalar::Bool->new(1);
+    return Python2::Type::Scalar::Bool->new(1);
 }
 
 sub __ge__ {
     my ($self, $other) = @_;
 
-    return \Python2::Type::Scalar::Bool->new(1)
+    return Python2::Type::Scalar::Bool->new(1)
         if ($other->__type__ eq 'none');
 
-    return \Python2::Type::Scalar::Bool->new(0);
+    return Python2::Type::Scalar::Bool->new(0);
 }
 
-sub __le__ { \Python2::Type::Scalar::Bool->new(1); }
+sub __le__ { Python2::Type::Scalar::Bool->new(1); }
 
 1;

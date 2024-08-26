@@ -280,10 +280,10 @@ class Python2::Backend::Perl5 {
             my $recurse = $node.recurse ?? 1 !! 0;
             my $expression = $.e($node.expression);
             if $node.expression.must-resolve {
-                Q:s:b |(do { my \$p = Python2::Internals::getvar(\$stack, $recurse, $expression); \$\$p // die Python2::Type::Exception->new("NameError", "name '$node.expression.name()' is not defined"); \$p })|
+                Q:s:b |Python2::Internals::getvar(\$stack, $recurse, $expression)|
             }
             else {
-                Q:s:b "Python2::Internals::getvar(\$stack, $recurse, $expression)";
+                Q:s:b "Python2::Internals::getvar(\$stack, $recurse, $expression, 1)";
             }
         } else {
             $.e($node.expression);
@@ -291,7 +291,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Locals $node) {
-        return q|\Python2::Builtin::Locals->new($stack)|;
+        return q|Python2::Builtin::Locals->new($stack)|;
     }
 
     multi method e(Python2::AST::Node::Statement::P5Import $node) {
@@ -383,8 +383,8 @@ class Python2::Backend::Perl5 {
             # positional arguments get passed as regular arguments to the perl sub
             $p5 ~= @positional-arguments.map({
                 $_.splat
-                    ?? sprintf('(Python2::Internals::unsplat(${ %s }))', $.e($_))
-                    !! '${' ~ $.e($_) ~ '}'
+                    ?? sprintf('(Python2::Internals::unsplat(%s))', $.e($_))
+                    !!  $.e($_)
             }).join(', ');
 
             $p5 ~= ','; # to accomodate a possible named argument hashref
@@ -418,7 +418,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::Print $node) {
         my Str $p5 = $node.values.map({
                 qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
-            ~   '${' ~ $.e($_) ~ '}'
+            ~   $.e($_)
         }).join(',');
 
         return sprintf('Python2::Internals::py2print(%s, {})', $p5);
@@ -435,7 +435,7 @@ class Python2::Backend::Perl5 {
                 !! ''
         );
 
-        return sprintf('if ( not ${ %s }->__is_py_true__ ) { die %s; }',
+        return sprintf('if ( not %s->__is_py_true__ ) { die %s; }',
             $.e($node.assertion),
             $assertion-error
         );
@@ -447,8 +447,8 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::Statement::Raise $node) {
         return $node.message
-            ?? sprintf('Python2::Internals::raise(${ %s }, ${ %s })', $.e($node.exception), $.e($node.message))
-            !! sprintf('Python2::Internals::raise(${ %s })', $.e($node.exception));
+            ?? sprintf('Python2::Internals::raise(%s, %s)', $.e($node.exception), $.e($node.message))
+            !! sprintf('Python2::Internals::raise(%s)', $.e($node.exception));
     }
 
     multi method assign(Python2::AST::Node::Atom $target, Str $expression, :@name-filter) {
@@ -456,16 +456,16 @@ class Python2::Backend::Perl5 {
         $target.recurse = False;
 
         return ((not @name-filter) or @name-filter.grep($target.expression.name))
-            ?? Q:s:b "\${ $.e($target) } = \${ $expression }"
+            ?? Q:s:b "$.e($target) = $expression"
             !!  '';
     }
 
     multi method assign(Python2::AST::Node::PropertyAccess $target, Str $expression) {
-        Q:s:b "\${$.e($target.atom)}->__setattr__(Python2::Type::Scalar::String->new($.e($target.property)), \${ $expression }, {})";
+        Q:s:c:b "{ $.e($target.atom) }->__setattr__(Python2::Type::Scalar::String->new($.e($target.property)), $expression, \{\})";
     }
 
     multi method assign(Python2::AST::Node::SubscriptAccess $target, Str $expression) {
-        Q:s:b "\${$.e($target.atom)}->__setitem__($.e($target.subscript), \${ $expression }, {})";
+        Q:s:c:b "{ $.e($target.atom) }->__setitem__($.e($target.subscript), $expression, \{\})";
     }
 
     multi method assign(Python2::AST::Node $target) {
@@ -485,13 +485,13 @@ class Python2::Backend::Perl5 {
             $p5 ~= sprintf('{ my $i = %s;', $.e($node.expression));
 
             # die if the object cannot provide a length
-            $p5 ~= sprintf(q|die Python2::Type::Exception->new('TypeError', 'Expected iterable, got ' . $$i->__type__) unless $$i->can('__len__');|);
+            $p5 ~= sprintf(q|die Python2::Type::Exception->new('TypeError', 'Expected iterable, got ' . $i->__type__) unless $i->can('__len__');|);
 
             # die if the elements in the object don't match the amount of targets
-            $p5 ~= sprintf(q|die Python2::Type::Exception->new('ValueError', 'too many values to unpack') unless ${$$i->__len__}->__tonative__ == %i;|, $node.targets.elems);
+            $p5 ~= sprintf(q|die Python2::Type::Exception->new('ValueError', 'too many values to unpack') unless $i->__len__->__tonative__ == %i;|, $node.targets.elems);
 
             for $node.targets.pairs -> $target {
-                $p5 ~= $.assign($target.value, '$$i->__getitem__(Python2::Type::Scalar::Num->new(' ~ $target.key ~ '))', :name-filter($node.name-filter)) ~ ';';
+                $p5 ~= $.assign($target.value, '$i->__getitem__(Python2::Type::Scalar::Num->new(' ~ $target.key ~ '))', :name-filter($node.name-filter)) ~ ';';
             }
 
             return $p5 ~ '}';
@@ -503,7 +503,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::ArithmeticAssignment $node) {
         my $operator = $node.operator.chop; # grammar ensures only valid operators pass thru here
 
-        return sprintf(q|${%s} = ${ Python2::Internals::arithmetic(${ %s }, ${ %s }, '%s') }|,
+        return sprintf(q|%s = Python2::Internals::arithmetic(%s, %s, '%s')|,
             $.e($node.target),
             $.e($node.target),
             $.e($node.value),
@@ -514,7 +514,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::Return $node) {
         return  $node.value
                 ??  sprintf('return %s', $.e($node.value))
-                !!  'return \Python2::Type::Scalar::None->new()';
+                !!  'return Python2::Type::Scalar::None->new()';
     }
 
 
@@ -524,7 +524,7 @@ class Python2::Backend::Perl5 {
         my Str $p5;
 
         $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.block.start-position}___"\n|;
-        $p5 ~= sprintf('{ my $i = ${ %s };', $.e($node.iterable));
+        $p5 ~= sprintf('{ my $i = %s;', $.e($node.iterable));
 
         if ($node.names.elems > 1) {
             # TODO should support all iterables
@@ -534,7 +534,7 @@ class Python2::Backend::Perl5 {
                 while(1) {
                     my $var;
                     eval {
-                        $var = ${ $i->next() };
+                        $var = $i->next();
 
                         die Python2::Type::Exception->new('TypeError', 'tuple expected but got ' . $var->__type__)
                             unless $var->__type__ eq 'tuple';
@@ -568,7 +568,7 @@ class Python2::Backend::Perl5 {
 
 
     multi method e(Python2::AST::Node::Statement::LoopWhile $node) {
-        my Str $p5 = sprintf('while (1) { last unless ${ %s }->__tonative__; %s; }', $.e($node.test), $.e($node.block));
+        my Str $p5 = sprintf('while (1) { last unless %s->__tonative__; %s; }', $.e($node.test), $.e($node.block));
 
         return $p5;
     }
@@ -580,7 +580,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::ListComprehension $node) {
         my Str $p5;
 
-        $p5 ~= sprintf('sub { my $i = ${ %s };', $.e($node.iterable));
+        $p5 ~= sprintf('sub { my $i = %s;', $.e($node.iterable));
         $p5 ~= 'my $r = Python2::Type::List->new();';
 
         $p5 ~= 'die Python2::Type::Exception->new("TypeError", "expected iterable but got " . $i->__type__) unless ($i->__type__ =~ m/^list|tuple$/);';
@@ -588,13 +588,13 @@ class Python2::Backend::Perl5 {
         $p5 ~= 'foreach my $var ($i->ELEMENTS) {';
         $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.name));
 
-        $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.condition))
+        $p5 ~= sprintf('next unless %s->__tonative__;', $.e($node.condition))
             if ($node.condition);
 
-        $p5 ~= sprintf('$r->__iadd__(${ %s });', $.e($node.test));
+        $p5 ~= sprintf('$r->__iadd__(%s);', $.e($node.test));
         $p5 ~= '}';
 
-        return $p5 ~ 'return \$r; }->()';
+        return $p5 ~ 'return $r; }->()';
     }
 
     multi method e(Python2::AST::Node::Statement::TryExcept $node) {
@@ -630,15 +630,15 @@ class Python2::Backend::Perl5 {
 
         if ($node.condition) {
             $p5 ~= sprintf(
-                'sub { my $p = %s; $$p // die Python2::Type::Exception->new("NameError", "TODO - varname"); ref($$p) eq "CODE" ? $p :$$p->__tonative__; }->() ? ',
+                '(sub { my $p = %s; $p // die Python2::Type::Exception->new("NameError", "TODO - varname"); ref($p) eq "CODE" ? $p :$p->__tonative__; }->() ? ',
                 $.e($node.condition)
             );
         }
 
-        $p5 ~= sprintf('sub { my $p = %s; $$p // die Python2::Type::Exception->new("NameError", "TODO - varname"); $p; }->()', $.e($node.left));
+        $p5 ~= sprintf('sub { my $p = %s; $p // die Python2::Type::Exception->new("NameError", "TODO - varname"); $p; }->()', $.e($node.left));
 
         if ($node.condition) {
-            $p5 ~= sprintf(': sub { my $p = %s; $$p // die Python2::Type::Exception->new("NameError", "TODO - varname"); $p; }->()', $.e($node.right));
+            $p5 ~= sprintf(': sub { my $p = %s; $p // die Python2::Type::Exception->new("NameError", "TODO - varname"); $p; }->())', $.e($node.right));
         }
 
         return $p5;
@@ -647,7 +647,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Statement::If $node) {
         my Str $p5 = qq|\n# line 999 "___position_{$node.start-position}_{$node.block.start-position}___"\n|;
 
-        $p5 ~= sprintf('if ( ${ %s }->__is_py_true__ ) { %s }', $.e($node.test), $.e($node.block));
+        $p5 ~= sprintf('if ( %s->__is_py_true__ ) { %s }', $.e($node.test), $.e($node.block));
 
         for $node.elifs -> $elif {
             $p5 ~= $.e($elif);
@@ -671,16 +671,16 @@ class Python2::Backend::Perl5 {
         $p5 ~= sprintf('my $o = %s;', $.e($node.test));
 
         # call __enter__ which must return the variable to be assigned
-        $p5 ~= q|my $p = $$o->__enter__($stack, bless({}, 'Python2::NamedArgumentsHash'));|;
+        $p5 ~= q|my $p = $o->__enter__($stack, bless({}, 'Python2::NamedArgumentsHash'));|;
 
         # assign to <variable>
-        $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $$p);', $.e($node.name));
+        $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $p);', $.e($node.name));
 
         # our code block
         $p5 ~= $.e($node.block);
 
         # TODO - we don't implement python's arguments to __exit__
-        $p5 ~= q|$$o->__exit__($stack, Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), bless({}, 'Python2::NamedArgumentsHash'));|;
+        $p5 ~= q|$o->__exit__($stack, Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), Python2::Type::Scalar::None->new(), bless({}, 'Python2::NamedArgumentsHash'));|;
 
         # end of self-contained block to ensoure $p does not conflict
         $p5 ~= '}';
@@ -689,7 +689,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::Statement::ElIf $node) {
-        return sprintf('elsif (${ %s }->__is_py_true__) { %s }', $.e($node.test), $.e($node.block));
+        return sprintf('elsif (%s->__is_py_true__) { %s }', $.e($node.test), $.e($node.block));
     }
 
     multi method e(Python2::AST::Node::Statement::Test::Comparison $node) {
@@ -712,12 +712,12 @@ class Python2::Backend::Perl5 {
             ($left, $right) = ($right, $left) if $operator eq '__contains__';
 
             return $negate
-                ??  sprintf('${ ${%s}->%s(${%s}) }->__negate__',
+                ??  sprintf('%s->%s(%s)->__negate__',
                         $.e($left),
                         $operator,
                         $.e($right),
                     )
-                !!  sprintf('${%s}->%s(${%s})',
+                !!  sprintf('%s->%s(%s)',
                         $.e($left),
                         $operator,
                         $.e($right),
@@ -730,12 +730,12 @@ class Python2::Backend::Perl5 {
                 my ($left, $right) = ('$operand_' ~ $op.key, '$operand_' ~ ($op.key + 1));
                 ($left, $right) = ($right, $left) if $op eq '__contains__';
 
-                my $res = Q:s:b "\${ $left\->$operator\($right) }";
+                my $res = Q:s:b "$left\->$operator\($right)";
                 $res ~= '->__negate__' if $negate;
                 $res ~= '->__is_py_true__';
                 $res
             }
-            Q:s "(do { my ($node.operands.keys.map({"\$operand_$_"}).join(', ')) = ($node.operands.values.map({"\$\{$.e($_)}"}).join(', ')); \Python2::Type::Scalar::Bool->new($node.operators.pairs.map(&comparer).join(' and ')) })";
+            Q:s "(do { my ($node.operands.keys.map({"\$operand_$_"}).join(', ')) = ($node.operands.values.map({"$.e($_)"}).join(', ')); Python2::Type::Scalar::Bool->new($node.operators.pairs.map(&comparer).join(' and ')) })";
         }
     }
 
@@ -744,7 +744,7 @@ class Python2::Backend::Perl5 {
 
         if ($node.condition.condition eq 'not') {
             # not always returns a bool
-            return sprintf('\Python2::Type::Scalar::Bool->new(not ${%s}->__is_py_true__)', $.e($node.values[0]));
+            return sprintf('Python2::Type::Scalar::Bool->new(not (%s->__is_py_true__))', $.e($node.values[0]));
         }
         elsif ($node.condition.condition eq 'or') {
             # or returns the first true value or, if all are false, the last value
@@ -752,7 +752,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= 'sub { my $t;';
 
             for $node.values -> $value {
-                $p5 ~= sprintf('$t = %s; return $t if $$t->__is_py_true__;', $.e($value));
+                $p5 ~= sprintf('$t = %s; return $t if $t->__is_py_true__;', $.e($value));
             }
 
             # if we didn't return before the all values are false - return the last one
@@ -768,7 +768,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= 'sub { my $t;';
 
             for $node.values -> $value {
-                $p5 ~= sprintf('$t = %s; return $t unless $$t->__is_py_true__;', $.e($value));
+                $p5 ~= sprintf('$t = %s; return $t unless $t->__is_py_true__;', $.e($value));
             }
 
             # if we didn't return before the all values are true - return the last one
@@ -823,7 +823,7 @@ class Python2::Backend::Perl5 {
         $block ~= $.e($node.block);
 
         # if the function body contains a return statement it will execute before this
-        $block   ~= 'return \Python2::Type::Scalar::None->new();';
+        $block   ~= 'return Python2::Type::Scalar::None->new();';
 
         # the call to shift to get rid of $self which we don't need in this case.
         %!modules{$perl5_class_name} = sprintf(
@@ -863,7 +863,7 @@ class Python2::Backend::Perl5 {
             $block,
         );
 
-        return sprintf('\%s->new($stack)', $perl5_class_name);
+        return sprintf('%s->new($stack)', $perl5_class_name);
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
@@ -883,7 +883,7 @@ class Python2::Backend::Perl5 {
         my Str $p5;
 
         if $node.base-class {
-            $p5 ~= sprintf(q|my $base_class = Python2::Internals::getvar($stack, 1, '%s'); $%s::ISA[0] = ref($$base_class);|, $node.base-class.name, $perl5_class_name);
+            $p5 ~= sprintf(q|my $base_class = Python2::Internals::getvar($stack, 1, '%s'); $%s::ISA[0] = ref($base_class);|, $node.base-class.name, $perl5_class_name);
         }
         else {
             $p5 ~= sprintf(q|$%s::ISA[0] = 'Python2::Type::Object';|, $perl5_class_name);
@@ -932,7 +932,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= qq|\n# line 999 "___position_{$right-element.start-position}_{$right-element.end-position}___"\n|;
 
             $p5 ~= sprintf(
-                '$left = $$left->%s(${ %s });',
+                '$left = $left->%s(%s);',
                 %operator-method-map{$operator},
                 $.e($right-element)
             );
@@ -944,31 +944,31 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Python2::AST::Node::PropertyAccess $node) {
-        Q:s:b "\${$.e($node.atom)}->__getattr__(Python2::Type::Scalar::String->new($.e($node.property)), {})";
+        Q:s:b "$.e($node.atom)\->__getattr__(Python2::Type::Scalar::String->new($.e($node.property)), {})";
     }
 
     multi method e(Python2::AST::Node::SubscriptAccess $node) {
         $node.subscript.target
-            ?? Q:s:b "\${$.e($node.atom)}->__getslice__($.e($node.subscript), {})"
-            !! Q:s:b "(do { my \$p = \${$.e($node.atom)}->__getitem__($.e($node.subscript), {}); \$\$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . $.e($node.subscript)); \$p })";
+            ?? Q:s:c:b "{ $.e($node.atom) }->__getslice__($.e($node.subscript), \{\})"
+            !! Q:s:c:b "(do \{ my \$p = { $.e($node.atom) }->__getitem__($.e($node.subscript), \{\}); \$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . $.e($node.subscript)); \$p })";
     }
 
     multi method e(Python2::AST::Node::Call $node) {
-        Q:s:b "\${ $.e($node.atom) }->__call__($.e($node.arglist))";
+        Q:s:c:b "{ $.e($node.atom) }->__call__($.e($node.arglist))";
     }
 
     multi method e(Python2::AST::Node::Call::Name $node) {
         my Str $p5;
         $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.name.end-position}___"\n|;
-        $p5 ~= Q:s:b "\${ $.e($node.name) }->__call__($.e($node.arglist))";
+        $p5 ~= Q:s:c:b "{ $.e($node.name) }->__call__($.e($node.arglist))";
     }
 
     multi method e(Python2::AST::Node::Call::Method $node) {
         my Str $p5;
-        $p5 ~= Q:s:b "(do { my \$p = \${$.e($node.atom)};";
+        $p5 ~= Q:s:b "(do { my \$p = $.e($node.atom);";
         $p5 ~= Q:s:b "my @a = ($.e($node.arglist));";
         $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.name.end-position}___"\n|;
-        $p5 ~= Q:s:b "\$p->can('$node.name.name()') ? \$p->$node.name.name()\(@a) : \${ \$p->__getattr__(Python2::Type::Scalar::String->new('$node.name.name()'), {}) }->__call__(@a) })";
+        $p5 ~= Q:s:b "\$p->can('$node.name.name()') ? \$p->$node.name.name()\(@a) : \$p->__getattr__(Python2::Type::Scalar::String->new('$node.name.name()'), {})->__call__(@a) })";
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {
@@ -992,7 +992,7 @@ class Python2::Backend::Perl5 {
             $p5 ~= qq|\n# line 999 "___position_{$right-element.start-position}_{$right-element.end-position}___"\n|;
 
             $p5 ~= sprintf(
-                q|$left = Python2::Internals::arithmetic(${ $left }, ${ %s }, '%s');|,
+                q|$left = Python2::Internals::arithmetic($left, %s, '%s');|,
                 $.e($right-element),
                 $.e($operation)
             );
@@ -1032,33 +1032,33 @@ class Python2::Backend::Perl5 {
 
             $p5 ~= "\nsub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
             $p5 ~= $string;
-            $p5 ~= Q:c:b "\nMAGICendOfStringMARKER\n; chomp(\$s); return \\{$class}->new(\$s); }->()";
+            $p5 ~= Q:c:b "\nMAGICendOfStringMARKER\n; chomp(\$s); return {$class}->new(\$s); }->()";
         }
         else {
-            Q:c "\{$class}->new('{$string}')"
+            Q:c "{$class}->new('{$string}')"
         }
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
-        return sprintf('\Python2::Type::Scalar::Num->new(%s)', $node.value);
+        return sprintf('Python2::Type::Scalar::Num->new(%s)', $node.value);
     }
 
     multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
-        return sprintf('\Python2::Type::Scalar::Num->new(%s)', $node.value)
+        return sprintf('Python2::Type::Scalar::Num->new(%s)', $node.value)
     }
 
     multi method e(Python2::AST::Node::Subscript $node) {
         return $node.target
-            ?? sprintf('${ %s }, ${ %s }', $.e($node.value), $.e($node.target))
-            !! sprintf('${ %s }', $.e($node.value));
+            ?? sprintf('%s, %s', $.e($node.value), $.e($node.target))
+            !! sprintf('%s', $.e($node.value));
     }
 
     # list handling
     multi method e(Python2::AST::Node::Expression::ExpressionList $node) {
-        return sprintf('\Python2::Type::List->new(%s)',
+        return sprintf('Python2::Type::List->new(%s)',
             $node.expressions.map({
                     qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
-                ~   '${' ~ self.e($_) ~ '}'
+                ~   self.e($_)
             }).join(', ')
        );
     }
@@ -1066,15 +1066,15 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Expression::TestList $node) {
         # empty tuple "x = ()" becomes an empty tuple
         if ($node.tests.elems == 0) {
-            return '\Python2::Type::Tuple->new()';
+            return 'Python2::Type::Tuple->new()';
         }
 
         # tuple with multiple values "x = (1, 2, 3)" - regular tuple
         elsif $node.tests.elems > ($node.trailing-comma ?? 0 !! 1) {
-            return sprintf('\Python2::Type::Tuple->new(%s)',
+            return sprintf('Python2::Type::Tuple->new(%s)',
                 $node.tests.map({
                         qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
-                    ~   '${' ~ self.e($_) ~ '}'
+                    ~   self.e($_)
                 }).join(', ')
             );
         }
@@ -1091,15 +1091,15 @@ class Python2::Backend::Perl5 {
 
     # dictionary handling
     multi method e(Python2::AST::Node::Expression::DictionaryDefinition $node) {
-        return sprintf('\Python2::Type::Dict->new(%s)',
+        return sprintf('Python2::Type::Dict->new(%s)',
             $node.entries.map({
                     qq|\n# line 999 "___position_{$_.key.start-position}_{$_.key.end-position}___"\n|
-                ~   '${' ~ $.e($_.key)
+                ~   $.e($_.key)
 
-                ~   '} => ${'
+                ~   ' => '
 
                 ~   qq|\n# line 999 "___position_{$_.value.start-position}_{$_.value.end-position}___"\n|
-                ~   $.e($_.value) ~ '}'
+                ~   $.e($_.value)
             }).join(', ')
        );
     }
@@ -1107,7 +1107,7 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::DictComprehension $node) {
         my Str $p5;
 
-        $p5 ~= sprintf('sub { my $i = ${ %s };', $.e($node.iterable));
+        $p5 ~= sprintf('sub { my $i = %s;', $.e($node.iterable));
         $p5 ~= 'my $r = Python2::Type::Dict->new();';
 
         $p5 ~= 'foreach my $var ($i->ELEMENTS) {';
@@ -1115,27 +1115,27 @@ class Python2::Backend::Perl5 {
         $p5 ~= sprintf(q|die Python2::Type::Exception->new('TypeError', 'Expected iterable, got ' . $var->__type__) unless $var->can('__len__');|);
 
         # die if the elements in the object don't match the number of targets
-        $p5 ~= sprintf(q|die Python2::Type::Exception->new('ValueError', 'too many values to unpack') unless ${$var->__len__}->__tonative__ == %i;|, $node.names.elems);
+        $p5 ~= sprintf(q|die Python2::Type::Exception->new('ValueError', 'too many values to unpack') unless $var->__len__->__tonative__ == %i;|, $node.names.elems);
 
         for $node.names.kv -> $i, $target {
-            $p5 ~= sprintf(q|Python2::Internals::setvar($stack, %s, ${ $var->__getitem__(Python2::Type::Scalar::Num->new(%i)) });|, $.e($target), $i);
+            $p5 ~= sprintf(q|Python2::Internals::setvar($stack, %s, $var->__getitem__(Python2::Type::Scalar::Num->new(%i)));|, $.e($target), $i);
         }
 
-        $p5 ~= sprintf('next unless ${ %s }->__tonative__;', $.e($node.condition))
+        $p5 ~= sprintf('next unless %s->__tonative__;', $.e($node.condition))
             if ($node.condition);
 
-        $p5 ~= sprintf('$r->__setitem__(${ %s }, ${ %s });', $.e($node.key), $.e($node.value));
+        $p5 ~= sprintf('$r->__setitem__(%s, %s);', $.e($node.key), $.e($node.value));
         $p5 ~= '}';
 
-        return $p5 ~ 'return \$r; }->()';
+        return $p5 ~ 'return $r; }->()';
     }
 
     # set handling
     multi method e(Python2::AST::Node::Expression::SetDefinition $node) {
-        return sprintf('\Python2::Type::Set->new(%s)',
+        return sprintf('Python2::Type::Set->new(%s)',
             $node.entries.map({
                     qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
-                ~   '${' ~ $.e($_) ~ '}'
+                ~   $.e($_)
             }).join(', ')
        );
     }

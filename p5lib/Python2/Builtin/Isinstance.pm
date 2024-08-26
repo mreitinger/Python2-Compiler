@@ -15,12 +15,12 @@ sub __call__ {
     # compatibility hack with existing code: we use unicode everywhere but
     # the existing code might assume otherwise so we treat them all as equal
     # for isinstance() checks
-   return \Python2::Type::Scalar::Bool->new(1) if (
+   return Python2::Type::Scalar::Bool->new(1) if (
             $left->__type__ =~ m/^(str|basestring|unicode)$/
         and $right->__type__ =~ m/^(str|basestring|unicode)$/
     );
 
-    return \Python2::Type::Scalar::Bool->new($left->__type__ eq $right->__type__);
+    return Python2::Type::Scalar::Bool->new($left->__type__ eq $right->__type__);
 };
 
 1;

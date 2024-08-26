@@ -24,7 +24,7 @@ sub match {
     die Python2::Type::Exception->new('TypeError', 'match() expected string, got ' . $value->__type__)
         unless $value->__type__ eq 'str';
 
-    return \Python2::Type::Scalar::Bool->new(
+    return Python2::Type::Scalar::Bool->new(
         $value->__tonative__ =~ $self->{stack}->[1]->{regex}
     );
 }
@@ -50,7 +50,7 @@ sub sub {
 
     $string =~ s/$regex/$replacement/g;
 
-    return \Python2::Type::Scalar::String->new($string);
+    return Python2::Type::Scalar::String->new($string);
 }
 
 1;

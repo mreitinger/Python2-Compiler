@@ -28,7 +28,7 @@ sub quote {
     my $unsafe = "^A-Za-z0-9\-\._";
     my $escaped = uri_escape_utf8($string->__tonative__, $unsafe);
 
-    return \Python2::Type::Scalar::String->new($escaped);
+    return Python2::Type::Scalar::String->new($escaped);
 }
 
 sub quote_plus {
@@ -40,7 +40,7 @@ sub quote_plus {
     my $escaped = uri_escape_utf8($string->__tonative__, $unsafe);
     $escaped =~ s/ /+/g;
 
-    return \Python2::Type::Scalar::String->new($escaped);
+    return Python2::Type::Scalar::String->new($escaped);
 }
 
 sub urlopen {
@@ -52,7 +52,7 @@ sub urlopen {
 
     my $response = $ua->get($url->__tonative__);
 
-    return \Python2::Type::Object::StdLib::urllib::addinfourl->new($response);
+    return Python2::Type::Object::StdLib::urllib::addinfourl->new($response);
 }
 
 

@@ -20,12 +20,12 @@ sub __call__ {
 
     foreach my $key (keys %{ $self->{caller_stack}->[1] }) {
         $locals->__setitem__(
-            ${ Python2::Internals::convert_to_python_type($key) },
+            Python2::Internals::convert_to_python_type($key),
             $self->{caller_stack}->[1]->{$key},
         );
     }
 
-    return \$locals;
+    return $locals;
 }
 
 1;

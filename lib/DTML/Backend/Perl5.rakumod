@@ -97,7 +97,7 @@ multi method e(@chunks) {
 multi method e(DTML::AST::Expression $node) {
     $node.word
         ?? "\$self->eval_word(\$context, \$dynamics, \$lexpads, '$node.word()', -1)"
-        !! "do \{ my \$res = \$\{ $.e($node.expression) \}; blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
+        !! "do \{ my \$res = $.e($node.expression); blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
 }
 
 multi method e(DTML::AST::Var $node) {
@@ -339,7 +339,7 @@ multi method e(DTML::AST::Try $node) {
 }
 
 sub tonative($val) {
-    'do { my $val = ${' ~ $val ~ '}; blessed $val && $val->isa("Python2::Type") ? $val->__tonative__ : $val }'
+    'do { my $val = ' ~ $val ~ '; blessed $val && $val->isa("Python2::Type") ? $val->__tonative__ : $val }'
 }
 
 multi method e(DTML::AST::Zms $node) {

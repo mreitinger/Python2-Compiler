@@ -43,11 +43,11 @@ sub __call__ {
         $self->[1]->{ts} = $ts;
     }
 
-    return \$self;
+    return $self;
 }
 
 sub __str__ {
-    return ${ shift->strftime("%Y-%m-%d %H:%M:%S") };
+    return shift->strftime("%Y-%m-%d %H:%M:%S");
 }
 
 sub __tonative__ {
@@ -63,26 +63,26 @@ sub __sub__ {
     # TODO
     warn $d->__type__;
 
-    return \$self;
+    return $self;
 }
 
 sub timeTime {
     pop(@_); # default named arguments hash
     my ($self) = @_;
 
-    return \Python2::Type::Scalar::Num->new($self->[1]->{ts});
+    return Python2::Type::Scalar::Num->new($self->[1]->{ts});
 
 }
 
 sub strftime {
     my ($self, $format) = @_;
-    return \Python2::Type::Scalar::String->new(POSIX::strftime($format, localtime($self->[1]->{ts})));
+    return Python2::Type::Scalar::String->new(POSIX::strftime($format, localtime($self->[1]->{ts})));
 }
 
 sub toZone {
     my ($self, $z) = @_;
 
-    return \$self;
+    return $self;
 }
 
 sub isPast {
@@ -90,7 +90,7 @@ sub isPast {
     # python says True, perl says False
     # probably bc it doesn't take microseconds into account, we'd have to use Time::HiRes
     # we don't care by now
-    return \Python2::Type::Scalar::Bool->new(shift->[1]->{ts} < time);
+    return Python2::Type::Scalar::Bool->new(shift->[1]->{ts} < time);
 }
 
 sub rfc822 {
@@ -111,17 +111,17 @@ sub dow {
 
 sub day {
     my @t = localtime(shift->[1]->{ts});
-    \Python2::Type::Scalar::Num->new($t[3]);
+    Python2::Type::Scalar::Num->new($t[3]);
 }
 
 sub month {
     my @t = localtime(shift->[1]->{ts});
-    \Python2::Type::Scalar::Num->new($t[4] + 1);
+    Python2::Type::Scalar::Num->new($t[4] + 1);
 }
 
 sub year {
     my @t = localtime(shift->[1]->{ts});
-    \Python2::Type::Scalar::Num->new($t[5] + 1900);
+    Python2::Type::Scalar::Num->new($t[5] + 1900);
 }
 
 1;
