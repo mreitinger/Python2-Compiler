@@ -103,7 +103,7 @@ multi method e(DTML::AST::Expression $node) {
 
 multi method e(DTML::AST::Var $node) {
     if ($node.expression.word // '') eq 'REQUEST' {
-        return pre ~ Q:b 'return $request->dump_debug_information;\n';
+        return pre ~ Q:b '$body .= $request->dump_debug_information;\n';
     }
 
     my $var = Q:s:f "$.e($node.expression) // ''";
