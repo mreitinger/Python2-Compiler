@@ -18,7 +18,8 @@ sub new {
 
     my $self = bless(\%elements, $class);
 
-    while (my $key = shift @initial_elements) {
+    while (@initial_elements) {
+        my $key = shift @initial_elements;
         my $value = shift @initial_elements;
 
         $self->__setitem__($key, $value);

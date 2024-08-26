@@ -5,7 +5,7 @@ use warnings;
 use strict;
 
 use overload
-    bool     => sub { return 'true-from-python'; },
+    bool     => sub { return $_[0]->__is_py_true__ ? 'true-from-python' : undef; },
     '""'     => sub { return $_[0]->$*; },
     fallback => 1; # Required for older Perl's - fixed with (at latest) 5.36.
 
