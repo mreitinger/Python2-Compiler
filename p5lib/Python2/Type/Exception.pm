@@ -16,6 +16,16 @@ use overload
         return 1 if ($expected eq "Exception");
 
         return 1 if ($self->[0] eq $expected);
+    },
+
+    # used so we can do "cheap" runtime checks
+    'ne' => sub {
+        my ($self, $expected) = @_;
+
+        # ugly hack - match exception for everything
+        return 0 if ($expected eq "Exception");
+
+        return 1 if ($self->[0] ne $expected);
     };
 
 my $valid_exceptions = {
