@@ -12,6 +12,7 @@ use warnings;
 use strict;
 
 use Python2::Internals;
+use Scalar::Util qw(blessed);
 
 sub new {
     my ($self, $parent, $locals) = @_;
@@ -29,9 +30,20 @@ sub get : lvalue {
 
     # if it's not a ::Frame it was supplied by overriding globals/locals so we need to convert
     # it to a python type
-    ref($self->[1]) eq 'Python2::Stack::Frame'
-        ? $self->[1]->__getattr__($name, $gracefully)
-        : Python2::Internals::convert_to_python_type( $self->[1]->__getattr__($name) );
+    if (ref($self->[1]) eq 'Python2::Stack::Frame') {
+        $self->[1]->__getattr__($name, $gracefully)
+    }
+    else {
+        my $res = Python2::Internals::convert_to_python_type( $self->[1]->__getattr__($name) );
+        if (blessed $res and $res->isa('Python2::Type::Scalar::None')) {
+            die Python2::Type::Exception->new('Cannot assign to transient value')
+                if $gracefully;
+            die Python2::Type::Exception->new("NameError", "name '$name' is not defined")
+        }
+        else {
+            $res
+        }
+    }
 }
 
 sub set {
