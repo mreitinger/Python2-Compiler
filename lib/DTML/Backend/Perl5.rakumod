@@ -53,6 +53,7 @@ sub stmt($stmt, &content) {
 
 multi method e(DTML::AST::Template $node, :$embedded) {
     my $*LEVEL = 4;
+    my $*DTML-SOURCE = $node.input;
     my $body = Q:s:b:f:to/CODE/.chomp;
 
                 sub {

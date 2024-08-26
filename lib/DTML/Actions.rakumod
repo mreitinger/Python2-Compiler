@@ -9,6 +9,8 @@ method TOP($/) {
     make DTML::AST::Template.new(
         :input($/.Str)
         :chunks($<chunk>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
     );
 }
 
@@ -21,11 +23,19 @@ method chunk($/) {
 }
 
 method content($/) {
-    make DTML::AST::Content.new(:content($/.Str));
+    make DTML::AST::Content.new(
+        :content($/.Str),
+        :start-position($/.from),
+        :end-position($/.to),
+    );
 }
 
 method include($/) {
-    make DTML::AST::Include.new(:file($<file>.Str));
+    make DTML::AST::Include.new(
+        :file($<file>.Str),
+        :start-position($/.from),
+        :end-position($/.to),
+    );
 }
 
 method dtml:sym<var>($/) {
@@ -33,10 +43,14 @@ method dtml:sym<var>($/) {
         ?? DTML::AST::Var.new(
             :expression(DTML::AST::Expression.new(:word($<word>.ast))),
             :attributes($<dtml-entity-attribute>».ast),
+            :start-position($/.from),
+            :end-position($/.to),
         )
         !! DTML::AST::Var.new(
             :expression($<dtml-expression>.ast),
             :attributes($<dtml-attribute>».ast),
+            :start-position($/.from),
+            :end-position($/.to),
         )
 }
 
@@ -44,6 +58,8 @@ method dtml:sym<return>($/) {
     make DTML::AST::Return.new(
         :expression($<dtml-expression>.ast),
         :attributes($<dtml-attribute>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
     )
 }
 
@@ -53,6 +69,8 @@ method dtml:sym<if>($/) {
         :then($<then>».ast),
         :elif($<dtml-elif>».ast),
         :else($<else>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
     )
 }
 
@@ -60,6 +78,8 @@ method dtml-elif($/) {
     make DTML::AST::Elif.new(
         :expression($<dtml-expression>.ast),
         :chunks($<chunk>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
     )
 }
 
@@ -70,38 +90,60 @@ method dtml:sym<unless>($/) {
             :expression($<dtml-expression>.ast),
             :then($<then>».ast),
             :else($<else>».ast),
+            :start-position($/.from),
+            :end-position($/.to),
         )
         !! DTML::AST::If.new(
             :if('unless'),
             :expression($<dtml-expression>.ast),
             :then($<then>».ast),
+            :start-position($/.from),
+            :end-position($/.to),
         )
 }
 
 method dtml:sym<let>($/) {
-    make DTML::AST::Let.new(:declarations($<dtml-declaration>».ast), :chunks($<chunk>».ast))
+    make DTML::AST::Let.new(
+        :declarations($<dtml-declaration>».ast),
+        :chunks($<chunk>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
+    )
 }
 
 method dtml:sym<with>($/) {
-    make DTML::AST::With.new(:expression($<dtml-expression>.ast), :chunks($<chunk>».ast))
+    make DTML::AST::With.new(
+        :expression($<dtml-expression>.ast),
+        :chunks($<chunk>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
+    )
 }
 
 method dtml:sym<in>($/) {
     make DTML::AST::In.new(
         :expression($<dtml-expression>.ast),
         :attributes($<dtml-attribute>».ast),
-        :chunks($<chunk>».ast)
+        :chunks($<chunk>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
     )
 }
 
 method dtml:sym<call>($/) {
-    make DTML::AST::Call.new(:expression($<dtml-expression>.ast))
+    make DTML::AST::Call.new(
+        :expression($<dtml-expression>.ast),
+        :start-position($/.from),
+        :end-position($/.to),
+    )
 }
 
 method dtml:sym<try>($/) {
     make DTML::AST::Try.new(
         :chunks($<chunk>».ast),
         :except($<dtml-except> ?? $<dtml-except><chunk>».ast !! []),
+        :start-position($/.from),
+        :end-position($/.to),
     )
 }
 
@@ -113,6 +155,8 @@ method dtml:sym<zms>($/) {
         :treenode_filter($<treenode_filter> ?? $<treenode_filter>[0]<test-list>.ast !! Nil),
         :content_switch($<content_switch> ?? $<content_switch>[0]<test-list>.ast !! Nil),
         :attributes($<dtml-attribute>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
     );
 }
 
@@ -120,15 +164,24 @@ method dtml-attribute($/) {
     make DTML::AST::Attribute.new(
         :name($<name>.ast),
         :value($<value> ?? $<value>.Str !! Nil)
+        :start-position($/.from),
+        :end-position($/.to),
     )
 }
 
 method dtml-entity-attribute($/) {
-    make DTML::AST::Attribute.new(:name($<name>.Str))
+    make DTML::AST::Attribute.new(
+        :name($<name>.Str),
+        :start-position($/.from),
+        :end-position($/.to),
+    )
 }
 
 method dtml:sym<comment>($/) {
-    make DTML::AST::Comment.new
+    make DTML::AST::Comment.new(
+        :start-position($/.from),
+        :end-position($/.to),
+    )
 }
 
 method dtml-declaration($/) {
@@ -138,13 +191,23 @@ method dtml-declaration($/) {
             ?? DTML::AST::Expression.new(:word($<value-word>.ast))
             !! DTML::AST::Expression.new(:expression($<test-list>.ast))
         ),
+        :start-position($/.from),
+        :end-position($/.to),
     )
 }
 
 method dtml-expression($/) {
     make $<word>
-        ?? DTML::AST::Expression.new(:word($<word>.ast))
-        !! DTML::AST::Expression.new(:expression($<test-list>.ast))
+        ?? DTML::AST::Expression.new(
+            :word($<word>.ast)
+            :start-position($/.from),
+            :end-position($/.to),
+        )
+        !! DTML::AST::Expression.new(
+            :expression($<test-list>.ast)
+            :start-position($/.from),
+            :end-position($/.to),
+        )
 }
 
 method word($/) {

@@ -12,39 +12,45 @@ role DTML::AST::WithAttributes {
     }
 }
 
-class DTML::AST::Template {
+class DTML::AST::Template is Node {
     has Str $.input;
     has @.chunks;
 }
 
-class DTML::AST::Content {
+class DTML::AST::Content is Node {
     has Str $.content;
 }
 
-class DTML::AST::Expression {
+class DTML::AST::Expression is Node {
     has Str $.word;
     has Python2::AST::Node::Expression::TestList $.expression;
 
     method escaped-gist() {
-        my $code = $!word // $!expression.gist; # TODO use source
+        my $code;
+        if $*DTML-SOURCE {
+            $code = $*DTML-SOURCE.substr($.start-position + 1, $.end-position - $.start-position - 2);
+        }
+        else {
+            $code = $!word // $!expression.gist;
+        }
         $code.subst('"', '\"', :g)
     }
 }
 
-class DTML::AST::Declaration {
+class DTML::AST::Declaration is Node {
     has Str $.name;
     has DTML::AST::Expression $.expression;
 }
 
-class DTML::AST::Var does DTML::AST::WithAttributes {
+class DTML::AST::Var is Node does DTML::AST::WithAttributes {
     has DTML::AST::Expression $.expression;
 }
 
-class DTML::AST::Return does DTML::AST::WithAttributes {
+class DTML::AST::Return is Node does DTML::AST::WithAttributes {
     has DTML::AST::Expression $.expression;
 }
 
-class DTML::AST::If {
+class DTML::AST::If is Node {
     has $.if = 'if';
     has DTML::AST::Expression $.expression;
     has @.then;
@@ -52,36 +58,36 @@ class DTML::AST::If {
     has @.else;
 }
 
-class DTML::AST::Elif {
+class DTML::AST::Elif is Node {
     has DTML::AST::Expression $.expression;
     has @.chunks;
 }
 
-class DTML::AST::Let {
+class DTML::AST::Let is Node {
     has @.declarations;
     has @.chunks;
 }
 
-class DTML::AST::With {
+class DTML::AST::With is Node {
     has DTML::AST::Expression $.expression;
     has @.chunks;
 }
 
-class DTML::AST::In does DTML::AST::WithAttributes {
+class DTML::AST::In is Node does DTML::AST::WithAttributes {
     has DTML::AST::Expression $.expression;
     has @.chunks;
 }
 
-class DTML::AST::Call {
+class DTML::AST::Call is Node {
     has DTML::AST::Expression $.expression;
 }
 
-class DTML::AST::Try {
+class DTML::AST::Try is Node {
     has @.chunks;
     has @.except;
 }
 
-class DTML::AST::Zms does DTML::AST::WithAttributes {
+class DTML::AST::Zms is Node does DTML::AST::WithAttributes {
     has Python2::AST::Node::Expression::TestList $.obj;
     has Python2::AST::Node::Expression::TestList $.level;
     has Python2::AST::Node::Expression::TestList $.activenode;
@@ -105,14 +111,14 @@ class DTML::AST::Zms does DTML::AST::WithAttributes {
     }
 }
 
-class DTML::AST::Attribute {
-    has Str $.name;
-    has Str $.value;
-}
-
-class DTML::AST::Include {
+class DTML::AST::Include is Node {
     has Str $.file;
 }
 
-class DTML::AST::Comment {
+class DTML::AST::Comment is Node {
+}
+
+class DTML::AST::Attribute is Node {
+    has Str $.name;
+    has Str $.value;
 }
