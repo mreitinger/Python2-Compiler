@@ -41,7 +41,16 @@ token dtml:sym<var> {
     | [
         '<' <.ws> 'dtml-' <.ws> 'var' <.ws>
         <dtml-expression> <.ws>
-        <dtml-attribute>* % <.ws>
+        [
+            || <dump=value-attribute('dump')>
+            || <fmt=value-attribute('fmt')>
+            || <size=value-attribute('size')>
+            || <etc=value-attribute('etc')>
+            || <remove_attributes=value-attribute('remove_attributes')>
+            || <remove_tags=value-attribute('remove_tags')>
+            || <tag_content_only=value-attribute('tag_content_only')>
+            || <dtml-attribute>
+        ]* % <.ws>
         <.ws> '>'
     ]
     | [
@@ -119,7 +128,13 @@ token dtml:sym<with> {
 token dtml:sym<in> {
     <.start-tag('in')>
     <dtml-expression> <.ws>
-    <dtml-attribute>* % <.ws>
+    [
+        || <reverse=value-attribute('reverse')>
+        || <start=value-attribute('start')>
+        || <end=value-attribute('end')>
+        || <size=value-attribute('size')>
+        || <dtml-attribute>
+    ]* % <.ws>
     <.ws> '>'
     <chunk>*
     <.end-tag('in')>
@@ -142,6 +157,10 @@ token dtml:sym<try> {
 token dtml:sym<zms> {
     <.start-tag('zms')>
         [
+            || <id=value-attribute('id')>
+            || <caption=value-attribute('caption')>
+            || <class=value-attribute('class')>
+            || <max_children=value-attribute('max_children')>
             || <obj=expression-attribute('obj')>
             || <level=expression-attribute('level')>
             || <activenode=expression-attribute('activenode')>
@@ -150,6 +169,16 @@ token dtml:sym<zms> {
             || <dtml-attribute>
         ]* % <.ws>
     <.ws> '>'
+}
+
+token value-attribute($name) {
+    $<name>=$name <.ws> '=' <.ws>
+    [
+        || $<value>=\d+
+        || \" $<value>=<-["]>* \"
+        || \' $<value>=<-[']>* \'
+        || <value-word=word>
+    ]
 }
 
 token expression-attribute($name) {

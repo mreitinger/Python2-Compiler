@@ -1,26 +1,5 @@
 use Python2::AST;
 
-role DTML::AST::WithAttributes {
-    has @.attributes;
-
-    method has-attr($name) {
-        @!attributes and @!attributes.any.name eq $name
-    }
-
-    method attr($name) {
-        @!attributes.first(*.name eq $name).value;
-    }
-}
-
-class DTML::AST::Template is Node {
-    has Str $.input;
-    has @.chunks;
-}
-
-class DTML::AST::Content is Node {
-    has Str $.content;
-}
-
 class DTML::AST::Expression is Node {
     has Str $.word;
     has Python2::AST::Node::Expression::TestList $.expression;
@@ -37,12 +16,50 @@ class DTML::AST::Expression is Node {
     }
 }
 
+class DTML::AST::Attribute is Node {
+    has Str $.name;
+    has Str $.value;
+    has DTML::AST::Expression $.expression;
+
+    method value-escaped() {
+        $.value.subst(Q'\', Q'\\', :g).subst(Q"'", Q"\'", :g)
+    }
+}
+
+role DTML::AST::WithAttributes {
+    has @.attributes;
+
+    method has-attr($name) {
+        @!attributes and @!attributes.any.name eq $name
+    }
+
+    method attr($name) {
+        @!attributes.first(*.name eq $name);
+    }
+}
+
+class DTML::AST::Template is Node {
+    has Str $.input;
+    has @.chunks;
+}
+
+class DTML::AST::Content is Node {
+    has Str $.content;
+}
+
 class DTML::AST::Declaration is Node {
     has Str $.name;
     has DTML::AST::Expression $.expression;
 }
 
 class DTML::AST::Var is Node does DTML::AST::WithAttributes {
+    has DTML::AST::Attribute $.dump;
+    has DTML::AST::Attribute $.fmt;
+    has DTML::AST::Attribute $.size;
+    has DTML::AST::Attribute $.etc;
+    has DTML::AST::Attribute $.remove_attributes;
+    has DTML::AST::Attribute $.remove_tags;
+    has DTML::AST::Attribute $.tag_content_only;
     has DTML::AST::Expression $.expression;
 }
 
@@ -74,6 +91,10 @@ class DTML::AST::With is Node {
 }
 
 class DTML::AST::In is Node does DTML::AST::WithAttributes {
+    has DTML::AST::Attribute $.reverse;
+    has DTML::AST::Attribute $.start;
+    has DTML::AST::Attribute $.end;
+    has DTML::AST::Attribute $.size;
     has DTML::AST::Expression $.expression;
     has @.chunks;
 }
@@ -88,18 +109,19 @@ class DTML::AST::Try is Node {
 }
 
 class DTML::AST::Zms is Node does DTML::AST::WithAttributes {
-    has Python2::AST::Node::Expression::TestList $.obj;
-    has Python2::AST::Node::Expression::TestList $.level;
-    has Python2::AST::Node::Expression::TestList $.activenode;
-    has Python2::AST::Node::Expression::TestList $.treenode_filter;
-    has Python2::AST::Node::Expression::TestList $.content_switch;
+    has DTML::AST::Attribute $.id;
+    has DTML::AST::Attribute $.caption;
+    has DTML::AST::Attribute $.class;
+    has DTML::AST::Attribute $.max_children;
 
-    method value-attribute($attr) {
-        return Slip unless self.has-attr($attr);
-        "$attr => '$.attr($attr)'"
-    }
+    has DTML::AST::Attribute $.obj;
+    has DTML::AST::Attribute $.level;
+    has DTML::AST::Attribute $.activenode;
+    has DTML::AST::Attribute $.treenode_filter;
+    has DTML::AST::Attribute $.content_switch;
+
     method default-value-attribute($attr, $default) {
-        "$attr => '{ $.attr($attr) or $default }'"
+        "$attr => '{ $.attr($attr).value or $default }'"
     }
 
     method use-caption-images() {
@@ -116,9 +138,4 @@ class DTML::AST::Include is Node {
 }
 
 class DTML::AST::Comment is Node {
-}
-
-class DTML::AST::Attribute is Node {
-    has Str $.name;
-    has Str $.value;
 }

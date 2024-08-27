@@ -109,26 +109,26 @@ multi method e(DTML::AST::Var $node) {
     my $var = Q:s:f "$.e($node.expression) // ''";
     my $*CODE = '';
     line
-        "\{ local \$Data::Dumper::Maxdepth = ({$node.attr('dump') or 2});"
+        "\{ local \$Data::Dumper::Maxdepth = ({$node.attr('dump').value or 2});"
         ~ qq! my \$output = "$node.expression.escaped-gist(): " . Data::Dumper::Dumper(scalar $var);!
         ~ " warn \$output;"
         ~ Q[ $body .= '<pre>' . HTML::Escape::escape_html($output) . '</pre>'; }]
         if $node.has-attr('dump');
 
-    $var = "($var)->strftime('$node.attr("fmt")')" if $node.has-attr('fmt');
-    $var = "DTML::Renderer::cut_at_size($var, $node.attr('size')" ~ ($node.has-attr('etc') ?? ", '$node.attr("etc")'" !! '') ~ ')'
-        if $node.has-attr('size');
+    $var = "($var)->strftime($.e($node.fmt))" if $node.fmt;
+    $var = "DTML::Renderer::cut_at_size($var, $.e($node.size)" ~ ($node.etc.defined ?? ", $.e($node.etc)" !! '') ~ ')'
+        if $node.size;
     $var = "HTML::Escape::escape_html($var)"        if $node.has-attr('html_quote');
     $var = "URI::Escape::uri_escape_utf8($var)"    if $node.has-attr('url_quote');
     $var = "DTML::Renderer::newline_to_br($var)"      if $node.has-attr('newline_to_br');
     $var = "DTML::Renderer::links_target_blank($var)" if $node.has-attr('links_target_blank');
 
-    $var = "DTML::Renderer::remove_attributes($var, '$node.attr("remove_attributes")')"
-        if $node.has-attr('remove_attributes');
-    $var = "DTML::Renderer::remove_tags($var, '$node.attr("remove_tags")')"
-        if $node.has-attr('remove_tags');
-    $var = Q:s:f[DTML::Renderer::tag_content_only("" . $var, '$node.attr('tag_content_only')')]
-        if $node.has-attr('tag_content_only');
+    $var = "DTML::Renderer::remove_attributes($var, $.e($node.remove_attributes))"
+        if $node.remove_attributes;
+    $var = "DTML::Renderer::remove_tags($var, $.e($node.remove_tags))"
+        if $node.remove_tags;
+    $var = Q:s:f[DTML::Renderer::tag_content_only("" . $var, $.e($node.tag_content_only))]
+        if $node.tag_content_only;
 
     line "\$body .= $var;";
     $*CODE
@@ -223,6 +223,13 @@ multi method e(DTML::AST::With $node) {
     $*CODE
 }
 
+multi method e(DTML::AST::Attribute $node) {
+    my $v = $node.value;
+    $v.defined
+        ?? $node.value.match(/^\d+$/) ?? $node.value !! "'$node.value-escaped()'"
+        !! $.e($node.expression)
+}
+
 multi method e(DTML::AST::In $node) {
     my $*CODE = '';
 
@@ -235,20 +242,18 @@ multi method e(DTML::AST::In $node) {
             ~ ' and Python2::InlinePythonAPI::py_is_tuple($values[0]);'
             if $node.expression.word;
 
-        if ($node.attributes) {
-            if $node.has-attr('reverse') {
-                line '@values = reverse @values;';
-            }
-            if $node.has-attr('start') {
-                line "splice \@values, 0, $node.attr('start') - 1 if $node.attr('start') > 1;";
-            }
-            if $node.has-attr('end') {
-                my $offset = $node.attr('end') - ($node.has-attr('start') ?? $node.attr('start') - 1 !! 0);
-                line "splice \@values, $offset if $offset < scalar \@values;";
-            }
-            if $node.has-attr('size') {
-                line "splice \@values, $node.attr('size') if \@values > $node.attr('size');";
-            }
+        if $node.reverse or $node.has-attr('reverse') {
+            line '@values = reverse @values;';
+        }
+        if $node.start {
+            line "\{ my \$start = $.e($node.start); splice \@values, 0, \$start - 1 if \$start > 1};";
+        }
+        if $node.end {
+            my $offset = $.e($node.end) ~ ($node.start ?? " - $.e($node.start) + 1" !! '');
+            line "\{my \$offset = $offset; splice \@values, \$offset if \$offset < scalar \@values\};";
+        }
+        if $node.size {
+            line "\{my \$size = $.e($node.size); splice \@values, \$size if \@values > \$size\};";
         }
         line 'my $i = 0;';
         stmt 'foreach my $sequence_item (@values)', {;
@@ -280,7 +285,7 @@ multi method e(DTML::AST::In $node) {
                 line "'sequence-end'    => \$i == \@values - 1,";
                 line "'sequence-length' => scalar \@values,";
                 if ($node.has-attr('prefix')) {
-                    my $prefix = $node.attr('prefix');
+                    my $prefix = $node.attr('prefix').value.subst(Q'\', Q'\\').subst("'", Q"\'", :g);
                     line "(defined \$sequence_key ? ('{$prefix}_key' => \$sequence_key) : ()),";
                     line "'{$prefix}_item'   => \$sequence_item,";
                     line "'{$prefix}_index'  => \$i,";
@@ -339,29 +344,29 @@ multi method e(DTML::AST::Try $node) {
     $*CODE
 }
 
-sub tonative($val) {
-    'do { my $val = ' ~ $val ~ '; blessed $val && $val->isa("Python2::Type") ? $val->__tonative__ : $val }'
-}
-
 multi method e(DTML::AST::Zms $node) {
     my $*CODE = '';
 
-    my $root = $node.obj ?? tonative($.e($node.obj)) !! '$context';
-    line '$body .= ' ~ $root
-        ~ "->navigation_tree(\n" ~ (
-            $node.value-attribute('id'),
-            $node.level ?? "level => { tonative($.e($node.level)) }" !! Slip,
-            "root => $root",
-            $node.default-value-attribute('expanded', 0),
-            $node.use-caption-images,
-            $node.default-value-attribute('link_min_level', 0),
-            $node.activenode ?? "activenode => { tonative($.e($node.activenode)) }" !! Slip,
-            $node.treenode_filter ?? "treenode_filter => { tonative($.e($node.treenode_filter)) }" !! Slip,
-            $node.value-attribute('caption'),
-            $node.value-attribute('class'),
-            $node.value-attribute('max_children'),
-            $node.content_switch ?? "content_switch => { tonative($.e($node.content_switch)) }" !! Slip,
-        ).join(",\n") ~ ");";
+    my $root = $node.obj ?? $.e($node.obj) !! '$context';
+    my @attrs;
+    @attrs.push: "root => $root";
+    @attrs.push: "id => $.e($node.id)" if $node.id;
+    @attrs.push: "level => $.e($node.level)" if $node.level;
+    @attrs.push: $node.default-value-attribute('expanded', 0);
+    @attrs.push: $node.use-caption-images;
+    @attrs.push: $node.default-value-attribute('link_min_level', 0);
+    @attrs.push: "activenode => $.e($node.activenode)" if $node.activenode;
+    @attrs.push: "treenode_filter => $.e($node.treenode_filter)" if $node.treenode_filter;
+    @attrs.push: "caption => $.e($node.caption)" if $node.caption;
+    @attrs.push: "class => $.e($node.class)" if $node.class;
+    @attrs.push: "max_children => $.e($node.max_children)" if $node.max_children;
+    @attrs.push: "content_switch => $.e($node.content_switch)" if $node.content_switch;
+
+    line '$body .= ' ~ "$root\->navigation_tree(";
+    indented {
+        line "$_," for @attrs;
+    }
+    line ');';
 
     $*CODE
 }

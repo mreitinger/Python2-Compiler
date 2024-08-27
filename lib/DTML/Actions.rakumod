@@ -39,19 +39,19 @@ method include($/) {
 }
 
 method dtml:sym<var>($/) {
-    make $<word>
-        ?? DTML::AST::Var.new(
-            :expression(DTML::AST::Expression.new(:word($<word>.ast))),
-            :attributes($<dtml-entity-attribute>».ast),
-            :start-position($/.from),
-            :end-position($/.to),
-        )
-        !! DTML::AST::Var.new(
-            :expression($<dtml-expression>.ast),
-            :attributes($<dtml-attribute>».ast),
-            :start-position($/.from),
-            :end-position($/.to),
-        )
+    make DTML::AST::Var.new(
+        :expression($<word> ?? DTML::AST::Expression.new(:word($<word>.ast)) !! $<dtml-expression>.ast),
+        :dump($<dump> ?? $<dump>[0].ast !! Nil),
+        :fmt($<fmt> ?? $<fmt>[0].ast !! Nil),
+        :size($<size> ?? $<size>[0].ast !! Nil),
+        :etc($<etc> ?? $<etc>[0].ast !! Nil),
+        :remove_attributes($<remove_attributes> ?? $<remove_attributes>[0].ast !! Nil),
+        :remove_tags($<remove_tags> ?? $<remove_tags>[0].ast !! Nil),
+        :tag_content_only($<tag_content_only> ?? $<tag_content_only>[0].ast !! Nil),
+        :attributes($<word> ?? $<dtml-entity-attribute>».ast !! $<dtml-attribute>».ast),
+        :start-position($/.from),
+        :end-position($/.to),
+    )
 }
 
 method dtml:sym<return>($/) {
@@ -123,6 +123,10 @@ method dtml:sym<with>($/) {
 method dtml:sym<in>($/) {
     make DTML::AST::In.new(
         :expression($<dtml-expression>.ast),
+        :reverse($<reverse> ?? $<reverse>[0].ast !! Nil),
+        :start($<start> ?? $<start>[0].ast !! Nil),
+        :end($<end> ?? $<end>[0].ast !! Nil),
+        :size($<size> ?? $<size>[0].ast !! Nil),
         :attributes($<dtml-attribute>».ast),
         :chunks($<chunk>».ast),
         :start-position($/.from),
@@ -149,11 +153,15 @@ method dtml:sym<try>($/) {
 
 method dtml:sym<zms>($/) {
     make DTML::AST::Zms.new(
-        :obj($<obj> ?? $<obj>[0]<test-list>.ast !! Nil),
-        :level($<level> ?? $<level>[0]<test-list>.ast !! Nil),
-        :activenode($<activenode> ?? $<activenode>[0]<test-list>.ast !! Nil),
-        :treenode_filter($<treenode_filter> ?? $<treenode_filter>[0]<test-list>.ast !! Nil),
-        :content_switch($<content_switch> ?? $<content_switch>[0]<test-list>.ast !! Nil),
+        :id($<id> ?? $<id>[0].ast !! Nil),
+        :caption($<caption> ?? $<caption>[0].ast !! Nil),
+        :class($<class> ?? $<class>[0].ast !! Nil),
+        :max_children($<max_children> ?? $<max_children>[0].ast !! Nil),
+        :obj($<obj> ?? $<obj>[0].ast !! Nil),
+        :level($<level> ?? $<level>[0].ast !! Nil),
+        :activenode($<activenode> ?? $<activenode>[0].ast !! Nil),
+        :treenode_filter($<treenode_filter> ?? $<treenode_filter>[0].ast !! Nil),
+        :content_switch($<content_switch> ?? $<content_switch>[0].ast !! Nil),
         :attributes($<dtml-attribute>».ast),
         :start-position($/.from),
         :end-position($/.to),
@@ -164,6 +172,35 @@ method dtml-attribute($/) {
     make DTML::AST::Attribute.new(
         :name($<name>.ast),
         :value($<value> ?? $<value>.Str !! Nil)
+        :start-position($/.from),
+        :end-position($/.to),
+    )
+}
+
+method value-attribute($/) {
+    make $<value-word>
+        ?? DTML::AST::Attribute.new(
+            :name($<name>.ast),
+            :expression(DTML::AST::Expression.new(:word($<value-word>.ast))),
+            :start-position($/.from),
+            :end-position($/.to),
+        )
+        !! DTML::AST::Attribute.new(
+            :name($<name>.ast),
+            :value($<value> ?? $<value>.Str !! Nil)
+            :start-position($/.from),
+            :end-position($/.to),
+        )
+}
+
+method expression-attribute($/) {
+    make DTML::AST::Attribute.new(
+        :name($<name>.ast),
+        :expression(
+            $<value-word>
+            ?? DTML::AST::Expression.new(:word($<value-word>.ast))
+            !! DTML::AST::Expression.new(:expression($<test-list>.ast))
+        ),
         :start-position($/.from),
         :end-position($/.to),
     )
