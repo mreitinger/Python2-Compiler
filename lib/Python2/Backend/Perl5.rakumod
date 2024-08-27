@@ -6,7 +6,46 @@ class Python2::Backend::Perl5 {
     has Str $!o = '';
     has Str %.modules;
     has $.compiler is required;
+    has @.scopes;
 
+    class Scope {
+        has %.names;
+
+        method name($name) {
+            %.names{$name}
+        }
+
+        method has-name($name) {
+            %.names{$name}:exists
+        }
+
+        method declare($name, $lexical) {
+            die "$name already declared in this scope" if self.has-name($name);
+            if $name ~~ /^\w+$/ {
+                %.names{$name} = $lexical;
+            }
+            else {
+                Nil
+            }
+        }
+    }
+
+    method enter-scope() {
+        @.scopes.push: Scope.new;
+    }
+
+    method leave-scope() {
+        @.scopes.pop;
+    }
+
+    method has-name($name) {
+        #@.scopes.reverse.grep(*.has-name($name)).head.name($name)
+        @.scopes && @.scopes[*-1].has-name($name) ?? @.scopes[*-1].name($name) !! Nil
+    }
+
+    method declare($name, $lexical) {
+        @.scopes[*-1].declare($name, $lexical);
+    }
 
     # Wrapper used for complete scripts
     has Str $!script-wrapper = q:to/END/;
@@ -278,12 +317,17 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Atom $node) {
         if ($node.expression ~~ Python2::AST::Node::Name) {
             my $recurse = $node.recurse ?? 1 !! 0;
-            my $expression = $.e($node.expression);
-            if $node.expression.must-resolve {
-                Q:s:b |Python2::Internals::getvar(\$stack, $recurse, $expression)|
+            if self.has-name($node.expression.name) -> $lexical {
+                $lexical
             }
             else {
-                Q:s:b "Python2::Internals::getvar(\$stack, $recurse, $expression, 1)";
+                my $expression = $.e($node.expression);
+                if $node.expression.must-resolve {
+                    Q:s:b |Python2::Internals::getvar(\$stack, $recurse, $expression)|
+                }
+                else {
+                    Q:s:b "Python2::Internals::getvar(\$stack, $recurse, $expression, 1)";
+                }
             }
         } else {
             $.e($node.expression);
@@ -847,12 +891,16 @@ class Python2::Backend::Perl5 {
 
         my Str $block;
 
+        self.enter-scope;
+
         # local stack frame for this lambda
         $block ~= 'my $self = shift; my $stack = $self->{stack}->clone;';
 
         # get arguments
         for $node.argument-list -> $argument {
-            $block ~= sprintf('Python2::Internals::setvar($stack, \'%s\', shift);', $argument.name.name);
+            my $lexical = self.declare($argument.name.name, "\$__arg__$argument.name.name()");
+            $lexical = "my $lexical = " if $lexical;
+            $block ~= sprintf('Python2::Internals::setvar($stack, \'%s\', %sshift);', $argument.name.name, $lexical);
         }
 
         # the actual function body
@@ -863,6 +911,8 @@ class Python2::Backend::Perl5 {
             $perl5_class_name,
             $block,
         );
+
+        self.leave-scope;
 
         return sprintf('%s->new($stack)', $perl5_class_name);
     }

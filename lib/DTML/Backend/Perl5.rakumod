@@ -95,10 +95,14 @@ multi method e(@chunks) {
     $*CODE ~= self.e($_) for @chunks;
 }
 
-multi method e(DTML::AST::Expression $node) {
+multi method e(DTML::AST::Expression $node, :$lexical = '') {
     $node.word
-        ?? "\$self->eval_word(\$context, \$dynamics, \$lexpads, '$node.word()', -1)"
-        !! "do \{ my \$res = $.e($node.expression); blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
+        ?? self.has-name($node.word)
+            ?? "do \{ my \$res = {$lexical ?? "$lexical = " !! ''}$.has-name($node.word); blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
+            !! $lexical
+                ?? "do \{ my \$res = \$self->eval_word(\$context, \$dynamics, \$lexpads, '$node.word()', -1); $lexical = Python2::Internals::convert_to_python_type(\$res); \$res \}"
+                !! "\$self->eval_word(\$context, \$dynamics, \$lexpads, '$node.word()', -1)"
+        !! "do \{ my \$res = {$lexical ?? "$lexical = " !! ''}$.e($node.expression); blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
 }
 
 multi method e(DTML::AST::Var $node) {
@@ -178,19 +182,31 @@ multi method e(DTML::AST::Let $node) {
     my $*CODE = '';
 
     block 'let', {
+        self.enter-scope;
         line 'push @$lexpads, {};';
         my %lexicals;
         for ($node.declarations) { # May be empty. Yes, people write <dtml-let> in templates
             my $attr = .name;
-            my $lexical = $attr ~~ /^\w+$/
-                ?? "{%lexicals{$attr}++ ?? '' !! 'my '}\$lexical_$attr = "
-                !! '';
-            line Q:b:s:f"$lexical\$lexpads->[-1]{'$attr'} = $.e($_.expression);";
+            my $lexical = '';
+            if $attr ~~ /^\w+$/ { # Can use lexicals!
+                $lexical = "\$lexical_$attr";
+                if %lexicals{$attr}++ {
+                    line Q:b:s:f"\$lexpads->[-1]{'$attr'} = $.e($_.expression, :$lexical);";
+                }
+                else {
+                    line Q:b:s:f"my $lexical; \$lexpads->[-1]{'$attr'} = $.e($_.expression, :$lexical);";
+                    self.declare($attr, "\$lexical_$attr");
+                }
+            }
+            else {
+                line Q:b:s:f"\$lexpads->[-1]{'$attr'} = $.e($_.expression);";
+            }
         }
 
         $.e($node.chunks);
 
         line 'pop @$lexpads;';
+        self.leave-scope;
     }
 
     $*CODE
@@ -257,6 +273,7 @@ multi method e(DTML::AST::In $node) {
         }
         line 'my $i = 0;';
         stmt 'foreach my $sequence_item (@values)', {;
+            self.enter-scope;
             line 'my $sequence_number = $i + 1;';
             line 'my $sequence_key;';
             line 'if ('
@@ -275,6 +292,7 @@ multi method e(DTML::AST::In $node) {
             line 'local $self->{context} = local $local_context->{context} = my $context = blessed $sequence_item ? $sequence_item : $outer;';
             line 'push @$lexpads, {';
             indented {
+                self.declare('sequence-item', 'Python2::Internals::convert_to_python_type($sequence_item)');
                 line '(defined $sequence_key ? (\'sequence-key\' => $sequence_key) : ()),';
                 line "'sequence-item'   => \$sequence_item,";
                 line "'sequence-index'  => \$i,";
@@ -287,6 +305,7 @@ multi method e(DTML::AST::In $node) {
                 if ($node.has-attr('prefix')) {
                     my $prefix = $node.attr('prefix').value.subst(Q'\', Q'\\').subst("'", Q"\'", :g);
                     line "(defined \$sequence_key ? ('{$prefix}_key' => \$sequence_key) : ()),";
+                    self.declare("{$prefix}_item", 'Python2::Internals::convert_to_python_type($sequence_item)');
                     line "'{$prefix}_item'   => \$sequence_item,";
                     line "'{$prefix}_index'  => \$i,";
                     line "'{$prefix}_number' => \$i + 1,";
@@ -303,6 +322,7 @@ multi method e(DTML::AST::In $node) {
 
             line 'pop @$lexpads;';
             line '$i++;';
+            self.leave-scope;
         }
     };
 
