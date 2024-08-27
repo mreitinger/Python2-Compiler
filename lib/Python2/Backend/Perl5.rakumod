@@ -465,6 +465,7 @@ class Python2::Backend::Perl5 {
     }
 
     multi method assign(Python2::AST::Node::SubscriptAccess $target, Str $expression) {
+        $target.must-resolve = False;
         Q:s:c:b "{ $.e($target.atom) }->__setitem__($.e($target.subscript), $expression, \{\})";
     }
 
@@ -949,8 +950,10 @@ class Python2::Backend::Perl5 {
 
     multi method e(Python2::AST::Node::SubscriptAccess $node) {
         $node.subscript.target
-            ?? Q:s:c:b "{ $.e($node.atom) }->__getslice__($.e($node.subscript), \{\})"
-            !! Q:s:c:b "(do \{ my \$p = { $.e($node.atom) }->__getitem__($.e($node.subscript), \{\}); \$p // die Python2::Type::Exception->new('KeyError', 'No element with key ' . $.e($node.subscript)); \$p })";
+            ?? Q:s:c:b "{ $.e($node.atom) }->__getslice__($.e($node.subscript))"
+            !! $node.must-resolve
+                ?? Q:s:c:b "{ $.e($node.atom) }->__getitem__($.e($node.subscript))"
+                !! Q:s:c:b "{ $.e($node.atom) }->__getitem__($.e($node.subscript), 1)";
     }
 
     multi method e(Python2::AST::Node::Call $node) {

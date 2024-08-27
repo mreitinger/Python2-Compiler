@@ -70,11 +70,14 @@ sub __len__ {
     return Python2::Type::Scalar::Num->new(scalar CORE::keys %$self);
 }
 
-sub __getitem__ {
-    my ($self, $key) = @_;
+sub __getitem__  : lvalue {
+    my ($self, $key, $gracefully) = @_;
 
     die("Unhashable type: " . ref($key))
         unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
+
+    die Python2::Type::Exception->new('KeyError', 'No element with key ' . $key)
+        unless $gracefully or exists $self->{$key};
 
     return $self->{$key};
 }

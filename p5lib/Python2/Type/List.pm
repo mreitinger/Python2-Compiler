@@ -63,10 +63,15 @@ sub reverse {
     return Python2::Type::Scalar::None->new();
 }
 
-sub __getitem__ {
-    my ($self, $key) = @_;
+sub __getitem__ : lvalue {
+    my ($self, $key, $gracefully) = @_;
 
-    return $self->[$key->__tonative__];
+    my $idx = $key->__tonative__;
+
+    die Python2::Type::Exception->new('KeyError', 'No element with key ' . $idx)
+        unless $gracefully or exists $self->[$idx];
+
+    return $self->[$idx];
 }
 
 sub __iter__ { Python2::Type::List::Iterator->new(shift); }

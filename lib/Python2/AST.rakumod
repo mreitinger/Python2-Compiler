@@ -301,6 +301,7 @@ class Python2::AST {
     }
 
     class Node::SubscriptAccess is Node {
+        has Bool $.must-resolve is rw = True;
         has Node            $.atom      is required is rw;
         has Node::Subscript $.subscript is required;
     }
