@@ -151,6 +151,14 @@ method dtml:sym<try>($/) {
     )
 }
 
+method dtml:sym<raise>($/) {
+    make DTML::AST::Raise.new(
+        :content($<content>.ast),
+        :start-position($/.from),
+        :end-position($/.to),
+    )
+}
+
 method dtml:sym<zms>($/) {
     make DTML::AST::Zms.new(
         :id($<id> ?? $<id>[0].ast !! Nil),

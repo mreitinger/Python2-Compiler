@@ -154,6 +154,13 @@ token dtml:sym<try> {
     <.end-tag('try')>
 }
 
+token dtml:sym<raise> {
+    <.start-tag('raise')>
+    '>'
+    <content>
+    <.end-tag('raise')>
+}
+
 token dtml:sym<zms> {
     <.start-tag('zms')>
         [

@@ -364,6 +364,10 @@ multi method e(DTML::AST::Try $node) {
     $*CODE
 }
 
+multi method e(DTML::AST::Raise $node) {
+    pre ~ "die '$node.content.content.subst(Q'\', Q'\\', :g).subst(Q"'", Q"\'", :g)';\n";
+}
+
 multi method e(DTML::AST::Zms $node) {
     my $*CODE = '';
 

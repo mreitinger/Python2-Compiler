@@ -108,6 +108,10 @@ class DTML::AST::Try is Node {
     has @.except;
 }
 
+class DTML::AST::Raise is Node {
+    has DTML::AST::Content $.content;
+}
+
 class DTML::AST::Zms is Node does DTML::AST::WithAttributes {
     has DTML::AST::Attribute $.id;
     has DTML::AST::Attribute $.caption;
