@@ -86,7 +86,7 @@ multi method e(DTML::AST::Content $node) {
         }
     }
     else {
-        line "\$body .= '$node.content().subst(Q['], Q[\'], :g)';"
+        line "\$body .= '$node.content().subst(Q[\], Q[\\], :g).subst(Q['], Q[\'], :g)';"
     }
     $*CODE
 }
