@@ -155,9 +155,26 @@ sub __hasattr__ {
     # our wrapped object implements __hasattr__ itself, pass the request on
     return Python2::Type::Scalar::Bool->new($self->{object}->__hasattr__($key->__tonative__))
         if ($self->{object}->can('__hasattr__'));
+        #
+    # our wrapped object does not support __hasattr__ try method check
+    return Python2::Type::Scalar::Bool->new(1) if $self->can($key->__tonative__);
 
-    # our wrapped object does not support __hasattr__ fall back to method check
-    return Python2::Type::Scalar::Bool->new($self->can($key->__tonative__));
+    # our wrapped object implements __getattr__ so use that as fallback
+    return Python2::Type::Scalar::Bool->new(do {
+        my $val = eval {
+            $self->{object}->__getattr__($key->__tonative__, 1)
+        };
+        if ($@) {
+            print { *STDERR } "__getattr__ raised exception when trying __hasattr__: $@";
+            0
+        }
+        else {
+            $val
+        }
+    }) if ($self->{object}->can('__getattr__'));
+
+    # nothing left to try
+    return Python2::Type::Scalar::Bool->new(0);
 }
 
 sub __getattr__ {
