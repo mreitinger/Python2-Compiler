@@ -183,7 +183,7 @@ role Python2::Grammar::Expressions {
 
     # lambda definition
     token lambda-definition {
-        'lambda' <.dws>+ <function-definition-argument-list> <.dws>* ':' <.dws>+ <test>
+        'lambda' <.dws>+ <function-definition-argument-list> <.dws>* ':' <.dws>* <test>
     }
 
     # string machting including escaped quotes
@@ -269,11 +269,11 @@ role Python2::Grammar::Expressions {
     }
 
     token or_test {
-        <and_test> [ <.dws>+ 'or' <.dws>+ <and_test> ]*
+        <and_test> [ <.dws>* 'or' <.dws>+ <and_test> ]*
     }
 
     token and_test {
-        <not_test> [ <.dws>+ 'and' <.dws>+ <not_test> ]*
+        <not_test> [ <.dws>* 'and' <.dws>+ <not_test> ]*
     }
 
     token not_test {
