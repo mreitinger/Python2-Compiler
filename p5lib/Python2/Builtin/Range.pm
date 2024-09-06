@@ -23,13 +23,13 @@ sub __call__ {
     die Python2::Type::Exception->new('TypeError', 'range() integer expected as second argument, got ' . $arg_2->__type__)
         if defined $arg_2 and $arg_2->__type__ ne 'int';
 
-    if ($arg_1 and not defined $arg_2 and not defined $arg_3) {
+    if (defined $arg_1 and not defined $arg_2 and not defined $arg_3) {
         return Python2::Type::List->new(
             map { Python2::Type::Scalar::Num->new($_) } (0 .. $arg_1->__tonative__-1)
         );
     }
 
-    if ($arg_1 and $arg_2 and not defined $arg_3) {
+    if (defined $arg_1 and defined $arg_2 and not defined $arg_3) {
         return Python2::Type::List->new(
             map { Python2::Type::Scalar::Num->new($_) } ($arg_1->__tonative__ .. $arg_2->__tonative__-1)
         );
