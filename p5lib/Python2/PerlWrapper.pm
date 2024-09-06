@@ -50,12 +50,14 @@ sub __call__ {
     my $module_name = join("::", @{ $self->{path} });
 
     # attempt to load the perl module and translate possible errors to ImportError exceptions
-    eval {
-        load $module_name;
+    unless (defined(*{"${module_name}::"})) { # Not already loaded
+        eval {
+            load $module_name;
+        }
+        or do {
+            die Python2::Type::Exception->new('ImportError', $@) if $@;
+        };
     }
-    or do {
-        die Python2::Type::Exception->new('ImportError', $@) if $@;
-    };
 
     # we don't support named arguments but still expect the empty hash - just here to catch bugs
     die Python2::Type::Exception->new('ValueError', "expected named arguments hash when calling perl5 method $requested_method on $module_name")
