@@ -55,7 +55,7 @@ token dtml:sym<var> {
     ]
     | [
         '&dtml' <.ws>
-        <dtml-entity-attribute>*
+        <dtml-entity-attributes>?
         '-' <.ws> <word> ';'
     ]
 }
@@ -225,8 +225,13 @@ token dtml-attribute {
     ]?
 }
 
+token dtml-entity-attributes {
+    '.'
+    <dtml-entity-attribute>* % '.'
+}
+
 token dtml-entity-attribute {
-    '.' $<name>=\w+
+    $<name>=\w+
 }
 
 token dtml-expression {

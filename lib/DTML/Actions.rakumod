@@ -39,19 +39,31 @@ method include($/) {
 }
 
 method dtml:sym<var>($/) {
-    make DTML::AST::Var.new(
-        :expression($<word> ?? DTML::AST::Expression.new(:word($<word>.ast)) !! $<dtml-expression>.ast),
-        :dump($<dump> ?? $<dump>[0].ast !! Nil),
-        :fmt($<fmt> ?? $<fmt>[0].ast !! Nil),
-        :size($<size> ?? $<size>[0].ast !! Nil),
-        :etc($<etc> ?? $<etc>[0].ast !! Nil),
-        :remove_attributes($<remove_attributes> ?? $<remove_attributes>[0].ast !! Nil),
-        :remove_tags($<remove_tags> ?? $<remove_tags>[0].ast !! Nil),
-        :tag_content_only($<tag_content_only> ?? $<tag_content_only>[0].ast !! Nil),
-        :attributes($<word> ?? $<dtml-entity-attribute>».ast !! $<dtml-attribute>».ast),
-        :start-position($/.from),
-        :end-position($/.to),
-    )
+    make $<word>
+        ?? DTML::AST::Var.new(
+            :expression(DTML::AST::Expression.new(:word($<word>.ast))),
+            :attributes($<dtml-entity-attributes>
+                ?? $<dtml-entity-attributes><dtml-entity-attribute>».ast
+                !! DTML::AST::Attribute.new(
+                    :name('html_quote'),
+                )
+            ),
+            :start-position($/.from),
+            :end-position($/.to),
+        )
+        !! DTML::AST::Var.new(
+            :expression($<dtml-expression>.ast),
+            :dump($<dump> ?? $<dump>[0].ast !! Nil),
+            :fmt($<fmt> ?? $<fmt>[0].ast !! Nil),
+            :size($<size> ?? $<size>[0].ast !! Nil),
+            :etc($<etc> ?? $<etc>[0].ast !! Nil),
+            :remove_attributes($<remove_attributes> ?? $<remove_attributes>[0].ast !! Nil),
+            :remove_tags($<remove_tags> ?? $<remove_tags>[0].ast !! Nil),
+            :tag_content_only($<tag_content_only> ?? $<tag_content_only>[0].ast !! Nil),
+            :attributes($<dtml-attribute>».ast),
+            :start-position($/.from),
+            :end-position($/.to),
+        )
 }
 
 method dtml:sym<return>($/) {
