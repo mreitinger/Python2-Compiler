@@ -185,7 +185,7 @@ sub replace {
             "replace() expects old and new to be strings, got %s and %s instead",
             $old->__type__, $new->__type__)
         )
-        unless ($old->__type__ eq 'str' and $new->__type__ eq 'str');
+        unless $old->isa('Python2::Type::Scalar::String') and $new->isa('Python2::Type::Scalar::String');
 
     my $s = $self->__tonative__;
     my $o = $old->__tonative__;
