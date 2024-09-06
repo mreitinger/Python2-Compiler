@@ -235,8 +235,8 @@ token dtml-entity-attribute {
 }
 
 token dtml-expression {
-    || ['expr' <.ws> '=']? \" <.ws> <test-list> \"
-    || ['expr' <.ws> '=']? \' <.ws> <test-list> \'
+    || ['expr' <.ws> '=']? \" <.ws> <test-list> <.ws> \"
+    || ['expr' <.ws> '=']? \' <.ws> <test-list> <.ws> \'
     || <word>
 }
 
