@@ -68,26 +68,26 @@ token dtml:sym<return> {
 }
 
 token dtml:sym<comment> {
-    <.start-tag('comment')>
+    <.start-tag('comment')> ~ <.end-tag('comment')>
     [
         || <-[\<]>+
         || <dtml:sym<comment>>
         || '<' <!before '/dtml-comment'>
     ]+
-    <.end-tag('comment')>
 }
 
 token dtml:sym<if> {
-    <.start-tag('if')>
-    <dtml-expression> <.ws>
-    '>'
-    $<then>=<chunk>*
-    <dtml-elif>*
+    <.start-tag('if')> ~ <.end-tag('if')>
     [
-        <.start-tag('else')> '>'
-        $<else>=<chunk>*
-    ]?
-    <.end-tag('if')>
+        <dtml-expression> <.ws>
+        '>'
+        $<then>=<chunk>*
+        <dtml-elif>*
+        [
+            <.start-tag('else')> '>'
+            $<else>=<chunk>*
+        ]?
+    ]
 }
 
 token dtml-elif {
@@ -98,46 +98,52 @@ token dtml-elif {
 }
 
 token dtml:sym<unless> {
-    <.start-tag('unless')>
-    <dtml-expression> <.ws>
-    '>'
-    $<then>=<chunk>*
     [
-        <.start-tag('else')> '>'
-        $<else>=<chunk>*
-    ]?
-    <.end-tag('unless')>
+        <.start-tag('unless')>
+        <dtml-expression> <.ws>
+        '>'
+    ] ~ <.end-tag('unless')>
+    [
+        $<then>=<chunk>*
+        [
+            <.start-tag('else')> '>'
+            $<else>=<chunk>*
+        ]?
+    ]
 }
 
 token dtml:sym<let> {
-    <.start-tag('let')>
-    <dtml-declaration>* % <.ws>
-    <.ws> '>'
+    [
+        <.start-tag('let')>
+        <dtml-declaration>* % <.ws>
+        <.ws> '>'
+    ] ~ <.end-tag('let')>
     <chunk>*
-    <.end-tag('let')>
 }
 
 token dtml:sym<with> {
-    <.start-tag('with')>
-    <dtml-expression> <.ws>
-    '>'
+    [
+        <.start-tag('with')>
+        <dtml-expression> <.ws>
+        '>'
+    ] ~ <.end-tag('with')>
     <chunk>*
-    <.end-tag('with')>
 }
 
 token dtml:sym<in> {
-    <.start-tag('in')>
-    <dtml-expression> <.ws>
     [
-        || <reverse=value-attribute('reverse')>
-        || <start=value-attribute('start')>
-        || <end=value-attribute('end')>
-        || <size=value-attribute('size')>
-        || <dtml-attribute>
-    ]* % <.ws>
-    <.ws> '>'
+        <.start-tag('in')>
+        <dtml-expression> <.ws>
+        [
+            || <reverse=value-attribute('reverse')>
+            || <start=value-attribute('start')>
+            || <end=value-attribute('end')>
+            || <size=value-attribute('size')>
+            || <dtml-attribute>
+        ]* % <.ws>
+        <.ws> '>'
+    ] ~ <.end-tag('in')>
     <chunk>*
-    <.end-tag('in')>
 }
 
 token dtml:sym<call> {
@@ -147,18 +153,22 @@ token dtml:sym<call> {
 }
 
 token dtml:sym<try> {
-    <.start-tag('try')>
-    '>'
-    <chunk>*
-    <dtml-except>?
-    <.end-tag('try')>
+    [
+        <.start-tag('try')>
+        '>'
+    ] ~ <.end-tag('try')>
+    [
+        <chunk>*
+        <dtml-except>?
+    ]
 }
 
 token dtml:sym<raise> {
-    <.start-tag('raise')>
-    '>'
+    [
+        <.start-tag('raise')>
+        '>'
+    ] ~ <.end-tag('raise')>
     <content>
-    <.end-tag('raise')>
 }
 
 token dtml:sym<zms> {
@@ -256,4 +266,10 @@ regex dws { \s }
 
 token locals {
     'locals'
+}
+
+method FAILGOAL(Str $goal is copy) {
+    $goal ~~ s!"<.end-tag('" (\w+) "')>"!</dtml-$0>!;
+    my $line = self.orig.substr(0, self.pos).indices("\n").elems + 1;
+    X::Syntax::Confused.new(:pos(self.pos), :$line, :reason("Cannot find $goal")).throw
 }
