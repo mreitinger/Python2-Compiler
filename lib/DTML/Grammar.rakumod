@@ -89,7 +89,10 @@ token dtml:sym<if> {
     <.start-tag('if')> ~ <.end-tag('if')>
     [
         <dtml-expression> <.ws>
-        '>'
+        [
+            '>'
+            || { Python2::ParseFail.new(:pos(self.pos), :what('dtml-if does not take any attributes')).throw() }
+        ]
         $<then>=<chunk>*
         <dtml-elif>*
         [
@@ -110,7 +113,10 @@ token dtml:sym<unless> {
     [
         <.start-tag('unless')>
         <dtml-expression> <.ws>
-        '>'
+        [
+            '>'
+            || { Python2::ParseFail.new(:pos(self.pos), :what('dtml-unless does not take any attributes')).throw() }
+        ]
     ] ~ <.end-tag('unless')>
     [
         $<then>=<chunk>*
@@ -158,13 +164,19 @@ token dtml:sym<in> {
 token dtml:sym<call> {
     <.start-tag('call')>
     <dtml-expression> <.ws>
-    '>'
+    [
+        '>'
+        || { Python2::ParseFail.new(:pos(self.pos), :what('dtml-call does not take any attributes')).throw() }
+    ]
 }
 
 token dtml:sym<try> {
     [
         <.start-tag('try')>
-        '>'
+        [
+            '>'
+            || { Python2::ParseFail.new(:pos(self.pos), :what('dtml-try does not take any attributes')).throw() }
+        ]
     ] ~ <.end-tag('try')>
     [
         <chunk>*
@@ -175,7 +187,10 @@ token dtml:sym<try> {
 token dtml:sym<raise> {
     [
         <.start-tag('raise')>
-        '>'
+        [
+            '>'
+            || { Python2::ParseFail.new(:pos(self.pos), :what('dtml-raise does not take any attributes')).throw() }
+        ]
     ] ~ <.end-tag('raise')>
     <content>
 }
@@ -268,7 +283,11 @@ token start-tag($tag) {
 }
 
 token end-tag($tag) {
-    '</dtml-' <.ws> $tag <.ws> '>'
+    '</dtml-' <.ws> $tag <.ws>
+    [
+        '>'
+        || { Python2::ParseFail.new(:pos(self.pos), :what('dtml end tags do not take any attributes')).throw() }
+    ]
 }
 
 regex dws { \s }
