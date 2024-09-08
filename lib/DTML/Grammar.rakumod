@@ -67,11 +67,20 @@ token dtml:sym<return> {
     <.ws> '>'
 }
 
+token nested-comment {
+    <.start-tag('comment')> ~ <.end-tag('comment')>
+    [
+        || <-[\<]>+
+        || <nested-comment>
+        || '<' <!before '/dtml-comment'>
+    ]+
+}
+
 token dtml:sym<comment> {
     <.start-tag('comment')> ~ <.end-tag('comment')>
     [
         || <-[\<]>+
-        || <dtml:sym<comment>>
+        || <nested-comment>
         || '<' <!before '/dtml-comment'>
     ]+
 }
