@@ -6,6 +6,7 @@ use v5.26.0;
 use warnings;
 use strict;
 
+use Carp qw(confess);
 use Python2;
 use Python2::Internals;
 
@@ -40,7 +41,7 @@ sub __handle_exception__ {
         my $trace = $error->__trace__;
 
         while (my $frame = $trace->next_frame) {
-            next unless $frame->package =~ m/^(Python2::Type|python_class_main)/;
+            next unless $frame->package =~ m/^(Python2::Type|python_class_main|DTML::Renderer)/;
 
             if ($frame->filename =~ m/^___position_(\d+)_(\d+)___$/) {
                 $start_position = $1;
@@ -81,11 +82,13 @@ sub __handle_exception__ {
             :
                 $start_position;
 
-    $output .= sprintf("%s\n",
+    # output line with syntax error
+    $output .= sprintf("%5i | %s\n",
+        $failed_at_line,
         $input_as_lines[$failed_at_line - 1],
     );
 
-    $output .= ' ' x $failed_position_in_line;
+    $output .= '        ' . ' ' x $failed_position_in_line;
     $output .= '^' x ($end_position - $start_position) . " - $message\n";
 
     # some error that contained a valid position but is not a Python 2 exception.
@@ -96,6 +99,8 @@ sub __handle_exception__ {
 }
 
 package Python2::Type::CodeObject::Anonymous;
+
+use base qw/Python2::Type::CodeObject/;
 
 sub new {
     my ($self, $source, $callee) = @_;
