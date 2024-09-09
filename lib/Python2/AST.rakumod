@@ -30,6 +30,7 @@ class Python2::AST {
 
     class Node::ArgumentList is Node {
         has Node @.arguments is required is rw;
+        has Node $.flattened-nameds is rw;
     }
 
 

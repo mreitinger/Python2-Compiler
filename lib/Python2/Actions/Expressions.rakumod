@@ -496,9 +496,10 @@ role Python2::Actions::Expressions {
 
     method argument-list($/) {
         $/.make(Python2::AST::Node::ArgumentList.new(
-            start-position  => $/.from,
-            end-position    => $/.to,
-            arguments       => $/<argument>.map({ $_.made }),
+            start-position   => $/.from,
+            end-position     => $/.to,
+            arguments        => $/<argument>.map({ $_.made }),
+            flattened-nameds => $<kwargs>.made,
         ));
     }
 

@@ -125,6 +125,15 @@ sub unsplat {
     return @$value;
 }
 
+sub unsplatsplat {
+    my ($value) = @_;
+
+    die Python2::Type::Exception->new('TypeError', 'splat(**) expects a dict, got ' . $value->__type__)
+        unless $value->__type__ eq 'dict';
+
+    return %$value;
+}
+
 sub py2print {
     pop(@_); # named arguments hash
     my @values = @_;

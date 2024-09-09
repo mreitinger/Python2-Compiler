@@ -28,7 +28,17 @@ role Python2::Grammar::Expressions {
 
         '('
             <.dws>*
-            <argument>* %% <list-delimiter>
+            <argument>* % <list-delimiter>
+            [
+                | [
+                    [
+                        <?{ not $<argument>.elems }>
+                        | <.list-delimiter>
+                    ]
+                    <.splat><.splat> <kwargs=test>
+                ]
+                | <.list-delimiter>
+            ]?
             [ <.dws>* ')' || <parse-fail(:pos(self.pos), :what('expected )'))> ]
     }
 

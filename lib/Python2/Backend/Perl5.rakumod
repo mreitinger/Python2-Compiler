@@ -435,9 +435,11 @@ class Python2::Backend::Perl5 {
             $p5 ~= ','; # to accomodate a possible named argument hashref
         }
 
-        # named arguments get passed as a hashref to the perl method. this is allways passed as the
+        # named arguments get passed as a hashref to the perl method. this is always passed as the
         # last argument and will be pop()'d before processing any other arguments.
-        $p5 ~= 'bless({' ~ @named-arguments.map({ $.e($_.name) ~ ' => ' ~ $.e($_.value) }).join(',') ~ '}, "Python2::NamedArgumentsHash")';
+        my @nameds = @named-arguments.map({ $.e($_.name) ~ ' => ' ~ $.e($_.value) });
+        @nameds.push: "(Python2::Internals::unsplatsplat($.e($node.flattened-nameds)))" if $node.flattened-nameds;
+        $p5 ~= 'bless({' ~ @nameds.join(', ') ~ '}, "Python2::NamedArgumentsHash")';
 
         return $p5;
     }
@@ -886,7 +888,8 @@ class Python2::Backend::Perl5 {
         self.enter-scope;
 
         # local stack frame for this lambda
-        $block ~= 'my $self = shift; my $stack = $self->{stack}->clone; my $named_args = pop;' ~ "\n";
+        $block ~= 'my $self = shift; my $stack = $self->{stack}->clone;' ~ "\n";
+        $block ~= 'my $named_args = (@_ && defined $_[-1] && (ref($_[-1])// "") eq "Python2::NamedArgumentsHash") ? pop : {};' ~ "\n";
 
         # get arguments
         for $node.argument-list -> $argument {
