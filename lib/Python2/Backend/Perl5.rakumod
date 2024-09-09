@@ -832,10 +832,6 @@ class Python2::Backend::Perl5 {
         # If this Function belongs to a Class this will point to it triggering Method generation
         Python2::AST::Node::Statement::ClassDefinition    $class?
     ) {
-        # *args must always be the last parameter, keep track if we have already seen it
-        # so we can abort if anything comes after.
-        my Bool $splat_seen = False;
-
         my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
 
         my Str $block;
@@ -846,16 +842,11 @@ class Python2::Backend::Perl5 {
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
         for $node.argument-list -> $argument {
-            Python2::ParseFail.new(:pos($argument.start-position)).throw()
-                if $splat_seen;
-
             $argument-definition  ~= sprintf('[ \'%s\', %s, %i ],',
                 $argument.name.name,
                 $argument.default-value ?? $.e($argument.default-value) !! 'undef',
-                $argument.splat ?? 1 !! 0,
+                $argument.splat,
             );
-
-            $splat_seen = True if $argument.splat;
         }
 
         # call Python2::Python2::Internals::getopt() to parse our arguments
@@ -895,20 +886,34 @@ class Python2::Backend::Perl5 {
         self.enter-scope;
 
         # local stack frame for this lambda
-        $block ~= 'my $self = shift; my $stack = $self->{stack}->clone;';
+        $block ~= 'my $self = shift; my $stack = $self->{stack}->clone; my $named_args = pop;' ~ "\n";
 
         # get arguments
         for $node.argument-list -> $argument {
             my $lexical = self.declare($argument.name.name, "\$__arg__$argument.name.name()");
             $lexical = "my $lexical = " if $lexical;
-            $block ~= sprintf('Python2::Internals::setvar($stack, \'%s\', %sshift);', $argument.name.name, $lexical);
+            my $input = $argument.splat == 1
+                ?? 'Python2::Type::List->new(@_)'
+                !! $argument.splat == 2
+                    ?? 'Python2::Type::Dict->__from_hash__(%$named_args)'
+                    !! 'shift';
+            $block ~= "        Python2::Internals::setvar(\$stack, '$argument.name.name()', {$lexical}$input);\n";
         }
 
         # the actual function body
-        $block ~= sprintf('my $retvar = %s; return $retvar;', $.e($node.block));
+        $block ~= sprintf(Q:b'        my $retvar = %s;\n        return $retvar;', $.e($node.block));
 
         %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::Function /; use Python2; sub __name__ { "lambda"; }; sub __call__ { %s } }',
+            q:b:to/PACKAGE/,
+            package %s {
+                use base qw/ Python2::Type::Function /;
+                use Python2;
+                sub __name__ { "lambda" }
+                sub __call__ {
+                    %s
+                }
+            }
+            PACKAGE
             $perl5_class_name,
             $block,
         );

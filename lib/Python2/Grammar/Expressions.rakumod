@@ -286,11 +286,27 @@ role Python2::Grammar::Expressions {
     }
 
     token function-definition-argument-list {
-        <function-definition-argument>* %% <list-delimiter>
+        <function-definition-argument>* % <.list-delimiter>
+        [
+            [
+                [
+                    <?{ not $<function-definition-argument>.elems }>
+                    | <.list-delimiter>
+                ]
+                [
+                    | [
+                        <.splat> <varargs=name>
+                        [ <.list-delimiter> <.splat><.splat> <kwargs=name> ]?
+                    ]
+                    | [ <.splat><.splat> <kwargs=name> ]?
+                ]
+            ]
+            | <.list-delimiter>
+        ]?
     }
 
     token function-definition-argument {
-        <splat>? <name> [<.dws>* '=' <.dws>* <test>]?
+        <name> [<.dws>* '=' <.dws>* <test>]?
     }
 
     token extended-test-list {

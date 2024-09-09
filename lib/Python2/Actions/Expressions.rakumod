@@ -619,6 +619,18 @@ role Python2::Actions::Expressions {
         for $/<function-definition-argument> -> $argument {
             @argument-list.push($argument.made);
         }
+        @argument-list.push: Python2::AST::Node::Statement::FunctionDefinition::Argument.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $<varargs>.made,
+            splat           => 1,
+        ) if $<varargs>;
+        @argument-list.push: Python2::AST::Node::Statement::FunctionDefinition::Argument.new(
+            start-position  => $/.from,
+            end-position    => $/.to,
+            name            => $<kwargs>.made,
+            splat           => 2,
+        ) if $<kwargs>;
 
         $/.make(@argument-list);
     }
@@ -629,7 +641,7 @@ role Python2::Actions::Expressions {
             end-position    => $/.to,
             name            => $/<name>.made,
             default-value   => $/<test> ?? $/<test>.made !! Nil,
-            splat           => $/<splat> ?? True !! False,
+            splat           => 0,
         ));
     }
 }

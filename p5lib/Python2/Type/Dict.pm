@@ -28,6 +28,24 @@ sub new {
     return $self;
 }
 
+sub __from_hash__ {
+    # initial arugments must be a array so we don't loose objects once they become hash keys
+    my ($class, @initial_elements) = @_;
+
+    tie my %elements, 'Tie::PythonDict';
+
+    my $self = bless(\%elements, $class);
+
+    while (@initial_elements) {
+        my $key = shift @initial_elements;
+        my $value = shift @initial_elements;
+
+        $self->__setitem__(Python2::Type::Scalar::String->new($key), Python2::Internals::convert_to_python_type($value));
+    }
+
+    return $self;
+}
+
 sub keys {
     my $self = shift;
     return Python2::Type::List->new(keys %$self);

@@ -378,8 +378,12 @@ sub getopt {
 
         # splat does not care if any arguments are there, it just returns an empty tuple if
         # no more arguments remain
-        if ($splat) {
+        if ($splat == 1) {
             setvar($stack, $name, Python2::Type::Tuple->new(@arguments));
+            last;
+        }
+        elsif ($splat == 2) {
+            setvar($stack, $name, Python2::Type::Dict->new(%$named_arguments));
             last;
         }
 
@@ -396,6 +400,7 @@ sub getopt {
         # we got a named argument
         if (exists $named_arguments->{$name}) {
             setvar($stack, $name, $named_arguments->{$name});
+            delete $named_arguments->{$name};
             next;
         }
 
