@@ -6,6 +6,8 @@ use strict;
 
 use Python2::Internals;
 
+use Scalar::Util qw/ refaddr /;
+
 sub new {
     my ($self, $coderef) = @_;
 

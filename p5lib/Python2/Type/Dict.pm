@@ -6,6 +6,7 @@ use base qw/ Python2::Type /;
 use warnings;
 use strict;
 
+use Carp qw/ confess /;
 use Scalar::Util qw/ refaddr /;
 use List::Util qw/ min /;
 use Tie::PythonDict;

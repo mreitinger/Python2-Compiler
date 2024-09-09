@@ -8,6 +8,8 @@ use base qw/ Python2::Type::Dict /;
 use warnings;
 use strict;
 
+use Scalar::Util qw/ refaddr /;
+
 sub new {
     my ($class, $hashref) = @_;
 

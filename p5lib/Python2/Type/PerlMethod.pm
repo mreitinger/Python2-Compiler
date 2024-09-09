@@ -12,6 +12,7 @@ use strict;
 use Python2::Internals;
 
 use Carp qw/ confess /;
+use Scalar::Util qw/ refaddr /;
 
 sub new {
     my ($self, $coderef, $object, $method_name) = @_;

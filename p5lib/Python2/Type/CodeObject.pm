@@ -7,6 +7,7 @@ use warnings;
 use strict;
 
 use Carp qw(confess);
+use Scalar::Util qw/ refaddr /;
 use Python2;
 use Python2::Internals;
 
