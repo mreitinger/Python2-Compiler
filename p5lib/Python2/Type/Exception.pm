@@ -123,4 +123,6 @@ sub __print__ {
     shift->[1] // ''
 }
 
+sub __exception_type__ { $_[0]->[0] }
+
 1;

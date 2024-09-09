@@ -467,4 +467,38 @@ sub convert_to_python_type {
         : Python2::Type::Scalar::Num->new($value);
 }
 
+sub exception_matches {
+    my ($e, $expr) = @_;
+
+    die "Got something other than an exception type to match in 'except': " . $expr
+        unless ref $expr and (
+            $expr->isa('Python2::Type::Exception')
+            or $expr->isa('Python2::Type::List')
+        );
+
+
+    my $type = ref $e && $e->isa('Python2::Type::Exception')
+        ? $e->__exception_type__
+        : ref($e) // 'string';
+
+    if (ref $expr and $expr->isa('Python2::Type::List')) {
+        for (@$expr) {
+            die "Got something other than an exception type to match in 'except': " . $_
+                unless ref $_ and $_->isa('Python2::Type::Exception');
+
+            # ugly hack - match exception for everything
+            return 1 if $_->__exception_type__ eq 'Exception';
+
+            return 1 if $type eq $_->__exception_type__;
+        }
+        return 0;
+    }
+    else {
+        # ugly hack - match exception for everything
+        return 1 if $expr->__exception_type__ eq 'Exception';
+
+        return $type eq $expr->__exception_type__;
+    }
+}
+
 1;

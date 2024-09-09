@@ -150,9 +150,8 @@ role Python2::Grammar::Statements {
         [<level> 'finally' <.dws>* ':' <block>]?
     }
 
-    # TODO python allowes <test> to determine the variable assignment/exception
     token exception-clause {
-        <level> 'except' [<.dws>+ <name> [<.dws>* [','|'as'] <.dws>* <name>]?]? <.dws>* ':' <block>
+        <level> 'except' [<.dws>+ <test> [<.dws>* [','|'as'] <.dws>* <name>]?]? <.dws>* ':' <block>
     }
 
     # power ain't right here it would allow too much in the future like

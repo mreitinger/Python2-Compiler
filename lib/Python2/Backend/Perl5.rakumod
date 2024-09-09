@@ -660,14 +660,14 @@ class Python2::Backend::Perl5 {
         return $node.exception
             ??  $node.name
                     # exception with type filter and name assignment
-                    ??  sprintf(q|if ($e eq '%s') { Python2::Internals::setvar($stack, '%s', $e); %s; return; }|,
-                            $node.exception.name,
+                    ??  sprintf(q|if (Python2::Internals::exception_matches($e,  %s)) { Python2::Internals::setvar($stack, '%s', $e); %s; return; }|,
+                            $.e($node.exception),
                             $node.name.name,
                             $.e($node.block)
                         )
 
                     # exception with type filter only
-                    !!  sprintf(q|if ($e eq '%s') { %s; return; }|, $node.exception.name, $.e($node.block))
+                    !!  sprintf(q|if (Python2::Internals::exception_matches($e, %s)) { %s; return; }|, $.e($node.exception), $.e($node.block))
 
             # generic 'except:'
             !! $.e($node.block) ~ ' return;';
