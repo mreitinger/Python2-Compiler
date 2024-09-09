@@ -76,7 +76,7 @@ sub __str__ {
     return sprintf("<perlmethod '%s' of object '%s' at %i>", $self->[2], ref($self->[1]), refaddr($self));
 }
 
-sub __tonative__ { ...; }
+sub __tonative__ { die 'Trying to use ' . $_[0]->__str__ . ' as value. Forgot ()?' }
 
 sub __type__ { return 'perlmethod'; }
 
