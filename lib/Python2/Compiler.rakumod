@@ -44,7 +44,7 @@ class Python2::Compiler {
         CATCH {
             # generic parser error
             when X::Syntax::Confused {
-                self.handle-parse-fail(:$input, :pos($_.pos));
+                self.handle-parse-fail(:$input, :pos($_.pos), :what($_.reason));
             }
 
             # our custom exceptions
@@ -71,7 +71,7 @@ class Python2::Compiler {
         CATCH {
             # generic parser error
             when X::Syntax::Confused {
-                self.handle-parse-fail(:$input, :pos($_.pos));
+                self.handle-parse-fail(:$input, :pos($_.pos), :what($_.reason));
             }
 
             # our custom exceptions

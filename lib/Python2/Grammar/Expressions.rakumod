@@ -26,7 +26,7 @@ role Python2::Grammar::Expressions {
     token argument-list {
         :my $*WHITE-SPACE = rx/[\s|"\\\n"|<comment>]/;
 
-        '('
+        '(' ~ ')' [
             <.dws>*
             <argument>* % <list-delimiter>
             [
@@ -39,7 +39,8 @@ role Python2::Grammar::Expressions {
                 ]
                 | <.list-delimiter>
             ]?
-            [ <.dws>* ')' || <parse-fail(:pos(self.pos), :what('expected )'))> ]
+            <.dws>*
+        ]
     }
 
     token argument {
@@ -346,4 +347,9 @@ role Python2::Grammar::Expressions {
     }
     token float             { ['-'|'+'] ? \d*\.\d+ }
     token integer           { ['-'|'+'] ? \d+ }
+
+    method FAILGOAL(Str $goal is copy) {
+        my $line = self.orig.substr(0, self.pos).indices("\n").elems + 1;
+        X::Syntax::Confused.new(:pos(self.pos), :$line, :reason("Cannot find $goal")).throw
+    }
 }
