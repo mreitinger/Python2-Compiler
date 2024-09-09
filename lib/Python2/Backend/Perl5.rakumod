@@ -384,9 +384,10 @@ class Python2::Backend::Perl5 {
         # we found not python module, fallback to perl module loading for our StdLib shims
         # if even this fails we, unlike python, abort on runtime
         if not $p5 {
+            my $functions = $node.import-names.names ?? "functions => [qw/$node.import-names.names.map(*.name).join(' ')/]" !! '';
             return sprintf(
-                q|Python2::Internals::import_module($stack, [{ name => '%s', name_as => '%s', functions => [qw/%s/] }])|,
-                $node.name, $node.name, $node.import-names.names.map({ $_.name }).join(' ')
+                q|Python2::Internals::import_module($stack, [{ name => '%s', name_as => '%s', %s }])|,
+                $node.name, $node.name-as, $functions
             );
         }
     }

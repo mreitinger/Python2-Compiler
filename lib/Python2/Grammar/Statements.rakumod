@@ -81,7 +81,11 @@ role Python2::Grammar::Statements {
     }
 
     token statement-from {
-        'from' <.dws>+ <dotted-name> <.dws>+ 'import' <.dws>+ <import-names>
+        'from' <.dws>+ <dotted-name> <.dws>+ 'import' <.dws>+
+        [
+            || <import-name=name> [<.dws>+ 'as' <.dws>+ <as=name>]
+            || <import-names>
+        ]
         <.end-of-statement>
     }
 

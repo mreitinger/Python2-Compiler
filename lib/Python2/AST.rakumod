@@ -141,6 +141,7 @@ class Python2::AST {
 
     class Node::Statement::FromImport is Node {
         has Str  $.name is required  is rw;
+        has Str  $.name-as is required  is rw;
         has Node $.import-names is required is rw;
     }
 

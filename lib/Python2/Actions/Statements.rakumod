@@ -56,8 +56,15 @@ role Python2::Actions::Statements {
         $/.make(Python2::AST::Node::Statement::FromImport.new(
             start-position      => $/.from,
             end-position        => $/.to,
-            name                => $/<dotted-name>.Str,
-            import-names        => $/<import-names>.made,
+            name                => $<import-name> ?? "$<dotted-name>.$<import-name>" !! $<dotted-name>.Str,
+            name-as             => $<import-name> ?? $<as>.Str !! $<dotted-name>.Str.split('.').tail,
+            import-names        => $<import-name>
+                ?? Python2::AST::Node::Statement::ImportNames.new(
+                    start-position      => $/.from,
+                    end-position        => $/.to,
+                    names               => Array[Node].new,
+                )
+                !! $<import-names>.made,
         ));
     }
 
