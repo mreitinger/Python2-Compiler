@@ -42,6 +42,20 @@ sub __getattr__ {
     die Python2::Type::Exception->new('AttributeError', "'" . ref($self) . "' has no attribute '$attribute_name'");
 }
 
+sub __setattr__ {
+    my $self = shift;
+    my $named_arguments = pop;
+    my $attribute_name = shift;
+    my $attribute_value = shift;
+
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . (defined $attribute_name ? $attribute_name->__type__ : 'nothing'))
+        unless defined $attribute_name and $attribute_name->__type__ eq 'str';
+
+    $attribute_name = $attribute_name->__tonative__;
+
+    return $self->{stack}->[1]->{$attribute_name} = $attribute_value;
+}
+
 sub AUTOLOAD {
     our $AUTOLOAD;
     my $requested_method = $AUTOLOAD;
