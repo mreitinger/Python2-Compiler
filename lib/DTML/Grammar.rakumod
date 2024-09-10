@@ -242,8 +242,8 @@ token dtml-declaration {
     '=' <.ws>
     [
         || <value-word=word>
-        || \" <.ws> <test-list> \"
-        || \' <.ws> <test-list> \'
+        || \" <.ws> <test-list> <.ws> \"
+        || \' <.ws> <test-list> <.ws> \'
     ]
 }
 
