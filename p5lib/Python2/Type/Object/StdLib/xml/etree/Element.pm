@@ -7,14 +7,15 @@ use warnings;
 use strict;
 
 sub new {
-    my ($self, $dom) = @_;
+    my ($self, $dom, $namespace_prefixes) = @_;
 
     die Python2::Type::Exception->new('Exception', 'Element->new() called without dom argument')
         unless defined $dom and ref($dom) eq 'XML::LibXML::Element';
 
     return bless({
-        dom         => $dom,
-        attributes  => Python2::Internals::convert_to_python_type(
+        dom => $dom,
+        namespace_prefixes => $namespace_prefixes,
+        attributes => Python2::Internals::convert_to_python_type(
             {
                 map { $_->nodeName => $_->getValue } $dom->attributes
             }
@@ -61,11 +62,29 @@ sub findall {
     die Python2::Type::Exception->new('TypeError', 'findall() expects a str as match, got ' . (defined $match ? $match->__type__ : 'nothing'))
         unless defined $match and $match->__type__ eq 'str';
 
+    $match = $match->__tonative__;
+    my $xpc = XML::LibXML::XPathContext->new;
+    for (keys %{ $self->{namespace_prefixes} }) {
+        my $prefix = $self->{namespace_prefixes}{$_};
+        if ($self->{namespace_prefixes}{$_}) {
+            $match =~ s/\{\Q$_\E\}/$prefix/g;
+        }
+        else {
+            $xpc->registerNs('default', $_);
+            $match =~ s/\{\Q$_\E\}/default:/g;
+        }
+    }
+
     return Python2::Type::List->new(
         map {
             Python2::Type::Object::StdLib::xml::etree::Element->new($_)
-        } $self->{dom}->findnodes($match->__tonative__)
+        } $xpc->findnodes($match, $self->{dom})
     );
+}
+
+sub toString {
+    my ($self) = @_;
+    return Python2::Type::Scalar::String->new($self->{dom}->toString);
 }
 
 sub __tonative__ {

@@ -13,9 +13,23 @@ use Python2::Type::Object::StdLib::xml::etree::Element;
 sub new {
     my ($self, $dom) = @_;
 
+    my %namespace_prefixes;
+    if ($dom) {
+        foreach my $node ($dom->findnodes('//namespace::*')) {
+            $namespace_prefixes{$node->getValue()} = $node->getLocalName();
+        }
+    }
+
     my $object = bless({
-        stack => [$Python2::builtins],
-        dom   => $dom
+        stack => [
+            $Python2::builtins,
+            {
+                VERSION => Python2::Type::Scalar::String->new('1.2.0'),
+                _namespace_map => Python2::Type::Dict->new(),
+            }
+        ],
+        dom   => $dom,
+        namespace_prefixes => \%namespace_prefixes,
     }, $self);
 
     return $object;
@@ -45,7 +59,15 @@ sub getroot {
     pop(@_); # default named arguments hash
     my ($self, $pstack) = @_;
 
-    return Python2::Type::Object::StdLib::xml::etree::Element->new( $self->{dom}->getDocumentElement() );
+    return Python2::Type::Object::StdLib::xml::etree::Element->new(
+        $self->{dom}->getDocumentElement(),
+        $self->{namespace_prefixes},
+    );
+}
+
+sub tostring {
+    my ($self, $node, $nameds) = @_;
+    return $node->toString;
 }
 
 1;
