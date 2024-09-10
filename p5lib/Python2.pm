@@ -20,6 +20,7 @@ use Python2::Type::Enumerate;
 use Python2::Type::Tuple;
 use Python2::Type::Dict;
 use Python2::Type::File;
+use Python2::Type::Object;
 use Python2::Type::Scalar::String;
 use Python2::Type::Scalar::Unicode;
 use Python2::Type::Scalar::Basestring;
@@ -71,6 +72,7 @@ our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'unicode'       => Python2::Type::Scalar::Unicode->new(),
 
     'perl'          => Python2::PerlWrapper->new(),
+    'object'        => Python2::Type::Object->new({}),
 
     'None'          => Python2::Type::Scalar::None->new(),
     'True'          => Python2::Type::Scalar::Bool->new(1),
