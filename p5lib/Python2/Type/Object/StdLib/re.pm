@@ -81,7 +81,7 @@ sub search {
 
     my $r = $regex->__tonative__;
 
-    my $groups = [ $string =~ /($r)/g ];
+    my $groups = [ $string =~ /($r)/ ];
 
     return @$groups
         ? Python2::Type::Object::StdLib::re::match->new($groups)
@@ -101,9 +101,38 @@ sub match {
     my $r = $regex->__tonative__;
 
     # match.group(0) contains the outer match, so we simply wrap () around the expression
-    my $groups = [ $string =~ /($r)/g ];
+    my $groups = [ $string =~ /^($r)/ ];
 
-    return Python2::Type::Object::StdLib::re::match->new($groups);
+    return @$groups
+        ? Python2::Type::Object::StdLib::re::match->new($groups)
+        : Python2::Type::Scalar::None->new;
+}
+
+sub findall {
+    pop(@_); #default named args hash
+    my ($self, $regex, $string) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("findall() expects a string as regex as first parameter, got %s", (defined $regex ? $regex->__type__ : 'nothing')))
+        unless defined $regex and $regex->__type__ eq 'str';
+
+    die Python2::Type::Exception->new('TypeError', sprintf("findall() expects a string to search as second parameter, got %s", (defined $string ? $string->__type__ : 'nothing')))
+        unless defined $string and $string->__type__ eq 'str';
+
+    my $r = $regex->__tonative__;
+
+    my @matches;
+    while ($string =~ /$r/gp) {
+        my @groups = @{^CAPTURE};
+        $groups[scalar @+ - 2] = undef unless @groups + 1 == @+;
+        push @matches,
+            @groups < 2
+                ? Python2::Type::Scalar::String->new(@groups < 1 ? ${^MATCH} : $groups[0])
+                : Python2::Type::Tuple->new(
+                    map { Python2::Type::Scalar::String->new($_ // '') } @groups
+                );
+    }
+
+    return Python2::Type::List->new(@matches);
 }
 
 1;
