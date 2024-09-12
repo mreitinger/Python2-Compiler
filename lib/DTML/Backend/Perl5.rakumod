@@ -289,7 +289,7 @@ multi method e(DTML::AST::In $node) {
             }
             line '}';
             line 'my $outer = $context;';
-            line 'local $self->{context} = local $local_context->{context} = my $context = blessed $sequence_item ? $sequence_item : $outer;';
+            line 'local $self->{context} = local $local_context->{context} = my $context = blessed($sequence_item) && (!$sequence_item->isa("Python2::Type::Scalar")) ? $sequence_item : $outer;';
             line 'push @$lexpads, {';
             indented {
                 self.declare('sequence-item', 'Python2::Internals::convert_to_python_type($sequence_item)');
