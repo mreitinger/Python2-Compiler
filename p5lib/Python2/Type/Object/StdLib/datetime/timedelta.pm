@@ -140,6 +140,10 @@ sub __sub__ {
     );
 }
 
+sub total_seconds {
+    my ($self) = @_;
 
+    return Python2::Type::Scalar::Num->new($self->{duration}->in_units('seconds'));
+}
 
 1;
