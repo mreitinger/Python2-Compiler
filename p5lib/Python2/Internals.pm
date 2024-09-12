@@ -191,7 +191,7 @@ my $arithmetic_operations = {
             return Python2::Type::Scalar::Num->new($left->__tonative__ * $right->__tonative__);
         } elsif ($left->isa('Python2::Type::Scalar::String') and $right->isa('Python2::Type::Scalar::Num')) {
             return Python2::Type::Scalar::String->new($left->__tonative__ x int($right->__tonative__));
-        } elsif (($left->__type__ eq 'list') and ($right->__type__ eq 'int')) {
+        } elsif (($left->isa('Python2::Type::List') or $left->__type__ eq 'list') and ($right->__type__ eq 'int')) {
             my $count = $right->__tonative__;
             $count = 0 if $count < 0;
             my $target = Python2::Type::List->new();
