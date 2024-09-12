@@ -16,12 +16,14 @@ sub new { bless({}, shift); }
 sub new_from_duration {
     my ($self, $duration) = @_;
 
+    my $class = ref($self) || $self;
+
     die Python2::Type::Exception->new('TypeError', 'new_from_duration() expects a DateTime::Duration object, got ' . ref($duration))
         unless ref($duration) eq 'DateTime::Duration';
 
     return bless({
         duration => $duration
-    }, ref($self));
+    }, $class);
 }
 
 sub __call__ {

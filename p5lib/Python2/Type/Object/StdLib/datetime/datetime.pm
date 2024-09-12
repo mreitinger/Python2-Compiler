@@ -58,6 +58,18 @@ sub __print__ {
     shift->{datetime}->strftime('%Y-%m-%d %H:%M:%S');
 }
 
+sub __sub__ {
+    my ($self, $other) = @_;
+
+    return Python2::Type::Object::StdLib::datetime::timedelta->new_from_duration(
+            $self->{datetime} - (
+            (ref($other) && $other->isa('Python2::Type::Object::StdLib::datetime::datetime'))
+            ? $other->{datetime}
+            : $other
+        )
+    );
+}
+
 sub today { shift->now() }
 
 sub now {
@@ -118,6 +130,8 @@ sub strptime {
 
     return $self->new_from_datetime($obj);
 }
+
+sub __tonative__ { $_[0] }
 
 sub __getattr__ {
     my ($self, $attr) = @_;
