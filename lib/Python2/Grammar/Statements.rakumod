@@ -109,7 +109,7 @@ role Python2::Grammar::Statements {
     }
 
     token statement-return {
-        'return' [<.dws>+ <test-list>]?
+        'return' >> [<.dws>* <test-list>]?
         <.end-of-statement>
     }
 

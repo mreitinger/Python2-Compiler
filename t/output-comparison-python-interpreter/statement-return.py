@@ -35,6 +35,9 @@ def i():
 def j():
     return (1, 2, 3)
 
+def k():
+    return(1)
+
 
 
 print a()
@@ -48,3 +51,4 @@ print "A %s" % h()
 print "B %s" % i()
 print "C %s %s" % (h(), i())
 print j()
+print k()

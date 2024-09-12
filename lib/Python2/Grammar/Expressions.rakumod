@@ -281,15 +281,15 @@ role Python2::Grammar::Expressions {
     }
 
     token or_test {
-        <and_test> [ <.dws>* 'or' <.dws>+ <and_test> ]*
+        <and_test> [ <.dws>* 'or' >> <.dws>* <and_test> ]*
     }
 
     token and_test {
-        <not_test> [ <.dws>* 'and' <.dws>+ <not_test> ]*
+        <not_test> [ <.dws>* 'and' >> <.dws>* <not_test> ]*
     }
 
     token not_test {
-        | 'not' <.dws>+ <not_test>
+        | 'not' >> <.dws>* <not_test>
         | <comparison>
     }
 
