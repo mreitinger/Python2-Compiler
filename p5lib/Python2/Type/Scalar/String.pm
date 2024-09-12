@@ -234,6 +234,11 @@ sub upper {
     return Python2::Type::Scalar::String->new(uc shift->__tonative__);
 }
 
+sub title {
+    # Regex taken from https://perldoc.perl.org/perlfaq4#How-do-I-capitalize-all-the-words-on-one-line?
+    return Python2::Type::Scalar::String->new(shift->__tonative__ =~ s/\b{wb}(\w)/\U$1/gr);
+}
+
 sub __call__ {
     my $self = shift;
     pop @_; # named arguments hash, unused
