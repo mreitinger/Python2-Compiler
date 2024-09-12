@@ -30,6 +30,11 @@ sub new {
     return $object;
 }
 
+sub DateTime {
+    my ($self) = @_;
+    return $self; # Some scripts just call DateTime() others DateTime.DateTime()
+}
+
 sub __call__ {
     pop(@_); # default named arguments hash
     my ($self, $time) = @_;
