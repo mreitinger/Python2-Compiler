@@ -80,6 +80,7 @@ role Python2::Grammar::Expressions {
     token high-precedence-operator {
         | '*'
         | '/'
+        | '//'
         | '%'
     }
 
