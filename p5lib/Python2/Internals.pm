@@ -172,7 +172,7 @@ my $arithmetic_operations = {
     '-' => sub {
         my ($left, $right) = @_;
 
-        return $left->__sub__($right) if $left->can('__add__');
+        return $left->__sub__($right) if $left->can('__sub__');
 
         $left  = $left->__tonative__;
         $right = $right->__tonative__;
