@@ -34,7 +34,7 @@ sub FETCH {
     if (ref($key) =~ m/^Python2::Type::Scalar/) {
         return $self->[1]{$key->__str__}->[1];
     }
-    elsif (ref($key) =~ m/^Python2::Type::Class::class_/) {
+    elsif ($key->isa('Python2::Type::Object')) {
         my $kstr = Scalar::Util::refaddr($key);
         if (defined $self->[0]{$kstr}) {
             return $self->[0]{$kstr}[1];

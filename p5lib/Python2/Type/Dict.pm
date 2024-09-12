@@ -93,7 +93,7 @@ sub __getitem__  : lvalue {
     my ($self, $key, $gracefully) = @_;
 
     die("Unhashable type: " . ref($key))
-        unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
+        unless $key->isa('Python2::Type::Scalar') or $key->isa('Python2::Type::Object');
 
     die Python2::Type::Exception->new('KeyError', 'No element with key ' . $key)
         unless $gracefully or exists $self->{$key};
@@ -105,7 +105,7 @@ sub get {
     my ($self, $key) = @_;
 
     die("Unhashable type: " . ref($key))
-        unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
+        unless $key->isa('Python2::Type::Scalar') or $key->isa('Python2::Type::Object');
 
     return exists $self->{$key} ? $self->{$key} : Python2::Type::Scalar::None->new(0);
 }
@@ -114,7 +114,7 @@ sub has_key {
     my ($self, $key) = @_;
 
     die("Unhashable type: " . ref($key))
-        unless ref($key) =~ m/^Python2::Type::(Scalar|Class::class_)/;
+        unless $key->isa('Python2::Type::Scalar') or $key->isa('Python2::Type::Object');
 
     return Python2::Type::Scalar::Bool->new(exists $self->{$key});
 }

@@ -95,14 +95,26 @@ multi method e(@chunks) {
     $*CODE ~= self.e($_) for @chunks;
 }
 
-multi method e(DTML::AST::Expression $node, :$lexical = '') {
-    $node.word
-        ?? self.has-name($node.word)
+multi method e(DTML::AST::Expression $node, :$lexical = '', :$perl-lexical = '') {
+    if $node.word {
+        self.has-name($node.word)
             ?? "do \{ my \$res = {$lexical ?? "$lexical = " !! ''}$.has-name($node.word); blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
             !! $lexical
                 ?? "do \{ my \$res = \$self->eval_word(\$context, \$dynamics, \$lexpads, '$node.word()', -1); $lexical = Python2::Internals::convert_to_python_type(\$res); \$res \}"
                 !! "\$self->eval_word(\$context, \$dynamics, \$lexpads, '$node.word()', -1)"
-        !! "do \{ my \$res = {$lexical ?? "$lexical = " !! ''}$.e($node.expression); blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
+    }
+    else {
+        if defined my $perl = $.perl($node.expression) {
+            $lexical
+                ?? $perl-lexical
+                    ?? "do \{ $lexical = Python2::Internals::convert_to_python_type($perl-lexical = $perl); $perl-lexical \}"
+                    !! "do \{ my \$p; $lexical = Python2::Internals::convert_to_python_type(\$p = $perl); \$p \}"
+                !! $perl
+        }
+        else {
+            "do \{ my \$res = {$lexical ?? "$lexical = " !! ''}$.e($node.expression); blessed \$res \&\& \$res->isa('Python2::Type') ? \$res->__tonative__ : \$res \}"
+        }
+    }
 }
 
 multi method e(DTML::AST::Var $node) {
@@ -187,15 +199,17 @@ multi method e(DTML::AST::Let $node) {
         my %lexicals;
         for ($node.declarations) { # May be empty. Yes, people write <dtml-let> in templates
             my $attr = .name;
-            my $lexical = '';
             if $attr ~~ /^\w+$/ { # Can use lexicals!
-                $lexical = "\$lexical_$attr";
+                my $lexical = "\$lexical_$attr";
+                my $perl-lexical = "\$perl_lexical_$attr";
+                my $temp_lexical = "\$temp_lexical_$attr";
+                my $temp_perl_lexical = "\$temp_perl_lexical_$attr";
                 if %lexicals{$attr}++ {
-                    line Q:b:s:f"\$lexpads->[-1]{'$attr'} = $.e($_.expression, :$lexical);";
+                    line Q:b:s:f"\$lexpads->[-1]{'$attr'} = $.e($_.expression, :$lexical, :$perl-lexical);";
                 }
                 else {
-                    line Q:b:s:f"my $lexical; \$lexpads->[-1]{'$attr'} = $.e($_.expression, :$lexical);";
-                    self.declare($attr, "\$lexical_$attr");
+                    line Q:b:s:f"my $temp_lexical; my $temp_perl_lexical; \$lexpads->[-1]{'$attr'} = $.e($_.expression, :lexical($temp_lexical), :perl-lexical($temp_perl_lexical)); my $lexical = $temp_lexical; my $perl-lexical = $temp_perl_lexical;";
+                    self.declare(Declaration.new(:name($attr), :lexical("\$lexical_$attr")));
                 }
             }
             else {
@@ -292,7 +306,7 @@ multi method e(DTML::AST::In $node) {
             line 'local $self->{context} = local $local_context->{context} = my $context = blessed($sequence_item) && (!$sequence_item->isa("Python2::Type::Scalar")) ? $sequence_item : $outer;';
             line 'push @$lexpads, {';
             indented {
-                self.declare('sequence-item', 'Python2::Internals::convert_to_python_type($sequence_item)');
+                self.declare(Declaration.new(:name('sequence-item'), :lexical('Python2::Internals::convert_to_python_type($sequence_item)')));
                 line '(defined $sequence_key ? (\'sequence-key\' => $sequence_key) : ()),';
                 line "'sequence-item'   => \$sequence_item,";
                 line "'sequence-index'  => \$i,";
@@ -305,7 +319,7 @@ multi method e(DTML::AST::In $node) {
                 if ($node.has-attr('prefix')) {
                     my $prefix = $node.attr('prefix').value.subst(Q'\', Q'\\').subst("'", Q"\'", :g);
                     line "(defined \$sequence_key ? ('{$prefix}_key' => \$sequence_key) : ()),";
-                    self.declare("{$prefix}_item", 'Python2::Internals::convert_to_python_type($sequence_item)');
+                    #self.declare("{$prefix}_item", 'Python2::Internals::convert_to_python_type($sequence_item)');
                     line "'{$prefix}_item'   => \$sequence_item,";
                     line "'{$prefix}_index'  => \$i,";
                     line "'{$prefix}_number' => \$i + 1,";

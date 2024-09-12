@@ -14,6 +14,19 @@ class DTML::AST::Expression is Node {
         }
         $code.subst('"', '\"', :g)
     }
+
+    method calculate-types(Python2::AST::Type $context?) {
+        $.context = $context;
+        if $.word {
+            given $.word {
+                $.type = Python2::AST::Request when 'REQUEST';
+            }
+        }
+        else {
+            $.expression.calculate-types($context);
+            $.type = $.expression.type;
+        }
+    }
 }
 
 class DTML::AST::Attribute is Node {
@@ -27,7 +40,7 @@ class DTML::AST::Attribute is Node {
 }
 
 role DTML::AST::WithAttributes {
-    has @.attributes;
+    has Node @.attributes;
 
     method has-attr($name) {
         @!attributes and @!attributes.any.name eq $name
@@ -40,7 +53,12 @@ role DTML::AST::WithAttributes {
 
 class DTML::AST::Template is Node {
     has Str $.input;
-    has @.chunks;
+    has Node @.chunks;
+
+    method calculate-types(Python2::AST::Type $context?) {
+        $.context = Python2::AST::ZMSObject;
+        .calculate-types(Python2::AST::ZMSObject) for @.chunks;
+    }
 }
 
 class DTML::AST::Content is Node {
@@ -50,6 +68,12 @@ class DTML::AST::Content is Node {
 class DTML::AST::Declaration is Node {
     has Str $.name;
     has DTML::AST::Expression $.expression;
+
+    method calculate-types(Python2::AST::Type $context?) {
+        $.context = $context;
+        $.expression.calculate-types($context);
+        $.type = $.expression.type;
+    }
 }
 
 class DTML::AST::Var is Node does DTML::AST::WithAttributes {
@@ -70,24 +94,37 @@ class DTML::AST::Return is Node does DTML::AST::WithAttributes {
 class DTML::AST::If is Node {
     has $.if = 'if';
     has DTML::AST::Expression $.expression;
-    has @.then;
-    has @.elif;
-    has @.else;
+    has Node @.then;
+    has Node @.elif;
+    has Node @.else;
 }
 
 class DTML::AST::Elif is Node {
     has DTML::AST::Expression $.expression;
-    has @.chunks;
+    has Node @.chunks;
 }
 
 class DTML::AST::Let is Node {
-    has @.declarations;
-    has @.chunks;
+    has Node @.declarations;
+    has Node @.chunks;
+
+    method calculate-types(Python2::AST::Type $context?) {
+        $.context = $context;
+        .calculate-types($context) for @.declarations;
+        .calculate-types($context) for @.chunks;
+    }
 }
 
 class DTML::AST::With is Node {
     has DTML::AST::Expression $.expression;
-    has @.chunks;
+    has Node @.chunks;
+
+    method calculate-types(Python2::AST::Type $context?) {
+        $.context = $context;
+        $.expression.calculate-types($context);
+        my $inner-context = $.expression.type;
+        .calculate-types($inner-context) for @.chunks;
+    }
 }
 
 class DTML::AST::In is Node does DTML::AST::WithAttributes {
@@ -96,7 +133,11 @@ class DTML::AST::In is Node does DTML::AST::WithAttributes {
     has DTML::AST::Attribute $.end;
     has DTML::AST::Attribute $.size;
     has DTML::AST::Expression $.expression;
-    has @.chunks;
+    has Node @.chunks;
+
+    method calculate-type(Python2::AST::Type $context?) {
+        $.context = Python2::AST::Type;
+    }
 }
 
 class DTML::AST::Call is Node {
@@ -104,8 +145,8 @@ class DTML::AST::Call is Node {
 }
 
 class DTML::AST::Try is Node {
-    has @.chunks;
-    has @.except;
+    has Node @.chunks;
+    has Node @.except;
 }
 
 class DTML::AST::Raise is Node {

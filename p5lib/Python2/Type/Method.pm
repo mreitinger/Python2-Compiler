@@ -7,7 +7,7 @@ use strict;
 use Scalar::Util qw/ refaddr /;
 
 sub new {
-    my ($self, $pstack, $object) = @_;
+    my ($self, $pstack, $object, $name, $code) = @_;
 
     die("Python2::Type::Method created without object")
         unless ref($object);
@@ -15,6 +15,8 @@ sub new {
     return bless({
         stack  => Python2::Stack->new($pstack),
         object => $object,
+        name => $name,
+        code => $code,
     }, $self);
 }
 
@@ -43,5 +45,17 @@ sub __tonative__ {
 }
 
 sub __type__ { return 'method'; }
+
+sub __name__ {
+    my ($self) = @_;
+
+    return $self->{name};
+}
+
+sub __call__ {
+    my $self = shift;
+
+    return $self->{code}->($self, @_);
+}
 
 1;

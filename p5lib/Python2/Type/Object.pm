@@ -11,14 +11,32 @@ use Scalar::Util qw/ refaddr /;
 use Clone 'clone';
 
 sub new {
-    my ($self) = @_;
+    my ($self, $name, $parent, $build) = @_;
 
     return bless({
-        stack => Python2::Stack->new($Python2::builtins)
+        stack => Python2::Stack->new($Python2::builtins),
+        name => $name,
+        parent => $parent, #TODO
+        build => $build,
     }, shift);
 }
 
 sub __is_py_true__  { 1; }
+
+sub NAME {
+    my ($self) = @_;
+
+    return $self->{name};
+}
+
+sub __build__ {
+    my ($self, $object) = @_;
+
+    $self->{parent}->__build__($object) if $self->{parent};
+    $self->{build}->($object) if $self->{build};
+
+    return $self;
+}
 
 sub can {
     my ($self, $method_name) = @_;
@@ -72,7 +90,7 @@ sub __str__ {
 sub __call__ {
     my $object          = clone(shift @_);
 
-    $object->__build__();
+    $object->__build__($object);
 
     # TODO - check parent stack for __init__
     # {} for unused named variables
@@ -80,8 +98,6 @@ sub __call__ {
 
     return $object;
 }
-
-sub __build__ {}
 
 sub AUTOLOAD {
     our $AUTOLOAD;

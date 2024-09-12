@@ -2,6 +2,17 @@ use Python2::AST;
 use Digest::SHA1::Native;
 use Python2::ParseFail;
 
+role Declaration {
+    has Str $.name;
+    has Str $.lexical;
+    has Str $.perl-lexical;
+    has Python2::AST::Type $type;
+
+    method Str() {
+        $.lexical
+    }
+}
+
 class Python2::Backend::Perl5 {
     has Str $!o = '';
     has Str %.modules;
@@ -19,10 +30,10 @@ class Python2::Backend::Perl5 {
             %.names{$name}:exists
         }
 
-        method declare($name, $lexical) {
-            die "$name already declared in this scope" if self.has-name($name);
-            if $name ~~ /^\w+$/ {
-                %.names{$name} = $lexical;
+        method declare(Declaration $decl) {
+            die "$decl.name() already declared in this scope" if self.has-name($decl.name);
+            if $decl.name ~~ /^\w+$/ {
+                %.names{$decl.name} = $decl;
             }
             else {
                 Nil
@@ -35,16 +46,19 @@ class Python2::Backend::Perl5 {
     }
 
     method leave-scope() {
+        die "leave-scope when no more scopes available!" unless @.scopes;
         @.scopes.pop;
     }
 
-    method has-name($name) {
-        #@.scopes.reverse.grep(*.has-name($name)).head.name($name)
+    multi method has-name($name) {
+        @.scopes.reverse.grep(*.has-name($name)).head.name($name)
+    }
+    multi method has-name($name, :current-scope-only($)!) {
         @.scopes && @.scopes[*-1].has-name($name) ?? @.scopes[*-1].name($name) !! Nil
     }
 
-    method declare($name, $lexical) {
-        @.scopes[*-1].declare($name, $lexical);
+    method declare(Declaration $decl) {
+        @.scopes[*-1].declare($decl);
     }
 
     # Wrapper used for complete scripts
@@ -191,12 +205,22 @@ class Python2::Backend::Perl5 {
 
     # root node: iteral over all statements and create perl code for them
     multi method e(
-        Python2::AST::Node::Root $node,
+        Python2::AST::Node::RootBlock $node,
         Bool :$module where { not $_ },
-        Bool :$expression where { not $_ },
         Str :$embedded
     ) {
-        for ($node.nodes) {
+        self.enter-scope;
+        for $node.declarations -> $decl {
+            for $decl.decls -> $name-node {
+                my $name = $name-node.name;
+                unless self.has-name($name) {
+                    self.declare(Declaration.new(:$name, :lexical('$lexical_' ~ $name)));
+                    $!o ~= Q:c:b[my $lexical_{ $name };\n];
+                }
+            }
+        }
+
+        for ($node.statements) {
             $!o ~= $.e($_);
         }
 
@@ -219,14 +243,15 @@ class Python2::Backend::Perl5 {
         unless ($embedded) {
             $output ~= sprintf($!autoexec, $class_sha1_hash);
         }
+        self.leave-scope;
+        die "Imbalanced enter/leave scope detected! @.scopes.elems() scopes left" if @.scopes;
 
         return $output;
     }
 
     # compile a single expression
     multi method e(
-        Python2::AST::Node::Root $node,
-        Bool :$expression where { $_ },
+        Python2::AST::Node::RootExpression $node,
         Str  :$embedded!
     ) {
         for ($node.nodes) {
@@ -255,14 +280,26 @@ class Python2::Backend::Perl5 {
 
     # handles 'from <module> import <names>'
     multi method e(
-        Python2::AST::Node::Root $node,     # the root node of our AST tree
+        Python2::AST::Node::RootBlock $node,     # the root node of our AST tree
         Bool :$module where { $_ },         # this method handles modules  - match where $module is true
         Str :$embedded is required,         # if we are compiling a module embedding must be set - see ::Compiler for details
         :@import-names is required,         # optional - list of names to limit what we import (from X import <imput-names>)
     ) {
         my Str $p5; # code for the complete module definition
 
-        for $node.nodes -> $node {
+        self.enter-scope;
+
+        for $node.declarations -> $decl {
+            for $decl.decls -> $name-node {
+                my $name = $name-node.name;
+                unless self.has-name($name) {
+                    self.declare(Declaration.new(:$name, :lexical('$lexical_' ~ $name)));
+                    $p5 ~= Q:c:b[our $lexical_{ $name };\n];
+                }
+            }
+        }
+
+        for $node.statements -> $node {
             # restricted by grammar - sanity check only
             die("Expected statement") unless $node ~~ Python2::AST::Node::Statement;
 
@@ -273,20 +310,13 @@ class Python2::Backend::Perl5 {
             # around for the one-off run of the init block
             if $node.statement ~~ Python2::AST::Node::Statement::FunctionDefinition {
                 $p5-statement ~= $.e($node);
-                $!o ~= $p5-statement if @import-names.grep($node.statement.name.name);
             }
             elsif $node.statement ~~ Python2::AST::Node::Statement::ClassDefinition {
                 $p5-statement ~= $.e($node);
-                $!o ~= $p5-statement if @import-names.grep($node.statement.name.name);
             }
             elsif $node.statement ~~ Python2::AST::Node::Statement::VariableAssignment {
                 # the complete node, for initialization
                 $p5-statement ~= $.e($node);
-
-
-                # the filtered assignment, for our namespace
-                $node.statement.name-filter = @import-names;
-                $!o ~= $.e($node);
             }
             else {
                 $p5-statement ~= $.e($node);
@@ -297,6 +327,8 @@ class Python2::Backend::Perl5 {
 
         # sha1 hash of our input - used to identify the main clas
         my Str $class_sha1_hash = sha1-hex($node.input);
+
+        self.leave-scope;
 
         my Str $output = sprintf(
             $!module-wrapper,               # wrapper / sprintf definition
@@ -314,15 +346,15 @@ class Python2::Backend::Perl5 {
         return $output;
     }
 
-    multi method e(Python2::AST::Node::Atom $node) {
+    multi method e(Python2::AST::Node::Atom $node, Bool :$declaration = False) {
         if ($node.expression ~~ Python2::AST::Node::Name) {
             my $recurse = $node.recurse ?? 1 !! 0;
-            if self.has-name($node.expression.name) -> $lexical {
+            if !$declaration and self.has-name($node.expression.name) -> $lexical {
                 $lexical
             }
             else {
                 my $expression = $.e($node.expression);
-                if $node.expression.must-resolve {
+                if $node.expression.must-resolve and not $declaration {
                     Q:s:b |Python2::Internals::getvar(\$stack, $recurse, $expression)|
                 }
                 else {
@@ -331,6 +363,30 @@ class Python2::Backend::Perl5 {
             }
         } else {
             $.e($node.expression);
+        }
+    }
+    multi method perl(Python2::AST::Node::Atom $node, Bool :$declaration = False) {
+        if ($node.expression ~~ Python2::AST::Node::Name) {
+            my $recurse = $node.recurse ?? 1 !! 0;
+            if !$declaration and self.has-name($node.expression.name) -> $lexical {
+                $lexical.perl-lexical
+            }
+            else {
+                if $declaration {
+                    Str
+                }
+                else {
+                    if $node.expression.name eq 'REQUEST' {
+                        '$request'
+                    }
+                    else {
+                        my $expression = $.e($node.expression);
+                        Q:s:b |Python2::Internals::getvar(\$stack, $recurse, $expression)->__tonative__|
+                    }
+                }
+            }
+        } else {
+            Str
         }
     }
 
@@ -368,7 +424,7 @@ class Python2::Backend::Perl5 {
                 next unless $full-path.IO.e;
 
                 my $input = $full-path.IO.slurp;
-                $p5 = $.compiler.compile(
+                $p5 = $.compiler.new.compile(
                     $input,
                     :module(True),
                     :embedded($import-sha1-hash),
@@ -376,6 +432,12 @@ class Python2::Backend::Perl5 {
                 );
 
                 last if $p5;
+            }
+
+            if $p5 {
+                for $node.import-names.names>>.name -> $name {
+                    self.declare(Declaration.new(:$name, :lexical("\$Python2::Type::Class::main_{$import-sha1-hash}::lexical_$name")));
+                }
             }
 
             %!modules{$import-sha1-hash} = $p5 if $p5;
@@ -443,9 +505,36 @@ class Python2::Backend::Perl5 {
 
         return $p5;
     }
+    multi method perl(Python2::AST::Node::ArgumentList $node) {
+        my @positional-arguments;
+
+        for $node.arguments -> $argument {
+            if $argument.name {
+                return Str
+            }
+            else {
+                return Str if $argument.splat;
+                @positional-arguments.append($argument);
+            }
+        }
+
+        my Str $p5 = '';
+
+        if @positional-arguments {
+            # positional arguments get passed as regular arguments to the perl sub
+            $p5 ~= @positional-arguments.map({
+                $.perl($_) // return Str
+            }).join(', ');
+        }
+
+        return $p5;
+    }
 
     multi method e(Python2::AST::Node::Argument $node) {
         return $.e($node.value);
+    }
+    multi method perl(Python2::AST::Node::Argument $node) {
+        return $.perl($node.value);
     }
 
     # Statements
@@ -592,7 +681,8 @@ class Python2::Backend::Perl5 {
 
             my Int $index = 0;
             for $node.names -> $name {
-                $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var->[%i]);', $.e($name), $index++);
+                my $lexical = self.has-name($name.name);
+                $p5 ~= "$lexical = \$var->[{ $index++ }]; ";
             }
 
             $p5 ~= sprintf('%s', $.e($node.block));
@@ -606,9 +696,9 @@ class Python2::Backend::Perl5 {
         }
         else {
             # single name, raw values from a list/tuple
-            $p5 ~= 'foreach my $var ($i->ELEMENTS) {';
-            $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.names[0]));
-            $p5 ~= sprintf('%s }', $.e($node.block));
+            my $lexical = self.has-name($node.names[0].name);
+            # Beware: can't just use foreach $lexical as then that variable will be implicitly localized, see perlsyn
+            $p5 ~= "foreach (\$i->ELEMENTS) \{ $lexical = \$_; $.e($node.block) \}";
         }
 
         return $p5 ~ ' } ';
@@ -634,13 +724,15 @@ class Python2::Backend::Perl5 {
         $p5 ~= 'die Python2::Type::Exception->new("TypeError", "expected iterable but got " . $i->__type__) unless ($i->__type__ =~ m/^list|tuple$/);';
 
         $p5 ~= 'foreach my $var ($i->ELEMENTS) {';
-        $p5 ~= sprintf('Python2::Internals::setvar($stack, %s, $var);', $.e($node.name));
+        self.enter-scope;
+        self.declare(Declaration.new(:name($node.name.name), :lexical('$var')));
 
         $p5 ~= sprintf('next unless %s->__tonative__;', $.e($node.condition))
             if ($node.condition);
 
         $p5 ~= sprintf('$r->__iadd__(%s);', $.e($node.test));
         $p5 ~= '}';
+        self.leave-scope;
 
         return $p5 ~ 'return $r; }->()';
     }
@@ -834,55 +926,67 @@ class Python2::Backend::Perl5 {
         # If this Function belongs to a Class this will point to it triggering Method generation
         Python2::AST::Node::Statement::ClassDefinition    $class?
     ) {
-        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
+        self.enter-scope;
 
         my Str $block;
 
         # local stack frame for this function
-        $block ~= 'my $self = shift; my $stack = $self->{stack}->clone;';
+        $block ~= Q:b/my $self = shift; my $stack = $self->{stack}->clone;\n/;
+        $block ~= Q:b/my $nameds = pop if @_ and defined $_[-1] and ref($_[-1]) eq "Python2::NamedArgumentsHash";\n/;
+        $block ~= Q:b/unshift @_, $self->{object};\n/ if $class;
 
         # argument definition containing, if present, default vaules
         my Str $argument-definition = '';
         for $node.argument-list -> $argument {
-            $argument-definition  ~= sprintf('[ \'%s\', %s, %i ],',
-                $argument.name.name,
-                $argument.default-value ?? $.e($argument.default-value) !! 'undef',
-                $argument.splat,
-            );
+            my $name = $argument.name.name;
+            self.declare(Declaration.new(:$name, :lexical('$lexical_' ~ $name)));
+            if $argument.splat == 1 {
+                $block ~= Q:c:b[my $lexical_{ $name } = Python2::Type::Tuple->new(@_);\n];
+            }
+            elsif $argument.splat == 2 {
+                $block ~= Q:c:b[my $lexical_{ $name } = Python2::Type::Dict->new(%$nameds);\n];
+            }
+            else {
+                $block ~= Q:c:b[my $lexical_{ $name } = $nameds && exists $nameds->\{{ $name }\} ? delete $nameds->\{{ $name }\} : @_ ? shift : { $argument.default-value ?? $.e($argument.default-value) !! 'undef' };\n];
+            }
         }
 
-        # call Python2::Python2::Internals::getopt() to parse our arguments
-        $block ~= sprintf('Python2::Internals::getopt($stack, \'%s\', [%s], %s);',
-            $node.name.name.subst("'", "\\'", :g),
-            $argument-definition,
-            $class ?? '$self->{object}, @_' !! '@_',
-        );
+        for $node.declarations -> $decl {
+            for $decl.decls -> $name-node {
+                my $name = $name-node.name;
+                unless self.has-name($name, :current-scope-only) {
+                    self.declare(Declaration.new(:$name, :lexical('$lexical_' ~ $name)));
+                    $block ~= Q:c:b[my $lexical_{ $name };\n];
+                }
+            }
+        }
 
         # the actual function body
-        $block ~= $.e($node.block);
+        my $body = $.e($node.block);
+
+        $block ~= $body;
+
 
         # if the function body contains a return statement it will execute before this
         $block   ~= 'return Python2::Type::Scalar::None->new();';
 
-        # the call to shift to get rid of $self which we don't need in this case.
-        %!modules{$perl5_class_name} = sprintf(
-            'package %s { use base qw/ Python2::Type::%s /; use Python2; sub __name__ { %s }; sub __call__ { %s } }',
-            $perl5_class_name,
-            $class ?? 'Method' !! 'Function',
-            $.e($node.name),
-            $block,
-        );
+        self.leave-scope;
 
-        return sprintf('Python2::Internals::setvar($stack, %s, %s->new(%s));',
-            $.e($node.name),
-            $perl5_class_name,
-            $class ?? '$stack, $self' !! '$stack',
-        );
+        if $class {
+            return "Python2::Internals::setvar(\$stack, $.e($node.name), Python2::Type::Method->new(\$stack, \$self, $.e($node.name), sub \{ $block \}));";
+        }
+        else {
+            my $lexical = self.has-name($node.name.name, :current-scope-only);
+            unless $lexical {
+                my $name = $node.name.name;
+                self.declare(Declaration.new(:$name, :lexical('$lexical_' ~ $name)));
+                $lexical = '$lexical_' ~ $node.name.name;
+            }
+            return "Python2::Internals::setvar(\$stack, $.e($node.name), $lexical = Python2::Type::Def->new(\$stack, $.e($node.name), sub \{ $block \}));";
+        }
     }
 
     multi method e(Python2::AST::Node::LambdaDefinition $node) {
-        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
-
         my Str $block;
 
         self.enter-scope;
@@ -893,7 +997,8 @@ class Python2::Backend::Perl5 {
 
         # get arguments
         for $node.argument-list -> $argument {
-            my $lexical = self.declare($argument.name.name, "\$__arg__$argument.name.name()");
+            my $name = $argument.name.name;
+            my $lexical = self.declare(Declaration.new(:$name, :lexical('$__arg__' ~ $name)));
             $lexical = "my $lexical = " if $lexical;
             my $input = $argument.splat == 1
                 ?? 'Python2::Type::List->new(@_)'
@@ -906,56 +1011,39 @@ class Python2::Backend::Perl5 {
         # the actual function body
         $block ~= sprintf(Q:b'        my $retvar = %s;\n        return $retvar;', $.e($node.block));
 
-        %!modules{$perl5_class_name} = sprintf(
-            q:b:to/PACKAGE/,
-            package %s {
-                use base qw/ Python2::Type::Function /;
-                use Python2;
-                sub __name__ { "lambda" }
-                sub __call__ {
-                    %s
-                }
-            }
-            PACKAGE
-            $perl5_class_name,
-            $block,
-        );
-
         self.leave-scope;
 
-        return sprintf('%s->new($stack)', $perl5_class_name);
+        return Q:s:b[Python2::Type::Lambda->new(\$stack, sub { $block })];
     }
 
     multi method e(Python2::AST::Node::Statement::ClassDefinition $node) {
-        my Str $perl5_class_name = 'Python2::Type::Class::class_' ~ sha1-hex($node.start-position ~ $.e($node.block));
-        my Str $preamble = 'use Python2; use Python2::Type::Object;';
+        self.enter-scope;
 
-        # everything in %!modules will be placed at the beginning of the code
-        %!modules{$perl5_class_name} = sprintf(
-            # we inject the base class at runtime by setting up @Package::ISA
-            'package %s { %s sub NAME { \'%s\' }; sub __build__ { my $self = $_[0]; $self->SUPER::__build__(); my $stack = $self->{stack}; %s; return $self; } }',
-            $perl5_class_name,
-            $preamble,
-            $node.name.name.subst("'", "\\'", :g),
-            $.e($node.block, $node)
-        );
-
-        my Str $p5;
-
-        if $node.base-class {
-            $p5 ~= sprintf(q|my $base_class = Python2::Internals::getvar($stack, 1, '%s'); $%s::ISA[0] = ref($base_class);|, $node.base-class.name, $perl5_class_name);
+        for $node.declarations -> $decl {
+            for $decl.decls -> $name-node {
+                my $name = $name-node.name;
+                # Prevent us from finding a lexical with same name in outer scope
+                self.declare(Declaration.new(:$name, :lexical("Python2::Internals::getvar(\$stack, 0, $.e($name-node), 1)"))) unless self.has-name($name, :current-scope-only);
+            }
         }
-        else {
-            $p5 ~= sprintf(q|$%s::ISA[0] = 'Python2::Type::Object';|, $perl5_class_name);
-        };
 
+        my $body = $.e($node.block, $node);
 
-        $p5 ~= sprintf('Python2::Internals::setvar($stack, \'%s\', %s->new());',
+        self.leave-scope;
+
+        my $lexical = self.has-name($node.name.name, :current-scope-only);
+        unless $lexical {
+            my $name = $node.name.name;
+            self.declare(Declaration.new(:$name, :lexical('$lexical_' ~ $name)));
+            $lexical = '$lexical_' ~ $node.name.name;
+        }
+        return sprintf('Python2::Internals::setvar($stack, \'%s\', %s = Python2::Type::Object->new(%s, %s, sub { my $self = $_[0]; my $stack = $self->{stack};  %s }));',
             $node.name.name.subst("'", "\\'", :g),
-            $perl5_class_name,
+            $lexical,
+            $.e($node.name),
+            $node.base-class ?? $.e(Python2::AST::Node::Atom.new(expression => $node.base-class)) !! 'undef',
+            $body,
         );
-
-        return $p5;
     }
 
 
@@ -1018,11 +1106,40 @@ class Python2::Backend::Perl5 {
     multi method e(Python2::AST::Node::Call $node) {
         Q:s:c:b "{ $.e($node.atom) }->__call__($.e($node.arglist))";
     }
+    multi method perl(Python2::AST::Node::Call $node) {
+        if not $node.arglist.arguments and $node.atom.type ~~ Python2::AST::ReturnsZMSObject and my $perl = $.perl($node.atom) {
+            "$perl\->()"
+        }
+        else {
+            Q:s:c:b "{ $.e($node.atom) }->__call__($.e($node.arglist))";
+        }
+    }
 
     multi method e(Python2::AST::Node::Call::Name $node) {
         my Str $p5;
         $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.name.end-position}___"\n|;
         $p5 ~= Q:s:c:b "{ $.e($node.name) }->__call__($.e($node.arglist))";
+    }
+    multi method perl(Python2::AST::Node::Call::Name $node) {
+        if not $node.arglist.arguments and $node.name.type ~~ Python2::AST::ReturnsZMSObject and my $perl = $.perl($node.name) {
+            if $node.name.expression ~~ Python2::AST::Node::Name && $node.name.expression.name eq 'this' {
+                '$context'
+            }
+            else {
+                "$perl\->()"
+            }
+        }
+        else {
+            my $name = $node.name.expression.name;
+            $node.context.^name;
+            if ($node.context ~~ Python2::AST::ZMSObject and $node.context.method-known($name)) {
+                my $args-perl = $.perl($node.arglist) orelse return Str;
+                "\$context->$name\($args-perl)"
+            }
+            else {
+                Str
+            }
+        }
     }
 
     multi method e(Python2::AST::Node::Call::Method $node) {
@@ -1031,6 +1148,23 @@ class Python2::Backend::Perl5 {
         $p5 ~= Q:s:b "my @a = ($.e($node.arglist));";
         $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.name.end-position}___"\n|;
         $p5 ~= Q:s:b "\$p->can('$node.name.name()') ? \$p->$node.name.name()\(@a) : \$p->__getattr__(Python2::Type::Scalar::String->new('$node.name.name()'), {})->__call__(@a) })";
+    }
+    multi method perl(Python2::AST::Node::Call::Method $node) {
+        return Str unless $node.atom.type ~~ Python2::AST::PerlObject;
+
+        my $atom-perl = $.perl($node.atom) orelse return Str;
+        my $args-perl = $.perl($node.arglist) orelse return Str;
+        my Str $p5;
+
+        if $node.atom.type.method-known($node.name.name) {
+            Q:s:b "$atom-perl\->$node.name.name()\($args-perl)";
+        }
+        else {
+            $p5 ~= Q:s:b "(do { my \$p = $atom-perl;";
+            $p5 ~= Q:s:b "my @a = ($args-perl);";
+            $p5 ~= qq|\n# line 999 "___position_{$node.start-position}_{$node.name.end-position}___"\n|;
+            $p5 ~= Q:s:b "\$p->can('$node.name.name()') ? \$p->$node.name.name()\(@a) : \$p->__getattr__('$node.name.name()', 0, 1)->(@a) })";
+        }
     }
 
     multi method e(Python2::AST::Node::Expression::ArithmeticExpression $node) {
@@ -1100,13 +1234,46 @@ class Python2::Backend::Perl5 {
             Q:c "{$class}->new('{$string}')"
         }
     }
+    multi method perl(Python2::AST::Node::Expression::Literal::String $node) {
+        # TODO various escape sequences
+        my $string = $node.value
+            .subst('\"',    '"',    :g)
+            .subst('\\\'',  "'",    :g)
+        ;
+
+        # r'string' (python raw strings)
+        unless $node.raw {
+            $string = $string
+                .subst('\\\\',  '\\',   :g)
+                .subst('\\n',   "\n",   :g)
+                .subst('\\r',   "\r",   :g)
+                .subst('\\t',   "\t",   :g);
+        }
+
+        if $string.contains("'") {
+            my $p5;
+
+            $p5 ~= "\nsub \{ my \$s = <<'MAGICendOfStringMARKER';\n";
+            $p5 ~= $string;
+            $p5 ~= Q:c:b "\nMAGICendOfStringMARKER\n; chomp(\$s); return \$s; }->()";
+        }
+        else {
+            Q:c "'{$string}'"
+        }
+    }
 
     multi method e(Python2::AST::Node::Expression::Literal::Integer $node) {
         return sprintf('Python2::Type::Scalar::Num->new(%s)', $node.value);
     }
+    multi method perl(Python2::AST::Node::Expression::Literal::Integer $node) {
+        return $node.value;
+    }
 
     multi method e(Python2::AST::Node::Expression::Literal::Float $node) {
         return sprintf('Python2::Type::Scalar::Num->new(%s)', $node.value)
+    }
+    multi method perl(Python2::AST::Node::Expression::Literal::Float $node) {
+        return $node.value;
     }
 
     multi method e(Python2::AST::Node::Subscript $node) {
@@ -1144,6 +1311,31 @@ class Python2::Backend::Perl5 {
         elsif $node.tests.elems == 1 {
             # if a tuple would only contain a single element python disregards the parenthesis
             return sprintf('%s', $.e($node.tests[0]));
+        }
+
+        else {
+            die("Invalid TestList"); # should be unreachable
+        }
+    }
+    multi method perl(Python2::AST::Node::Expression::TestList $node) {
+        # empty tuple "x = ()" becomes an empty tuple
+        if ($node.tests.elems == 0) {
+            return 'Python2::Type::Tuple->new()->__tonative__()';
+        }
+
+        # tuple with multiple values "x = (1, 2, 3)" - regular tuple
+        elsif $node.tests.elems > ($node.trailing-comma ?? 0 !! 1) {
+            return sprintf('Python2::Type::Tuple->new(%s)->__tonative__()',
+                $node.tests.map({
+                        qq|\n# line 999 "___position_{$_.start-position}_{$_.end-position}___"\n|
+                    ~   self.e($_)
+                }).join(', ')
+            );
+        }
+
+        elsif $node.tests.elems == 1 {
+            # if a tuple would only contain a single element python disregards the parenthesis
+            return $.perl($node.tests[0]);
         }
 
         else {
@@ -1226,6 +1418,15 @@ class Python2::Backend::Perl5 {
     }
 
     multi method e(Any:U $node) {
+        die("Perl 5 backed for undefined node not implemented: {$node.^name}");
+    }
+
+    # Fallback
+    multi method perl(Any:D $node) {
+        Str # Can't do Perl directly, so caller will generate Python through $.e instead
+    }
+
+    multi method perl(Any:U $node) {
         die("Perl 5 backed for undefined node not implemented: {$node.^name}");
     }
 }

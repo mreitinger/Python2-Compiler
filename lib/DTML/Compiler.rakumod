@@ -8,7 +8,7 @@ use Python2::CompilationError;
 
 unit class DTML::Compiler;
 
-method compile(Str $input, Str :$embedded) {
+method compile(Str $input, Str :$embedded, Bool :$unoptimized = True, Bool :$optimized = True) {
     my $backend = DTML::Backend::Perl5.new(:compiler(self));
     my $ast = DTML::Grammar.new.parse($input, :actions(DTML::Actions.new)).ast;
     CATCH {
@@ -22,10 +22,10 @@ method compile(Str $input, Str :$embedded) {
             self.handle-parse-fail(:$input, :pos($_.pos), :what($_.what));
         }
     }
-    note $ast;
-    my $perl = $backend.e($ast, :$embedded);
-    note $perl;
-    $perl
+    my $perl = $unoptimized ?? $backend.e($ast, :$embedded) !! '';
+    $ast.calculate-types;
+    my $optimized-perl = $optimized ?? $backend.e($ast, :$embedded) !! '';
+    $perl ~ ($unoptimized && $optimized ?? 'ses23dxFAh8NI9iPbIGzbdxSgGabFA07' !! '') ~ $optimized-perl
 }
 
 method handle-parse-fail(Str :$input, Int :$pos is copy, Str :$what?) {

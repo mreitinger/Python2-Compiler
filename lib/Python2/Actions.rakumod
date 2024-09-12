@@ -46,12 +46,12 @@ package Python2::Actions {
         does Python2::Actions::Fallback
     {
         method TOP ($/) {
-            my $root = Python2::AST::Node::Root.new(
+            my $root = Python2::AST::Node::RootBlock.new(
                 input => $/.orig,
             );
 
             for $<statement> -> $statement {
-                $root.nodes.push($statement.made)
+                $root.statements.push($statement.made)
                     unless $statement === Nil;
             }
 
@@ -65,7 +65,7 @@ package Python2::Actions {
         does Python2::Actions::Fallback
     {
         method TOP ($/) {
-            my $root = Python2::AST::Node::Root.new(
+            my $root = Python2::AST::Node::RootExpression.new(
                 input => $/.orig,
                 nodes => $/<test>.made,
             );

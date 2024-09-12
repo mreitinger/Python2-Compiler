@@ -1,7 +1,9 @@
-from Test.ModuleWithBody import x, z
+from Test.ModuleWithBody import x, z, baz
 
 print x
 print z # check for multi-target variable assignment
+
+baz(1)
 
 try:
     print y

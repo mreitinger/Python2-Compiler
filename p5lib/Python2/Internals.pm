@@ -53,7 +53,7 @@ sub getvar : lvalue {
 
     $call_frame->has($name)
         ? $call_frame->get($name)
-        : $stack->get($name);
+        : $stack->get($name, $gracefully);
 }
 
 sub import_module {
