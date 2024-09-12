@@ -6,6 +6,9 @@ use base qw/ Python2::Type::Scalar /;
 use warnings;
 use strict;
 
+use overload
+    '0+' => sub { return 0 + $_[0]->$*; };
+
 sub __str__ {return $_[0]->$*; }
 
 sub __type__ { $_[0]->$* =~ m/^\-?\d+$/ ? 'int' : 'float'; }
