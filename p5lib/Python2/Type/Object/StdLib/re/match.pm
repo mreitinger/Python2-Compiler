@@ -28,6 +28,16 @@ sub group {
     return Python2::Type::Scalar::String->new($self->{groups}->[$i]);
 }
 
+sub groups {
+    my ($self) = @_;
+
+    return Python2::Type::List->new(
+        # Skip first group as that's the complete match which Python omits from groups
+        map { Python2::Type::Scalar::String->new($_) }
+        @{ $self->{groups}->[1 .. (@{ $self->{groups} } - 1)] }
+    )
+}
+
 sub __is_py_true__ {
     1;
 }
