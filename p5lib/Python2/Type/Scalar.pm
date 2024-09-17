@@ -33,8 +33,8 @@ sub __eq__ {
     return Python2::Type::Scalar::Bool->new(0)
         if $other->__type__ eq 'none';
 
-    return Python2::Type::Scalar::Bool->new(0)
-        if $other->__type__ ne $self->__type__;
+    #return Python2::Type::Scalar::Bool->new(0)
+    #    if $other->__type__ ne $self->__type__;
 
     return Python2::Type::Scalar::Bool->new($self->__tonative__ eq $other->__tonative__);
 }
