@@ -5,6 +5,7 @@ use warnings;
 use strict;
 
 use Python2::Internals;
+use Scalar::Util qw/ refaddr /;
 
 sub new {
     my ($self, $type) = @_;
@@ -23,5 +24,17 @@ sub __getattr__ {
 
 sub __print__ { sprintf("<type '%s'>", shift->[0]); }
 sub __type__  { return 'type'; }
+
+sub __eq__  {
+    my ($self, $other) = @_;
+
+    return Python2::Type::Scalar::Bool->new(refaddr($self) == refaddr($other) ? 1 : 0);
+}
+
+sub __ne__  {
+    my ($self, $other) = @_;
+
+    return Python2::Type::Scalar::Bool->new(refaddr($self) != refaddr($other) ? 1 : 0);
+}
 
 1;
