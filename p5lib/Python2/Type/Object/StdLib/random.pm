@@ -27,6 +27,12 @@ sub seed {
     return Python2::Type::Scalar::None->new();
 }
 
+sub random {
+    my ($self) = @_;
+
+    return Python2::Type::Scalar::Num->new(rand(1));
+}
+
 sub randint {
     pop(@_); # named arguments hash, unused
 
@@ -40,6 +46,30 @@ sub randint {
 
     return Python2::Type::Scalar::Num->new(
         int($lower->__tonative__ + rand($upper->__tonative__ - $lower->__tonative__))
+    );
+}
+
+sub randrange {
+    pop(@_); # named arguments hash, unused
+
+    my ($self, $lower, $upper, $step) = @_;
+
+    my ($start, $end, $x);
+
+    if (defined $upper) {
+        my $start = $lower->__tonative__;
+        my $end = $upper->__tonative__;
+        my $x = defined($step) ? $step->__tonative__ : 1;
+    }
+    else {
+        $start = 0;
+        $end = $lower->__tonative__;
+        $x = 1;
+    }
+    my $range = int(($end - $start) / $x);
+
+    return Python2::Type::Scalar::Num->new(
+        $start + int(rand($range)) * $x
     );
 }
 
