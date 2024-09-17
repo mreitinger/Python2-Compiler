@@ -81,14 +81,18 @@ sub __getslice__ {
 
     $key     = $key->__tonative__;
     $target  = $target->__tonative__;
+    my $elems = $self->__len__;
 
-    if ($target == '-1') {
-        $target = $self->__len__->__tonative__;
+    if ($key < 0) {
+        $key = $elems->__tonative__ + 1 - $key;
+    }
+    if ($target < 0) {
+        $target = $elems->__tonative__ + 1 - $target;
     }
 
     # if the target is longer than the list cap it
-    if ($target > $self->__len__->__tonative__ ) {
-        $target = $self->__len__->__tonative__;
+    if ($target > $elems->__tonative__ ) {
+        $target = $elems->__tonative__;
     }
 
     return Python2::Type::List->new( @$self[$key .. $target - 1] );
