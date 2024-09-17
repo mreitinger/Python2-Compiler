@@ -6,7 +6,7 @@ use v5.26.0;
 use warnings;
 use strict;
 
-use Scalar::Util qw/ refaddr /;
+use Scalar::Util qw/ blessed refaddr /;
 use Data::Dumper;
 use Ref::Util::XS qw/ is_arrayref is_hashref is_coderef /;
 use Python2;
@@ -73,12 +73,11 @@ sub __getattr__ { use Carp; Carp::confess; }
 
 sub __handle_exception__ {
     my ($self, $error) = @_;
-    warn $error;
 
-    die $error if $error =~ /\Acatalyst_detach/; # Required for CMS control flow;
+    my $message = blessed($error) && $error->isa('Python2::Type::Exception') ? $error->__message__ : $error;
+    die $message if $message =~ /\Acatalyst_detach/ or $message =~ /\A Unauthorized: /xm; # Required for CMS control flow;
 
     my $output;
-    my $message;
     my $start_position;
     my $end_position;
 

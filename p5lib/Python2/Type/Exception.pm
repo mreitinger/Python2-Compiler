@@ -90,11 +90,28 @@ sub __call__ {
     return $object;
 }
 
+sub __getattr__ {
+    my ($self, $attribute_name) = @_;
+
+    die Python2::Type::Exception->new('TypeError', '__getattr__() expects a str, got ' . (defined $attribute_name ? $attribute_name->__type__ : 'nothing'))
+        unless defined $attribute_name and $attribute_name->__type__ eq 'str';
+
+    return Python2::Type::Scalar::String->new($self->[1] // $self->[0]) if $attribute_name eq 'message';
+
+    my $type = $self->[0];
+    die Python2::Type::Exception->new('AttributeError', "$type has no attribute '$attribute_name'");
+}
+
 sub message {
     my $self = shift;
     return defined $self->[1]
         ? sprintf('%s: %s', $self->[0], $self->[1])
         : $self->[0];
+}
+
+sub __message__ {
+    my $self = shift;
+    return $self->[1] // $self->[0];
 }
 
 sub __str__  {

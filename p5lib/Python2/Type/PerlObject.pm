@@ -285,7 +285,8 @@ sub AUTOLOAD {
     };
 
     if ($@) {
-        die $@ if $@ =~ /\Acatalyst_detach/; # Required for CMS control flow;
+        my $message = blessed($@) && $@->isa('Python2::Type::Exception') ? $@->__message__ : $@;
+        die $@ if $message =~ /\Acatalyst_detach/ or $message =~ /\A Unauthorized: /xm; # Required for CMS control flow;
         $|=1;
         print STDERR "Failed $requested_method with $@ caller was " . join(" ", caller) . "\n";
         die "Failed $requested_method with $@ caller was " . join(" ", caller) . "\n";
