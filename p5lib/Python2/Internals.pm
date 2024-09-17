@@ -146,6 +146,8 @@ my $arithmetic_operations = {
 
         return $left->__add__($right) if $left->can('__add__');
 
+        die Python2::Type::Exception->new('TypeError', "Cannot add undefined value") unless defined $right;
+
         if ($left->isa('Python2::Type::Scalar::Num') and ($right->isa('Python2::Type::Scalar::Num'))) {
             return Python2::Type::Scalar::Num->new($left->__tonative__ + $right->__tonative__);
         }
