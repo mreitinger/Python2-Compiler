@@ -20,6 +20,8 @@ use Python2::Type::DictType;
 use Python2::Type::ListType;
 use Python2::Type::TupleType;
 use Python2::Type::StrType;
+use Python2::Type::IntType;
+use Python2::Type::FloatType;
 use Python2::Type::Enumerate;
 use Python2::Type::Tuple;
 use Python2::Type::Dict;
@@ -46,6 +48,8 @@ our %types = (
     'tuple'         => Python2::Type::TupleType->new(),
     'dict'          => Python2::Type::DictType->new(),
     'str'           => Python2::Type::StrType->new('str'),
+    'int'           => Python2::Type::IntType->new(),
+    'float'         => Python2::Type::FloatType->new(),
 
     # Somewhat ugly: we don't have a separate unicode string and this allowes more than
     # Python does. Currently this is only used for isinstance() checks - good enough here.
@@ -92,8 +96,6 @@ our %types = (
 # builtins is used as our top level stack so it must look like one
 our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
     'sorted'        => Python2::Builtin::Sorted->new(),
-    'int'           => Python2::Builtin::Int->new(),
-    'float'         => Python2::Builtin::Float->new(),
     'hasattr'       => Python2::Builtin::Hasattr->new(),
     'map'           => Python2::Builtin::Map->new(),
     'range'         => Python2::Builtin::Range->new(),
