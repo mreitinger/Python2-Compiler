@@ -33,11 +33,12 @@ sub __tonative__ {
     my $retval = sub {
         my @argument_list = ($self, @_);
 
+        my @py_args;
         foreach my $argument (@argument_list) {
-            $argument = Python2::Internals::convert_to_python_type($argument);
+            push @py_args, Python2::Internals::convert_to_python_type($argument);
         }
 
-        my $retval = $self->__call__(@argument_list);
+        my $retval = $self->__call__(@py_args);
         return $retval->__tonative__;
     };
 

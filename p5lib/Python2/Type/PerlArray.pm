@@ -136,10 +136,11 @@ sub reverse {
 sub __contains__ {
     my ($self, $other) = @_;
 
-    foreach my $item (@{ $self->[0] }) {
-        $item = Python2::Internals::convert_to_python_type($item);
-        return Python2::Type::Scalar::Bool->new(1)
-            if $item->__eq__($other)->__tonative__;
+    foreach my $perl_item (@{ $self->[0] }) {
+        my $item = Python2::Internals::convert_to_python_type($perl_item);
+        if ($item->__eq__($other)->__tonative__) {
+            return Python2::Type::Scalar::Bool->new(1);
+        }
     }
 
     return Python2::Type::Scalar::Bool->new(0);
@@ -242,12 +243,10 @@ sub sort {
     $reverse = defined $reverse ? $reverse->__tonative__ : 0;
 
     my @result = $key
-        ?   sort {
-                $key->__call__(Python2::Internals::convert_to_python_type($a), bless({}, 'Python2::NamedArgumentsHash'))->__tonative__
-                cmp
-                $key->__call__(Python2::Internals::convert_to_python_type($b), bless({}, 'Python2::NamedArgumentsHash'))->__tonative__
-            } $self->ELEMENTS
-
+        ?   map { $_->[0] } # https://en.wikipedia.org/wiki/Schwartzian_transform
+            sort { $a->[1] cmp $b->[1] }
+            map { [$_, $key->__call__(Python2::Internals::convert_to_python_type($_), bless({}, 'Python2::NamedArgumentsHash'))->__tonative__] }
+            @{ $self->[0] }
         :   sort {
                 $a cmp $b
             } @{ $self->[0] }
