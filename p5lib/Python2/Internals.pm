@@ -29,8 +29,6 @@ sub setvar {
 sub delvar {
     my ($stack, $name) = @_;
 
-    if ($stack->has($name)) { warn 'has' . $stack->has($name); }
-
     $stack->has($name)
         ? $stack->delete($name)
         : die Python2::Type::Exception->new('NameError', "name '$name' not defined");
