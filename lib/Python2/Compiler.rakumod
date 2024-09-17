@@ -5,6 +5,7 @@ use Python2::Optimizer;
 use Python2::ParseFail;
 use Python2::CompilationError;
 
+my $lock = Lock.new;
 class Python2::Compiler {
     has Bool $.optimize = True;
     has Bool $.dumpast  = False;
@@ -19,6 +20,7 @@ class Python2::Compiler {
     has $.expression-actions    = Python2::Actions::ExpressionsOnly.new();
     has $.optimizer             = Python2::Optimizer.new();
 
+    my $lock = Lock.new;
     method compile (
             Str $input,             # Python 2 source code
 
@@ -39,7 +41,9 @@ class Python2::Compiler {
         die("Module compilation requested but no embedded named passed, check embedded parameter")
             if $module and not $embedded;
 
-        my $ast = $!parser.parse($input, actions => $!actions);
+        my $ast = $lock.protect: {
+            $!parser.parse($input, actions => $!actions);
+        }
 
         CATCH {
             # generic parser error
@@ -66,7 +70,9 @@ class Python2::Compiler {
     }
 
     method compile-expression (Str $input!, Str :$embedded!) {
-        my $ast = $.expression-parser.parse($input, actions => $!expression-actions);
+        my $ast = $lock.protect: {
+            $.expression-parser.parse($input, actions => $!expression-actions);
+        }
 
         CATCH {
             # generic parser error

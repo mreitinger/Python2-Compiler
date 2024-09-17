@@ -8,9 +8,12 @@ use Python2::CompilationError;
 
 unit class DTML::Compiler;
 
+my $lock = Lock.new;
 method compile(Str $input, Str :$embedded, Bool :$unoptimized = True, Bool :$optimized = True) {
     my $backend = DTML::Backend::Perl5.new(:compiler(self));
-    my $ast = DTML::Grammar.new.parse($input, :actions(DTML::Actions.new)).ast;
+    my $ast = $lock.protect: {
+        DTML::Grammar.new.parse($input, :actions(DTML::Actions.new)).ast;
+    }
     CATCH {
         # generic parser error
         when X::Syntax::Confused {
