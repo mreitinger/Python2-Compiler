@@ -68,10 +68,10 @@ sub __getitem__ : lvalue {
 
     my $idx = $key->__tonative__;
 
-    die Python2::Type::Exception->new('KeyError', 'No element with key ' . $idx)
-        unless $gracefully or exists $self->[$idx];
+    #die Python2::Type::Exception->new('KeyError', 'No element with key ' . $idx)
+    #    unless $gracefully or exists $self->[$idx];
 
-    return $self->[$idx];
+    return $self->[$idx] // Python2::Type::Scalar::None->new;
 }
 
 sub __iter__ { Python2::Type::List::Iterator->new(shift); }
