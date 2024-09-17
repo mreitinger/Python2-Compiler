@@ -433,7 +433,7 @@ sub encode {
     my($self, $encoding, $errors) = @_;
 
     my $str = $self->__tonative__;
-    if ($encoding =~ m/utf\-?8/) {
+    if ($encoding =~ m/utf\-?8/i) {
         warn sprintf(
             "noop encode('utf-8') used for string: '%s<truncated>'. UTF-8 is now assumed everywhere.",
             substr($str, 0, 10)
