@@ -79,22 +79,19 @@ sub import_module {
                     setvar($stack, $function_name,
                         Python2::Type::PythonMethod->new($object->can($function_name), $object)
                     );
-
-                    return;
                 }
 
-                if (
+                elsif (
                     $object->can('__hasattr__') and
                     $object->__hasattr__(Python2::Type::Scalar::String->new($function_name))->__tonative__
                 ) {
                     setvar($stack, $function_name,
                         $object->__getattr__(Python2::Type::Scalar::String->new($function_name))
                     );
-
-                    return;
                 }
-
-                die Python2::Type::Exception->new('ImportError', "Module '$name' has no attribute '$function_name'");
+                else {
+                    die Python2::Type::Exception->new('ImportError', "Module '$name' has no attribute '$function_name'");
+                }
             }
         }
 
