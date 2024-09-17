@@ -61,14 +61,39 @@ sub __print__ {
 sub __sub__ {
     my ($self, $other) = @_;
 
-    return Python2::Type::Object::StdLib::datetime::timedelta->new_from_duration(
-            $self->{datetime} - (
-            (ref($other) && $other->isa('Python2::Type::Object::StdLib::datetime::datetime'))
-            ? $other->{datetime}
-            : $other
-        )
-    );
+    return (ref($other) && $other->isa('Python2::Type::Object::StdLib::datetime::datetime'))
+        ? Python2::Type::Object::StdLib::datetime::timedelta->new_from_duration(
+            $self->{datetime} - $other->{datetime}
+          )
+        : (ref($other) && $other->isa('Python2::Type::Object::StdLib::datetime::timedelta'))
+            ? Python2::Type::Object::StdLib::datetime::datetime->new_from_datetime(
+                $self->{datetime} - $other->{duration}
+              )
+            : Python2::Type::Object::StdLib::datetime::timedelta->new_from_duration(
+                $self->{datetime} - $other
+              );
 }
+
+sub __eq__ {
+    return Python2::Type::Scalar::Bool->new($_[0]->{datetime} == $_[1]->{datetime}) if $_[1]->isa('Python2::Type::Object::StdLib::datetime::datetime');
+    die Python2::Type::Exception->new('NotImplementedError', '__eq__ between ' . $_[0]->__type__ . ' and ' . $_[1]->__type__);
+} # <
+sub __lt__ {
+    return Python2::Type::Scalar::Bool->new($_[0]->{datetime} < $_[1]->{datetime}) if $_[1]->isa('Python2::Type::Object::StdLib::datetime::datetime');
+    die Python2::Type::Exception->new('NotImplementedError', '__lt__ between ' . $_[0]->__type__ . ' and ' . $_[1]->__type__);
+} # <
+sub __gt__ {
+    return Python2::Type::Scalar::Bool->new($_[0]->{datetime} > $_[1]->{datetime}) if $_[1]->isa('Python2::Type::Object::StdLib::datetime::datetime');
+    die Python2::Type::Exception->new('NotImplementedError', '__gt__ between ' . $_[0]->__type__ . ' and ' . $_[1]->__type__);
+} # >
+sub __le__ {
+    return Python2::Type::Scalar::Bool->new($_[0]->{datetime} <= $_[1]->{datetime}) if $_[1]->isa('Python2::Type::Object::StdLib::datetime::datetime');
+    die Python2::Type::Exception->new('NotImplementedError', '__le__ between ' . $_[0]->__type__ . ' and ' . $_[1]->__type__);
+} # <=
+sub __ge__ {
+    return Python2::Type::Scalar::Bool->new($_[0]->{datetime} >= $_[1]->{datetime}) if $_[1]->isa('Python2::Type::Object::StdLib::datetime::datetime');
+    die Python2::Type::Exception->new('NotImplementedError', '__ge__ between ' . $_[0]->__type__ . ' and ' . $_[1]->__type__);
+} # >=
 
 sub today { shift->now() }
 
