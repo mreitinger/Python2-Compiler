@@ -1061,7 +1061,7 @@ subtest "embedding - bool conversion" => sub {
         my $false = $p5->__run_function__('get_false', [bless({}, 'Python2::NamedArgumentsHash')])->__tonative__;
 
         print "true-is-one\n" if $true == 1;
-        print "false-is-undef\n" unless defined $false;
+        print "false-is-zero\n" if $false == 0;
     END
 
     my $perl5;
@@ -1076,7 +1076,7 @@ subtest "embedding - bool conversion" => sub {
     diag("perl 5 STDERR: { $perl5.err.slurp } CODE:\n\n---\n$generated_perl5_code\n---\n")
         unless $perl5.exitcode == 0;
 
-    my $expected = "true-is-one\nfalse-is-undef\n";
+    my $expected = "true-is-one\nfalse-is-zero\n";
 
     is $perl5_output, $expected, 'output matches';
 };
