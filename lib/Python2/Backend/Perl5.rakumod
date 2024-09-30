@@ -1210,6 +1210,10 @@ class Python2::Backend::Perl5 {
             .subst('\\\'',  "'",    :g)
         ;
 
+        if $string eq '\r' {
+            return 'Python2::Type::Scalar::String->new("\r")';
+        }
+
         # r'string' (python raw strings)
         unless $node.raw {
             $string = $string
