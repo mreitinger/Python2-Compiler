@@ -39,7 +39,7 @@ sub append   {
 
 sub pop {
     my ($self, $index) = @_;
-    my $i = $index && ref($index) ne 'Python2::NamedArgumentsHash' ? $index->__tonative__ : -1;
+    my $i = defined $index && ref($index) ne 'Python2::NamedArgumentsHash' ? $index->__tonative__ : -1;
     return splice @$self, $i, 1;
 }
 
