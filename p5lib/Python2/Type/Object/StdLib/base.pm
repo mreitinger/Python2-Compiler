@@ -23,6 +23,23 @@ sub __str__ {
     return sprintf('<PythonObject at %s>', refaddr($self));
 }
 
+sub __hasattr__ {
+    my $self = shift;
+    my $named_arguments = pop;
+    my $attribute_name = shift;
+
+    die Python2::Type::Exception->new('TypeError', '__hasattr__() expects a str, got ' . (defined $attribute_name ? $attribute_name->__type__ : 'nothing'))
+        unless defined $attribute_name and $attribute_name->__type__ eq 'str';
+
+    $attribute_name = $attribute_name->__tonative__;
+
+    return Python2::Type::Scalar::Bool->new(
+        defined $self->{stack}->[1]->{$attribute_name}
+        || $self->can($attribute_name)
+        ? 1 : 0
+    );
+}
+
 sub __getattr__ {
     my $self = shift;
     my $named_arguments = pop;

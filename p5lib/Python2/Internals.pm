@@ -83,7 +83,7 @@ sub import_module {
 
                 elsif (
                     $object->can('__hasattr__') and
-                    $object->__hasattr__(Python2::Type::Scalar::String->new($function_name))->__tonative__
+                    $object->__hasattr__(Python2::Type::Scalar::String->new($function_name), bless({}, 'Python2::NamedArgumentsHash'))->__tonative__
                 ) {
                     setvar($stack, $function_name,
                         $object->__getattr__(Python2::Type::Scalar::String->new($function_name))
