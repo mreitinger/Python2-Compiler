@@ -7,6 +7,7 @@ use warnings;
 use strict;
 
 use File::Spec;
+use File::Basename ();
 use List::MoreUtils;
 
 
@@ -32,6 +33,17 @@ sub isfile {
         unless defined $path and $path->__type__ eq 'str';
 
     return Python2::Type::Scalar::Bool->new(-f $path);
+}
+
+sub basename {
+    pop; # unused named arguments hash
+    my ($self, $path) = @_;
+
+    die Python2::Type::Exception->new('TypeError', sprintf("basename() expects a string but got '%s'", defined $path ? $path->__type__ : 'nothing'))
+        unless defined $path and $path->__type__ eq 'str';
+
+    return Python2::Type::Scalar::String->new('') if $path =~ m!/$!;
+    return Python2::Type::Scalar::String->new(File::Basename::basename($path));
 }
 
 sub getsize {
