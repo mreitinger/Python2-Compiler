@@ -37,8 +37,14 @@ sub append   {
     return Python2::Type::Scalar::None->new();
 }
 
+sub pop {
+    my ($self, $index) = @_;
+    my $i = $index && ref($index) ne 'Python2::NamedArgumentsHash' ? $index->__tonative__ : -1;
+    return splice @$self, $i, 1;
+}
+
 sub extend {
-    pop @_;
+    CORE::pop @_;
     my ($self, $value) = @_;
 
     die Python2::Type::Exception->new('TypeError', 'extend() expects a list, got nothing')
@@ -245,7 +251,7 @@ sub remove {
 
 sub sort {
     my $self = shift;
-    my $named_arguments = pop;
+    my $named_arguments = CORE::pop();
 
     @$self = Python2::Builtin::Sorted->new()->__call__(
         $self,
