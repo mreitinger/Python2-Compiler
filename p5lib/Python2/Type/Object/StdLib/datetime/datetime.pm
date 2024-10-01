@@ -156,6 +156,12 @@ sub strptime {
     return $self->new_from_datetime($obj);
 }
 
+sub weekday {
+    my ($self) = @_;
+
+    return Python2::Type::Scalar::Num->new($self->{datetime}->dow - 1);
+}
+
 sub __tonative__ { $_[0] }
 
 sub __getattr__ {
