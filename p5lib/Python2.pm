@@ -95,6 +95,7 @@ our %types = (
 
 # builtins is used as our top level stack so it must look like one
 our $builtins = Python2::Stack->new(undef, Python2::Stack::Frame->new({
+    'reversed'      => Python2::Builtin::Reversed->new(),
     'sorted'        => Python2::Builtin::Sorted->new(),
     'hasattr'       => Python2::Builtin::Hasattr->new(),
     'map'           => Python2::Builtin::Map->new(),

@@ -5,6 +5,7 @@ use strict;
 
 use Python2::Builtin::Int;
 use Python2::Builtin::Float;
+use Python2::Builtin::Reversed;
 use Python2::Builtin::Sorted;
 use Python2::Builtin::Hasattr;
 use Python2::Builtin::Map;
